@@ -1,14 +1,10 @@
-/* ==================================== */
-/* 🔑 TRANG ĐĂNG KÝ VÀ ĐĂNG NHẬP (auth.css) */
-/* ==================================== */
-
 .auth-main {
     display: flex;
     justify-content: center;
-    align-items: flex-start; /* Căn trên để không bị kéo dãn khi nội dung dài */
-    min-height: calc(100vh - 100px); /* Đảm bảo chiều cao tối thiểu trừ header/footer */
+    align-items: flex-start;
+    min-height: calc(100vh - 100px); 
     padding: 50px 20px;
-    background-color: #f7f9fc; /* Nền sáng */
+    background-color: #f7f9fc; 
 }
 
 .auth-card {
@@ -17,7 +13,7 @@
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     width: 100%;
-    max-width: 420px; /* Giới hạn chiều rộng của form */
+    max-width: 420px; 
     margin-bottom: 50px;
 }
 
@@ -47,7 +43,6 @@
     margin: 0;
 }
 
-/* Định kiểu Form */
 .auth-form {
     display: flex;
     flex-direction: column;
@@ -84,7 +79,6 @@
     margin-top: 15px;
 }
 
-/* Nút Đăng ký/Đăng nhập */
 .auth-button {
     width: 100%;
     padding: 12px;
@@ -125,7 +119,6 @@
     color: #1e40af;
 }
 
-/* RESPONSIVE */
 @media (max-width: 500px) {
     .auth-card {
         padding: 25px 30px;

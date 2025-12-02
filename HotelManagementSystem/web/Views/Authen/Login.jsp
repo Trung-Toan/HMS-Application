@@ -10,58 +10,63 @@
         <!-- Google Font -->
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
+        <!-- Dùng chung CSS với Register -->
         <link rel="stylesheet" href="CSS/Authen/login.css">
     </head>
 
-    <body class="login-page">
+    <body class="auth-page">
 
-        <!-- Include Header -->
         <%@include file="../Components/Header.jsp" %>
 
-        <div class="login-container">
-            <div class="login-card">
-                <div class="login-header">
-                    <h1>🏨 Hotel System</h1>
-                    <p>Platform for booking and hotel operations</p>
+        <main class="auth-main">
+            <div class="auth-card">
+
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <h2>Welcome Back</h2>
+                    </div>
+                    <p class="auth-subtitle">Log in to continue using Hotel Management System</p>
                 </div>
 
-                <form class="login-form" method="post" action="login">
+                <form class="auth-form" method="post" action="login">
                     <input type="hidden" name="action" value="login">
-                    <div class="form-group">
-                        <label for="identifier">Email or Phone Number:</label>
-                        <input 
-                            type="text" 
-                            id="identifier" 
-                            name="identifier"
-                            placeholder="you@gmail.com or 0912345678"
-                            required>
-                    </div>
 
                     <div class="form-group">
-                        <label for="password">Password:</label>
-                        <input 
-                            type="password" 
-                            id="password" 
-                            name="password"
-                            placeholder="Enter your password"
-                            required>
+                        <label>Email or Phone Number</label>
+                        <input type="text" 
+                               name="identifier" 
+                               placeholder="you@gmail.com or 0912345678"
+                               required>
                     </div>
 
-                    <div class="form-options">
-                        <label class="checkbox">
-                            <input type="checkbox" name="remember">
-                            Remember me
-                        </label>
-                        <a href="#" class="forgot-password">Forgot password?</a>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" 
+                               name="password"
+                               placeholder="Enter your password"
+                               required>
                     </div>
 
-                    <button type="submit" class="btn-login">Sign In</button>
+                    <div class="form-actions">
+                        <button type="submit" class="auth-button">Sign In</button>
+                    </div>
+
+                    <div class="auth-footer-links">
+                        <p>
+                            Don’t have an account? 
+                            <a href="register">Register now</a>
+                        </p>
+                        <p style="margin-top: 5px;">
+                            <a href="forgotPassword">Forgot your password?</a>
+                        </p>
+                    </div>
                 </form>
-            </div>
-        </div>
 
-        <!-- Include Footer -->
+            </div>
+        </main>
+
         <%@include file="../Components/Footer.jsp" %>
+        <%@ include file="../public/notify.jsp" %>
+
     </body>
-    <%@ include file="./../public/notify.jsp" %>
 </html>
