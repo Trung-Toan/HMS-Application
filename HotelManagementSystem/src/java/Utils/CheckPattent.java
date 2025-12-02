@@ -9,7 +9,7 @@ package Utils;
  * provides a static method to check if a given input string matches a specified
  * pattern. The pattern is defined using regular expressions.
  *
- * @author trantoan
+ * @author 
  */
 public class CheckPattent {
 
