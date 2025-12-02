@@ -1,0 +1,200 @@
+/* ==================================== */
+/* 🦶 FOOTER CẢI TIẾN - LIGHT THEME */
+/* ==================================== */
+.footer {
+    /* Màu nền cực sáng */
+    background: #f9fafb;
+    /* Màu chữ tối */
+    color: #4b5563;
+    padding: 50px 30px 20px;
+    margin-top: 80px;
+    /* Viền trên tối */
+    border-top: 1px solid #e5e7eb;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.footer-container {
+    /* GIỮ MAX-WIDTH: 1400px nếu bạn muốn nội dung có giới hạn ở giữa. */
+    /* NẾU BẠN MUỐN NỘI DUNG FULL WIDTH THEO FOOTER: */
+    /* BỎ DÒNG MAX-WIDTH này hoặc đặt max-width: 100% (Nhưng không nên làm vậy, nên giới hạn nội dung). */
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.footer-content {
+    grid-template-columns: minmax(280px, 1.2fr) repeat(3, minmax(180px, 1fr));
+    display: grid;
+    gap: 40px;
+    margin-bottom: 30px;
+}
+
+.footer-section h3 {
+    /* Màu tiêu đề tối */
+    color: #111827;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    /* Dấu nhấn màu xanh */
+    border-left: 3px solid #06b6d4;
+    padding-left: 10px;
+}
+
+.footer-section ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-left: 0;
+}
+
+.footer-section a {
+    /* Màu link mờ */
+    color: #4b5563;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    position: relative;
+    padding-left: 0;
+}
+
+.footer-section a:hover {
+    color: #06b6d4;
+    padding-left: 8px;
+}
+
+.footer-section a:hover::before {
+    content: '→';
+    position: absolute;
+    left: -15px;
+    color: #06b6d4;
+}
+
+.footer-section p {
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.footer-contact {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+}
+
+.contact-icon {
+    font-size: 16px;
+    color: #06b6d4;
+    line-height: 1.6;
+}
+
+/* Social Icons */
+.footer-social {
+    display: flex;
+    gap: 10px;
+}
+
+.social-link {
+    width: 35px;
+    height: 35px;
+    border-radius: 5px;
+    background: rgba(6, 182, 212, 0.1); /* Nền icon sáng */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #06b6d4;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-size: 16px;
+}
+
+.social-link:hover {
+    background: #06b6d4;
+    color: #ffffff; /* Màu hover trắng */
+    transform: scale(1.1);
+}
+
+/* Footer Bottom (Copyright & Links) */
+.footer-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 25px;
+    /* Viền trên tối */
+    border-top: 1px solid #e5e7eb;
+    font-size: 13px;
+    margin-top: 20px;
+}
+
+.footer-copyright {
+    /* Màu chữ mờ hơn */
+    color: #6b7280;
+    order: 2;
+    margin-top: 10px;
+}
+
+.footer-links {
+    display: flex;
+    gap: 20px;
+    order: 1;
+}
+
+.footer-links a {
+    color: #4b5563; /* Màu link tối */
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+    color: #111827; /* Màu hover tối hơn */
+}
+
+/* ==================================== */
+/* 📱 RESPONSIVE */
+/* ==================================== */
+@media screen and (max-width: 992px) {
+    .footer-content {
+        grid-template-columns: repeat(2, minmax(200px, 1fr));
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .footer {
+        padding: 40px 20px 15px;
+    }
+
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    .footer-section h3 {
+        margin-top: 10px;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .footer-copyright {
+        order: 2;
+        width: 100%;
+    }
+
+    .footer-links {
+        order: 1;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}

@@ -32,7 +32,7 @@
                             type="text" 
                             id="identifier" 
                             name="identifier"
-                            placeholder="you@example.com or 0912345678"
+                            placeholder="you@gmail.com or 0912345678"
                             required>
                     </div>
 
@@ -59,5 +59,7 @@
             </div>
         </div>
 
+        <!-- Include Footer -->
+        <%@include file="../Components/Footer.jsp" %>
     </body>
 </html>
