@@ -10,24 +10,25 @@
         <div class="forgot-wrapper">
             <div class="forgot-box">
 
-                <h2 class="forgot-title">Quên mật khẩu</h2>
-                <p class="forgot-desc">Nhập email của bạn để nhận liên kết đặt lại mật khẩu.</p>
+                <h2 class="forgot-title">Forgot Password</h2>
+                <p class="forgot-desc">Enter your email to receive a password reset link.</p>
 
                 <form>
-                    <label for="email">Email</label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        placeholder="Nhập email của bạn"
-                        required
-                        />
-
-                    <button type="submit" class="forgot-btn">Gửi yêu cầu</button>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            placeholder="Enter your email"
+                            required
+                            />
+                    </div>
+                    <button type="submit" class="forgot-btn">Send Request</button>
                 </form>
 
                 <div class="forgot-links">
-                    <a href="login">← Quay lại đăng nhập</a>
+                    <a href="login">← Back to Login</a>
                 </div>
 
             </div>

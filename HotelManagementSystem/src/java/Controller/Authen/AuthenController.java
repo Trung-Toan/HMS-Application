@@ -18,7 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
  *
  * @author PC
  */
-@WebServlet(name = "AuthenController", urlPatterns = {"/login", "/register", "/forgotPassword"})
+@WebServlet(name = "AuthenController", urlPatterns = {"/login", "/register", "/forgotPassword", "/resetPassword"})
 public class AuthenController extends HttpServlet {
 
     @Override
@@ -35,6 +35,10 @@ public class AuthenController extends HttpServlet {
 
             case "/forgotPassword" ->
                 request.getRequestDispatcher("Views/Authen/ForgotPassword.jsp").forward(request, response);
+
+            case "/resetPassword" ->
+                request.getRequestDispatcher("Views/Authen/ResetPassword.jsp").forward(request, response);
+
             default ->
                 response.sendError(404);
         }
