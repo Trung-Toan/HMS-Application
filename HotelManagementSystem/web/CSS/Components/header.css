@@ -135,9 +135,8 @@
         order: 1;
     }
 
-    /* ẨN Nút Login Desktop */
     .header-right {
-        display: none; /* ẨN TRÊN MOBILE */
+        display: none; 
     }
 
     .header-nav {
@@ -178,9 +177,8 @@
         background-color: #eef2ff;
     }
 
-    /* HIỆN MỤC LOGIN DÀNH CHO MOBILE */
-    .mobile-only-auth {
-        display: block; /* HIỆN TRÊN MOBILE */
+     .mobile-only-auth {
+        display: block; 
         width: 100%;
         padding: 10px 0;
     }
