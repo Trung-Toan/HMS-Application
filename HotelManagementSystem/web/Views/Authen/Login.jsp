@@ -26,6 +26,7 @@
                 </div>
 
                 <form class="login-form" method="post" action="login">
+                    <input type="hidden" name="action" value="login">
                     <div class="form-group">
                         <label for="identifier">Email or Phone Number:</label>
                         <input 
@@ -62,4 +63,5 @@
         <!-- Include Footer -->
         <%@include file="../Components/Footer.jsp" %>
     </body>
+    <%@ include file="./../public/notify.jsp" %>
 </html>
