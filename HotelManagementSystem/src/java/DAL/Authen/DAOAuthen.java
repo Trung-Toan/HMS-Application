@@ -20,22 +20,12 @@ public class DAOAuthen extends DAO {
     }
 
     //create new customer
-    public void registerCustomer(String username, String fullname, String email, String phone, String plainPassword) {
-        String sql = "INSERT INTO users (username, password_hash, fullname, email, phone, role_id, is_active) "
+    public int registerCustomer(User u) {
+        int n = 0;
+        String sql = "INSERT INTO users (username, password_hash, full_name, email, phone, role_id, is_active) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement ps = this.connection.prepareStatement(sql)) {
-            User u = new User();
-            u.setUsername(username);
-            u.setFullName(fullname);
-            u.setEmail(email);
-            u.setPhone(phone);
-            u.setRoleId(1);
-            u.setActive(true);
-
-            
-            u.setPlainPassword(plainPassword);
-
             ps.setString(1, u.getUsername());
             ps.setString(2, u.getPasswordHash());
             ps.setString(3, u.getFullName());
@@ -54,5 +44,6 @@ public class DAOAuthen extends DAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return n;
     }
 }
