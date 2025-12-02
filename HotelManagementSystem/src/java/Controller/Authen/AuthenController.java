@@ -18,12 +18,24 @@ import jakarta.servlet.http.HttpServletResponse;
  *
  * @author PC
  */
-@WebServlet(name = "AuthenController", urlPatterns = {"/AuthenController"})
+@WebServlet(name = "AuthenController", urlPatterns = {"/login", "/register"})
 public class AuthenController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        String path = request.getServletPath();
+
+        switch (path) {
+            case "/login" ->
+                request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
+
+            case "/register" ->
+                request.getRequestDispatcher("Views/Authen/Register.jsp").forward(request, response);
+
+            default ->
+                response.sendError(404);
+        }
     }
 
     @Override
@@ -32,7 +44,9 @@ public class AuthenController extends HttpServlet {
         String action = request.getParameter("action");
 
         if (action == null) {
-            response.sendError(400, "Action is required");
+            request.setAttribute("type", "error");
+            request.setAttribute("mess", "non-action require!");
+            request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
             return;
         }
 
@@ -40,8 +54,8 @@ public class AuthenController extends HttpServlet {
             case "register" ->
                 handleRegister(request, response);
 
-            case "login" -> {
-            }
+            case "login" ->
+                handleLogin(request, response);
 
             default ->
                 response.sendError(400, "Unknown action: " + action);
@@ -78,6 +92,34 @@ public class AuthenController extends HttpServlet {
                 request.setAttribute("href", "");
             }
         } catch (Exception e) {
+        }
+    }
+
+    private void handleLogin(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String identifier = request.getParameter("identifier");
+        String password = request.getParameter("password");
+
+        if (identifier == null || identifier.isBlank() || password == null || password.isBlank()) {
+            request.setAttribute("type", "error");
+            request.setAttribute("mess", "Email/Phone and password not blank!");
+            request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
+            return;
+        }
+
+        User user = DAOAuthen.INSTANCE.login(identifier, password);
+
+        if (user != null) {
+            // Đăng nhập thành công
+            request.getSession().setAttribute("currentUser", user); // lưu user vào session
+            request.setAttribute("type", "success");
+            request.setAttribute("mess", "Login successful!");
+            request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
+        } else {
+            // Sai thông tin đăng nhập
+            request.setAttribute("type", "error");
+            request.setAttribute("mess", "Email/Phone or password incorrect!");
+            request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
         }
     }
 

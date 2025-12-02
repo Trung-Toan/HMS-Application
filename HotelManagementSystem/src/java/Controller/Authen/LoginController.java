@@ -17,16 +17,12 @@ import jakarta.servlet.http.HttpServletResponse;
  *
  * @author 
  */
-@WebServlet(urlPatterns={"/login"})
-public class LoginController extends HttpServlet {
-   
-  
 
+public class LoginController extends HttpServlet {
     
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
     } 
 
   

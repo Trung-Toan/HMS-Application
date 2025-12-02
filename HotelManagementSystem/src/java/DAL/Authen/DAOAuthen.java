@@ -34,8 +34,8 @@ public class DAOAuthen extends DAO {
             ps.setInt(6, u.getRoleId());
             ps.setBoolean(7, u.getActive());
 
-            int rows = ps.executeUpdate();
-            if (rows > 0) {
+            n = ps.executeUpdate();
+            if (n > 0) {
                 System.out.println("User created successfully!");
             } else {
                 System.out.println("User creation failed!");
@@ -45,5 +45,36 @@ public class DAOAuthen extends DAO {
             e.printStackTrace();
         }
         return n;
+    }
+    
+    //login
+    public User login(String identifier, String password) {
+        String sql = "SELECT * FROM users WHERE email = ? OR phone = ? LIMIT 1";
+
+        try (PreparedStatement ps = this.connection.prepareStatement(sql)) {
+            ps.setString(1, identifier);
+            ps.setString(2, identifier);
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                User u = new User();
+                u.setUserId(rs.getInt("user_id"));
+                u.setUsername(rs.getString("username"));
+                u.setPasswordHash(rs.getString("password_hash"));
+                u.setFullName(rs.getString("full_name"));
+                u.setEmail(rs.getString("email"));
+                u.setPhone(rs.getString("phone"));
+                u.setRoleId(rs.getInt("role_id"));
+                u.setActive(rs.getBoolean("is_active"));
+
+                if (u.checkPasswordRaw(password)) {
+                    return u;
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
