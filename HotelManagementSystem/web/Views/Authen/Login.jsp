@@ -1,8 +1,10 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta charset="UTF-8" />
+        <meta charset="UTF-8">
         <title>Login - Hotel System</title>
 
         <!-- Google Font -->
@@ -12,6 +14,10 @@
     </head>
 
     <body class="login-page">
+
+        <!-- Include Header -->
+        <%@include file="../Components/Header.jsp" %>
+
         <div class="login-container">
             <div class="login-card">
                 <div class="login-header">
@@ -19,13 +25,13 @@
                     <p>Platform for booking and hotel operations</p>
                 </div>
 
-                <form class="login-form">
+                <form class="login-form" method="post" action="login">
                     <div class="form-group">
                         <label for="identifier">Email or Phone Number:</label>
                         <input 
                             type="text" 
                             id="identifier" 
-                            name="identifier" 
+                            name="identifier"
                             placeholder="you@example.com or 0912345678"
                             required>
                     </div>
@@ -52,5 +58,6 @@
                 </form>
             </div>
         </div>
+
     </body>
 </html>

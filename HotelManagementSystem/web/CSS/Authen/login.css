@@ -23,11 +23,11 @@ body {
     color: var(--text);
     line-height: 1.6;
 }
-/* ========== LOGIN PAGE ========== */
+/* ========== LOGIN PAGE  ========== */
 .login-page {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center; 
     min-height: 100vh;
     background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
 }
@@ -36,6 +36,8 @@ body {
     width: 100%;
     max-width: 400px;
     padding: 20px;
+    margin-top: auto;
+    margin-bottom: auto;
 }
 
 .login-card {
@@ -153,4 +155,3 @@ body {
 .login-demo p {
     margin: 5px 0;
 }
-
