@@ -8,9 +8,7 @@
         <servlet-name>HomePageController</servlet-name>
         <url-pattern>/home</url-pattern>
     </servlet-mapping>
-    !-- Welcome file -->
     <welcome-file-list>
-        <!-- Khi truy cập http://host:port/context/ sẽ tự động gọi /home -->
         <welcome-file>home</welcome-file>
     </welcome-file-list>
 </web-app>

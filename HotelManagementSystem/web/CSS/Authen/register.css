@@ -2,9 +2,9 @@
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    min-height: calc(100vh - 100px);
+    min-height: calc(100vh - 100px); 
     padding: 50px 20px;
-    background-color: #f7f9fc;
+    background-color: #f7f9fc; 
 }
 
 .auth-card {
@@ -13,7 +13,7 @@
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     width: 100%;
-    max-width: 420px;
+    max-width: 420px; 
     margin-bottom: 50px;
 }
 
@@ -100,7 +100,6 @@
     transform: scale(0.99);
 }
 
-/* Link dưới form */
 .auth-footer-links {
     text-align: center;
     margin-top: 20px;
