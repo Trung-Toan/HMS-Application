@@ -19,7 +19,7 @@
         <ul class="header-nav" id="main-nav">
             <li><a href="home">Home</a></li>
             <li><a href="rooms">Rooms</a></li>
-
+            <li><a href="my_booking">My Booking</a></li>
             <li class="nav-auth-item mobile-only-auth"> 
                 <a href="login" class="login-button">Login</a>
             </li>

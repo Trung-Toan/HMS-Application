@@ -1,151 +1,214 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Housekeeping Dashboard</title>
-        <link rel="stylesheet"
-              href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-    </head>
-    <body class="bg-light">
+<%@page contentType="text/html" pageEncoding="UTF-8" %>
+    <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+        <!DOCTYPE html>
+        <html lang="en">
 
-        <div class="container py-4">
-            <h2 class="mb-3">Housekeeping Dashboard</h2>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Housekeeping Dashboard | HMS</title>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+                rel="stylesheet">
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+            <link rel="stylesheet" href="<c:url value='/CSS/housekeeping.css'/>">
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+        </head>
 
-            <div class="mb-3">
-                <a href="<c:url value='/housekeeping/tasks'/>" class="btn btn-primary btn-sm">
-                    Danh sách task
-                </a>
-                <a href="<c:url value='/housekeeping/issue-report'/>" class="btn btn-warning btn-sm">
-                    Báo sự cố / thiếu vật tư
-                </a>
+        <body>
+
+            <div class="layout-wrapper">
+                <!-- Sidebar -->
+                <jsp:include page="../Shared/Sidebar.jsp" />
+
+                <!-- Main Content -->
+                <div class="main-content">
+                    <!-- Header -->
+                    <jsp:include page="../Shared/Header.jsp" />
+
+                    <div class="container-fluid py-4 px-4">
+                        <!-- Dashboard Content -->
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h2 class="mb-1">Dashboard</h2>
+                                <p class="text-muted mb-0">Overview of today's activities.</p>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a href="<c:url value='/housekeeping/create-task'/>" class="btn btn-primary">
+                                    <i class="bi bi-plus-lg me-1"></i> New Task
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- KPI Cards -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-4">
+                                <div class="card h-100 border-start border-4 border-danger">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <p class="text-muted small text-uppercase fw-bold mb-1">Rooms Dirty</p>
+                                                <h3 class="mb-0">${roomsNeedCleaning.size()}</h3>
+                                            </div>
+                                            <div class="p-2 bg-danger bg-opacity-10 rounded-circle text-danger">
+                                                <i class="bi bi-bucket-fill fs-4"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 border-start border-4 border-primary">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <p class="text-muted small text-uppercase fw-bold mb-1">My Tasks</p>
+                                                <h3 class="mb-0">${todayTasks.size()}</h3>
+                                            </div>
+                                            <div class="p-2 bg-primary bg-opacity-10 rounded-circle text-primary">
+                                                <i class="bi bi-check2-square fs-4"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 border-start border-4 border-success">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <p class="text-muted small text-uppercase fw-bold mb-1">Shift</p>
+                                                <h3 class="mb-0">
+                                                    <c:choose>
+                                                        <c:when test="${not empty todayAssignments}">
+                                                            ${todayAssignments[0].shiftType}
+                                                        </c:when>
+                                                        <c:otherwise>Off</c:otherwise>
+                                                    </c:choose>
+                                                </h3>
+                                            </div>
+                                            <div class="p-2 bg-success bg-opacity-10 rounded-circle text-success">
+                                                <i class="bi bi-clock-history fs-4"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-4">
+                            <!-- Rooms Needing Attention -->
+                            <div class="col-lg-8">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <span><i class="bi bi-house-exclamation me-2"></i>Rooms Needing Attention</span>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover align-middle mb-0">
+                                                <thead class="bg-light">
+                                                    <tr>
+                                                        <th>Room</th>
+                                                        <th>Floor</th>
+                                                        <th>Status</th>
+                                                        <th class="text-end">Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <c:if test="${empty roomsNeedCleaning}">
+                                                        <tr>
+                                                            <td colspan="4" class="text-center py-4 text-muted">
+                                                                <i class="bi bi-stars fs-1 d-block mb-2"></i>
+                                                                All rooms are clean!
+                                                            </td>
+                                                        </tr>
+                                                    </c:if>
+                                                    <c:forEach items="${roomsNeedCleaning}" var="r">
+                                                        <tr>
+                                                            <td class="fw-bold text-primary">#${r.roomNumber}</td>
+                                                            <td>${r.floor}</td>
+                                                            <td>
+                                                                <span
+                                                                    class="badge ${r.status == 'DIRTY' ? 'bg-status-dirty' : (r.status == 'CLEANING' ? 'bg-status-cleaning' : 'bg-secondary')}">
+                                                                    ${r.status}
+                                                                </span>
+                                                            </td>
+                                                            <td class="text-end">
+                                                                <a href="<c:url value='/housekeeping/room-update'><c:param name='roomId' value='${r.roomId}'/></c:url>"
+                                                                    class="btn btn-sm btn-outline-secondary">
+                                                                    Update
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                    </c:forEach>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Today's Tasks -->
+                            <div class="col-lg-4">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <span><i class="bi bi-list-check me-2"></i>My Tasks</span>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div class="list-group list-group-flush">
+                                            <c:if test="${empty todayTasks}">
+                                                <div class="text-center py-4 text-muted">
+                                                    <i class="bi bi-cup-hot fs-1 d-block mb-2"></i>
+                                                    No tasks assigned.
+                                                </div>
+                                            </c:if>
+                                            <c:forEach items="${todayTasks}" var="t">
+                                                <a href="<c:url value='/housekeeping/task-detail'><c:param name='id' value='${t.taskId}'/></c:url>"
+                                                    class="list-group-item list-group-item-action p-3">
+                                                    <div
+                                                        class="d-flex w-100 justify-content-between align-items-center mb-1">
+                                                        <h6 class="mb-0 text-primary">Room ${t.roomId}</h6>
+                                                        <small class="text-muted">${t.taskType}</small>
+                                                    </div>
+                                                    <p class="mb-1 text-truncate text-muted small">${t.note}</p>
+                                                    <div class="mt-2">
+                                                        <span
+                                                            class="badge ${t.status == 'NEW' ? 'bg-info' : (t.status == 'DONE' ? 'bg-success' : 'bg-warning')}">
+                                                            ${t.status}
+                                                        </span>
+                                                    </div>
+                                                </a>
+                                            </c:forEach>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer bg-white text-center border-top-0 py-3">
+                                        <a href="<c:url value='/housekeeping/tasks'/>"
+                                            class="text-decoration-none fw-bold small">View All <i
+                                                class="bi bi-arrow-right"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <jsp:include page="../Shared/Footer.jsp" />
+                </div>
             </div>
 
-            <!-- 1. Phòng cần dọn / đang dọn -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    Phòng cần dọn / đang dọn
-                </div>
-                <div class="card-body">
-                    <c:if test="${empty roomsNeedCleaning}">
-                        <p class="text-muted mb-0">Hiện không có phòng DIRTY hoặc CLEANING.</p>
-                    </c:if>
-                    <c:if test="${not empty roomsNeedCleaning}">
-                        <table class="table table-sm table-striped align-middle">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Phòng</th>
-                                    <th>Tầng</th>
-                                    <th>Trạng thái</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:forEach items="${roomsNeedCleaning}" var="r" varStatus="st">
-                                    <tr>
-                                        <td>${st.index + 1}</td>
-                                        <td>${r.roomNumber}</td>
-                                        <td>${r.floor}</td>
-                                        <td>${r.status}</td>
-                                        <td>
-                                            <a class="btn btn-outline-secondary btn-sm"
-                                               href="<c:url value='/housekeeping/room-update'>
-                                                        <c:param name='roomId' value='${r.roomId}'/>
-                                                    </c:url>">
-                                                Cập nhật trạng thái
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
-                            </tbody>
-                        </table>
-                    </c:if>
-                </div>
-            </div>
+            <jsp:include page="../public/notify.jsp" />
 
-            <!-- 2. Task dọn phòng hôm nay -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    Task dọn phòng hôm nay 
-                    <c:if test="${not empty today}">(${today})</c:if>
-                </div>
-                <div class="card-body">
-                    <c:if test="${empty todayTasks}">
-                        <p class="text-muted mb-0">Bạn chưa có task nào trong ngày.</p>
-                    </c:if>
-                    <c:if test="${not empty todayTasks}">
-                        <table class="table table-sm table-hover align-middle">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Phòng</th>
-                                    <th>Loại task</th>
-                                    <th>Trạng thái</th>
-                                    <th>Ghi chú</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:forEach items="${todayTasks}" var="t" varStatus="st">
-                                    <tr>
-                                        <td>${st.index + 1}</td>
-                                        <td>${t.roomId}</td>
-                                        <td>${t.taskType}</td>
-                                        <td>${t.status}</td>
-                                        <td>${t.note}</td>
-                                        <td>
-                                            <a class="btn btn-outline-primary btn-sm"
-                                               href="<c:url value='/housekeeping/task-detail'>
-                                                        <c:param name='id' value='${t.taskId}'/>
-                                                    </c:url>">
-                                                Chi tiết
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
-                            </tbody>
-                        </table>
-                    </c:if>
-                </div>
-            </div>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+            <script>
+                // Toggle Sidebar on Mobile
+                const sidebarToggle = document.getElementById('sidebarToggle');
+                const sidebar = document.querySelector('.sidebar');
 
-            <!-- 3. Ca làm việc hôm nay -->
-            <div class="card">
-                <div class="card-header">
-                    Ca làm việc hôm nay 
-                    <c:if test="${not empty today}">(${today})</c:if>
-                </div>
-                <div class="card-body">
-                    <c:if test="${empty todayAssignments}">
-                        <p class="text-muted mb-0">Chưa có thông tin phân ca.</p>
-                    </c:if>
-                    <c:if test="${not empty todayAssignments}">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Ca</th>
-                                    <th>Trạng thái</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:forEach items="${todayAssignments}" var="a" varStatus="st">
-                                    <tr>
-                                        <td>${st.index + 1}</td>
-                                        <td>${a.shiftType}</td>
-                                        <td>${a.status}</td>
-                                    </tr>
-                                </c:forEach>
-                            </tbody>
-                        </table>
-                    </c:if>
-                </div>
-            </div>
+                if (sidebarToggle) {
+                    sidebarToggle.addEventListener('click', () => {
+                        sidebar.classList.toggle('show');
+                    });
+                }
+            </script>
+        </body>
 
-        </div>
-
-        <!-- SweetAlert notify -->
-        <jsp:include page="../public/notify.jsp" />
-    </body>
-</html>
+        </html>

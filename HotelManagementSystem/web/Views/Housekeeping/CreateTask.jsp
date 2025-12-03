@@ -6,7 +6,7 @@
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Report Issue | HMS Housekeeping</title>
+            <title>Create Task | HMS Housekeeping</title>
             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
                 rel="stylesheet">
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
@@ -24,64 +24,59 @@
 
                     <div class="container-fluid py-4 px-4">
                         <div class="row justify-content-center">
-                            <div class="col-md-8 col-lg-5">
+                            <div class="col-md-8 col-lg-6">
                                 <div class="card shadow-lg border-0">
-                                    <div class="card-header bg-warning text-white py-3">
-                                        <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Report
-                                            Issue</h5>
+                                    <div class="card-header bg-primary text-white py-3">
+                                        <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Create New Task</h5>
                                     </div>
                                     <div class="card-body p-4">
-                                        <form action="<c:url value='/housekeeping/issue-report'/>" method="post">
-                                            <input type="hidden" name="action" value="createIssue" />
+                                        <form action="<c:url value='/housekeeping/create-task'/>" method="post">
+                                            <input type="hidden" name="action" value="createTask" />
 
                                             <div class="mb-3">
                                                 <label class="form-label">Room</label>
                                                 <select name="roomId" class="form-select" required>
                                                     <option value="" disabled selected>-- Select Room --</option>
                                                     <c:forEach items="${rooms}" var="r">
-                                                        <option value="${r.roomId}" ${room !=null &&
-                                                            room.roomId==r.roomId ? 'selected' : (param.roomId==r.roomId
-                                                            ? 'selected' : '' )}>
-                                                            Room ${r.roomNumber}
+                                                        <option value="${r.roomId}">
+                                                            Room ${r.roomNumber} (Floor ${r.floor}) - ${r.status}
                                                         </option>
                                                     </c:forEach>
                                                 </select>
                                             </div>
 
                                             <div class="mb-3">
-                                                <label class="form-label">Issue Type</label>
-                                                <div class="d-grid gap-2 d-md-flex">
-                                                    <input type="radio" class="btn-check" name="issueType" id="type1"
-                                                        value="SUPPLY" required>
-                                                    <label class="btn btn-outline-secondary flex-fill" for="type1">
-                                                        <i class="bi bi-box-seam d-block mb-1 fs-5"></i> Supply
-                                                    </label>
+                                                <label class="form-label">Assign To (User ID)</label>
+                                                <input type="number" name="assignedTo" class="form-control" required
+                                                    placeholder="Enter Staff ID (e.g. 7)">
+                                                <div class="form-text">Enter the ID of the staff member.</div>
+                                            </div>
 
-                                                    <input type="radio" class="btn-check" name="issueType" id="type2"
-                                                        value="EQUIPMENT">
-                                                    <label class="btn btn-outline-secondary flex-fill" for="type2">
-                                                        <i class="bi bi-tv d-block mb-1 fs-5"></i> Equipment
-                                                    </label>
-
-                                                    <input type="radio" class="btn-check" name="issueType" id="type3"
-                                                        value="OTHER">
-                                                    <label class="btn btn-outline-secondary flex-fill" for="type3">
-                                                        <i class="bi bi-three-dots d-block mb-1 fs-5"></i> Other
-                                                    </label>
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Date</label>
+                                                    <input type="date" name="taskDate" class="form-control" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Task Type</label>
+                                                    <select name="taskType" class="form-select">
+                                                        <option value="CLEANING">Cleaning</option>
+                                                        <option value="INSPECTION">Inspection</option>
+                                                    </select>
                                                 </div>
                                             </div>
 
                                             <div class="mb-4">
-                                                <label class="form-label">Description</label>
-                                                <textarea name="description" class="form-control" rows="4"
-                                                    placeholder="Describe the issue in detail..." required></textarea>
+                                                <label class="form-label">Notes</label>
+                                                <textarea name="note" class="form-control" rows="3"
+                                                    placeholder="Additional instructions..."></textarea>
                                             </div>
 
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <a href="<c:url value='/housekeeping/dashboard'/>"
                                                     class="text-decoration-none text-muted">Cancel</a>
-                                                <button type="submit" class="btn btn-warning text-white px-4">
-                                                    Submit Report
+                                                <button type="submit" class="btn btn-primary px-4">
+                                                    Create Task
                                                 </button>
                                             </div>
                                         </form>
