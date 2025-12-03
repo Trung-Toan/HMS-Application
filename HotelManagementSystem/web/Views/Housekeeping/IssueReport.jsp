@@ -35,16 +35,17 @@
                                             <input type="hidden" name="action" value="createIssue" />
 
                                             <div class="mb-3">
-                                                <label class="form-label">Room ID</label>
-                                                <input type="number" name="roomId" class="form-control"
-                                                    value="${room != null ? room.roomId : param.roomId}"
-                                                    placeholder="Enter Room ID" required>
-                                                <c:if test="${room != null}">
-                                                    <div class="form-text text-success">
-                                                        <i class="bi bi-check-circle me-1"></i> Selected: Room
-                                                        ${room.roomNumber}
-                                                    </div>
-                                                </c:if>
+                                                <label class="form-label">Room</label>
+                                                <select name="roomId" class="form-select" required>
+                                                    <option value="" disabled selected>-- Select Room --</option>
+                                                    <c:forEach items="${rooms}" var="r">
+                                                        <option value="${r.roomId}" ${room !=null &&
+                                                            room.roomId==r.roomId ? 'selected' : (param.roomId==r.roomId
+                                                            ? 'selected' : '' )}>
+                                                            Room ${r.roomNumber}
+                                                        </option>
+                                                    </c:forEach>
+                                                </select>
                                             </div>
 
                                             <div class="mb-3">

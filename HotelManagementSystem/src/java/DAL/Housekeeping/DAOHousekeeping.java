@@ -562,4 +562,26 @@ public class DAOHousekeeping extends DAO {
         }
         return 0;
     }
+
+    // ======================================================
+    // Get Housekeeping Staff
+    // ======================================================
+    public List<Model.User> getHousekeepingStaff() {
+        List<Model.User> list = new ArrayList<>();
+        String sql = "SELECT * FROM users WHERE role_id = 3 AND is_active = true";
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Model.User u = new Model.User();
+                u.setUserId(rs.getInt("user_id"));
+                u.setUsername(rs.getString("username"));
+                u.setFullName(rs.getString("full_name"));
+                u.setRoleId(rs.getInt("role_id"));
+                list.add(u);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }

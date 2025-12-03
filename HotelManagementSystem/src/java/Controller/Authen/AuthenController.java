@@ -118,6 +118,7 @@ public class AuthenController extends HttpServlet {
                 case 3 -> request.setAttribute("href", "housekeeping/dashboard");
                 case 4 -> request.setAttribute("href", "owner/dashboard");
                 case 5 -> request.setAttribute("href", "admin/dashboard");
+                case 6 -> request.setAttribute("href", "manager/dashboard");
                 default -> request.setAttribute("href", "home");
             }
         } else {
