@@ -39,6 +39,18 @@
                             </c:forEach>
                         </select>
                     </div>
+
+                    <div class="search-group">
+                        <label for="min-price">Min Price</label>
+                        <input type="number" id="min-price" name="minPrice" class="search-input"
+                               value="${minPrice != null ? minPrice : ''}" placeholder="₫">
+                    </div>
+
+                    <div class="search-group">
+                        <label for="max-price">Max Price</label>
+                        <input type="number" id="max-price" name="maxPrice" class="search-input"
+                               value="${maxPrice != null ? maxPrice : ''}" placeholder="₫">
+                    </div>
                     <button type="submit" class="btn btn-primary search-btn">Search</button>
                 </form>
             </div>

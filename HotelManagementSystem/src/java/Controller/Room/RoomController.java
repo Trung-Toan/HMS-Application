@@ -50,7 +50,23 @@ public class RoomController extends HttpServlet {
             try {
                 roomTypeId = Integer.parseInt(roomTypeParam);
             } catch (NumberFormatException e) {
+                roomTypeId = null;
             }
+        }
+
+        BigDecimal minPrice = null;
+        BigDecimal maxPrice = null;
+        try {
+            String minPriceParam = request.getParameter("minPrice");
+            if (minPriceParam != null && !minPriceParam.isBlank()) {
+                minPrice = new BigDecimal(minPriceParam);
+            }
+
+            String maxPriceParam = request.getParameter("maxPrice");
+            if (maxPriceParam != null && !maxPriceParam.isBlank()) {
+                maxPrice = new BigDecimal(maxPriceParam);
+            }
+        } catch (NumberFormatException e) {
         }
 
         int page = 1;
@@ -62,7 +78,9 @@ public class RoomController extends HttpServlet {
             }
         }
 
-        List<Map.Entry<Room, RoomType>> rooms = DAOGuest.INSTANCE.getAvailableRooms(roomTypeId, page, PAGE_SIZE);
+        List<Map.Entry<Room, RoomType>> rooms = DAOGuest.INSTANCE.getAvailableRooms(
+                roomTypeId, minPrice, maxPrice, page, PAGE_SIZE);
+
         int totalCount = DAOGuest.INSTANCE.countAvailableRooms(roomTypeId);
         int totalPage = (int) Math.ceil((double) totalCount / PAGE_SIZE);
 
@@ -72,6 +90,8 @@ public class RoomController extends HttpServlet {
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPage", totalPage);
         request.setAttribute("selectedType", roomTypeId);
+        request.setAttribute("minPrice", minPrice);
+        request.setAttribute("maxPrice", maxPrice);
         request.setAttribute("roomTypes", roomTypes);
 
         request.getRequestDispatcher("Views/Room/RoomList.jsp").forward(request, response);

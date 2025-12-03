@@ -18,11 +18,13 @@ public class DAOGuest extends DAO {
     }
 
     /**
-     * Lấy danh sách phòng có trạng thái AVAILABLE và filter theo roomTypeId Có
-     * phân trang
+     * Lấy danh sách phòng có trạng thái AVAILABLE và filter theo roomTypeId,
+     * minPrice, maxPrice Có phân trang
      */
     public List<Map.Entry<Room, RoomType>> getAvailableRooms(
             Integer roomTypeId,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
             int page,
             int pageSize
     ) {
@@ -30,27 +32,40 @@ public class DAOGuest extends DAO {
         int offset = (page - 1) * pageSize;
 
         String sql = """
-            SELECT r.*, 
-                   rt.room_type_id AS rt_id, rt.type_name, rt.description AS rt_desc,
-                   rt.base_price, rt.max_occupancy
-            FROM rooms r
-            JOIN room_types rt ON r.room_type_id = rt.room_type_id
-            WHERE r.status = 'AVAILABLE'
-        """;
+        SELECT r.*, 
+               rt.room_type_id AS rt_id, rt.type_name, rt.description AS rt_desc,
+               rt.base_price, rt.max_occupancy
+        FROM rooms r
+        JOIN room_types rt ON r.room_type_id = rt.room_type_id
+        WHERE r.status = 'AVAILABLE'
+    """;
+
+        List<Object> params = new ArrayList<>();
 
         if (roomTypeId != null) {
             sql += " AND rt.room_type_id = ? ";
+            params.add(roomTypeId);
+        }
+
+        if (minPrice != null) {
+            sql += " AND rt.base_price >= ? ";
+            params.add(minPrice);
+        }
+
+        if (maxPrice != null) {
+            sql += " AND rt.base_price <= ? ";
+            params.add(maxPrice);
         }
 
         sql += " ORDER BY r.room_number LIMIT ? OFFSET ?";
+        params.add(pageSize);
+        params.add(offset);
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            int idx = 1;
-            if (roomTypeId != null) {
-                ps.setInt(idx++, roomTypeId);
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
             }
-            ps.setInt(idx++, pageSize);
-            ps.setInt(idx, offset);
 
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
