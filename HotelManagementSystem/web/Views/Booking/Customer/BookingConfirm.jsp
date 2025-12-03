@@ -61,9 +61,9 @@
 
                 <!-- ACTION BUTTONS -->
                 <div class="action-buttons">
-                    <button class="btn btn-primary">Resend Email</button>
-                    <button class="btn btn-primary">My Bookings</button>
-                    <button class="btn btn-secondary" onclick="history.back()">🔄 Go Back</button>
+                    <a class="btn btn-resend">Resend Email</a>
+                    <a href="my-bookings.jsp" class="btn btn-bookings" role="button">My Bookings</a>
+                    <a class="btn btn-go-back" onclick="history.back()">Go Back</a>
                 </div>
             </div>
         </main>
