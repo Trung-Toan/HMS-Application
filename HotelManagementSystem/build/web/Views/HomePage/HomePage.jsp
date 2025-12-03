@@ -59,9 +59,10 @@
                                 </div>
                                 <p class="price">250.000₫ / night</p>
                                 <div class="room-amenities">
-                                    <span title="Free Wi-Fi">📶</span>
-                                    <span title="Private Balcony">🏞️</span>
-                                    <span title="King Bed">👑</span>
+                                    <span class="amenity">🛏️</span>
+                                     <span title="Free Breakfast">🥐</span>
+                                    <span class="amenity">📺 </span>
+                                    <span class="amenity">🚿</span>
                                 </div>
                                 <a href="roomDetail?id=1" class="btn-book">View Details</a>
                             </div>
