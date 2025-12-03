@@ -95,7 +95,7 @@ public class AuthenController extends HttpServlet {
             } else {
                 request.setAttribute("type", "error");
                 request.setAttribute("mess", "Register fail!");
-                request.setAttribute("href", "");
+                request.setAttribute("href", "register");
             }
         } catch (Exception e) {
         }
@@ -109,7 +109,7 @@ public class AuthenController extends HttpServlet {
         if (identifier == null || identifier.isBlank() || password == null || password.isBlank()) {
             request.setAttribute("type", "error");
             request.setAttribute("mess", "Email/Phone and password not blank!");
-            request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
+            request.setAttribute("href", "login");
             return;
         }
 
@@ -117,10 +117,11 @@ public class AuthenController extends HttpServlet {
 
         if (user != null) {
             // Đăng nhập thành công
-            request.getSession().setAttribute("currentUser", user); // lưu user vào session
+            request.getSession().setAttribute("currentUser", user);
             request.setAttribute("type", "success");
             request.setAttribute("mess", "Login successful!");
-            request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
+            request.setAttribute("href", "login");
+            return;
         } else {
             // Sai thông tin đăng nhập
             request.setAttribute("type", "error");

@@ -25,6 +25,7 @@
                 </div>
 
                 <form action="register" method="POST" class="auth-form">
+                    <input type="hidden" name="action" value="register">
 
                     <div class="form-group">
                         <label for="fullName">Full Name</label>

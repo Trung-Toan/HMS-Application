@@ -1,4 +1,5 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -80,7 +81,7 @@
                                     <span title="Free Breakfast">🥐</span>
                                     <span title="Two Double Beds">🛏️🛏️</span>
                                 </div>
-                                <a href="roomDetail?id=2" class="btn-book">View Details</a>
+                                <a href="room-detail" class="btn-book">View Details</a>
                             </div>
                         </div>
 
@@ -103,7 +104,7 @@
                         </div>
                     </div>
                 </div>
-                <a href="allRooms" class="btn-view-all">View all rooms</a>
+                <a href="rooms" class="btn-view-all">View all rooms</a>
             </section>
         </main>
 
@@ -111,3 +112,4 @@
         <%@ include file="../Components/Footer.jsp" %>
     </body>
 </html>
+
