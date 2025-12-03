@@ -112,10 +112,13 @@ public class AuthenController extends HttpServlet {
             request.getSession().setAttribute("currentUser", user);
             request.setAttribute("type", "success");
             request.setAttribute("mess", "Login successful!");
-            if (user.getRoleId() == 3) {
-                request.setAttribute("href", "housekeeping/dashboard");
-            } else {
+            if (null == user.getRoleId()) {
                 request.setAttribute("href", "home");
+            } else switch (user.getRoleId()) {
+                case 3 -> request.setAttribute("href", "housekeeping/dashboard");
+                case 4 -> request.setAttribute("href", "owner/dashboard");
+                case 5 -> request.setAttribute("href", "admin/dashboard");
+                default -> request.setAttribute("href", "home");
             }
         } else {
             request.setAttribute("type", "error");
