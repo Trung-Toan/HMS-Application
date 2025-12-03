@@ -14,9 +14,9 @@
 
         <div class="room-container">
             <div class="breadcrumb">
-                <a href="home">Trang Chủ</a>
+                <a href="home">Home</a>
                 <span>/</span>
-                <span class="current">Danh Sách Phòng</span>
+                <span class="current">Room List</span>
             </div>
 
             <div class="room-header">
@@ -107,7 +107,6 @@
                 </c:if>
             </div>
 
-
             <!-- No Results Message (Hidden by default) -->
             <div class="no-results" style="display: none;">
                 <p>No suitable rooms found. Please try again with different criteria.</p>
@@ -118,7 +117,7 @@
         <%@ include file="./../public/notify.jsp" %>
     </body>
     <script>
-        const roomsPerPage = 3; // số phòng or trang
+        const roomsPerPage = 3; // number of rooms per page
         const rooms = document.querySelectorAll('.room-card');
         const pageLinks = document.querySelectorAll('.page-link[data-page]');
         const prevBtn = document.getElementById('prevPage');
@@ -166,6 +165,6 @@
             showPage(currentPage + 1);
         });
 
-        showPage(1); // init
+        showPage(1); // initialize
     </script>
 </html>

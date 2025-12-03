@@ -5,7 +5,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Chi Tiết Phòng - Hotel Manager</title>
+        <title>Room Details - Hotel Manager</title>
         <link rel="stylesheet" href="CSS/Authen/login.css" />
         <link rel="stylesheet" href="CSS/Pages/room-detail.css" />
     </head>
@@ -14,9 +14,9 @@
 
         <div class="room-detail-container">
             <div class="breadcrumb">
-                <a href="home">Trang Chủ</a>
+                <a href="home">Home</a>
                 <span>/</span>
-                <a href="rooms">Danh Sách Phòng</a>
+                <a href="rooms">Room List</a>
                 <span>/</span>
                 <span class="current">${roomType.typeName} - ${room.roomNumber}</span>
             </div>
@@ -36,103 +36,90 @@
                 <!-- Room Info Section -->
                 <div class="info-section">
                     <div class="room-header">
-                        <h1>${roomType.typeName} - ${room.roomNumber}</h1>
                         <div class="rating">
                             <span class="stars">⭐⭐⭐⭐⭐</span>
-                            <span class="rating-text">(125 đánh giá)</span>
+                            <span class="rating-text">(125 reviews)</span>
                         </div>
                     </div>
 
                     <!-- Price & Booking -->
                     <div class="price-booking">
                         <div class="price-info">
-                            <span class="price-label">Giá mỗi đêm</span>
-                            <span class="price"><c:out value='${roomType.basePrice}'/>₫</span>
-                            <span class="per-night">/Đêm</span>
+                            <h1>${roomType.typeName} - ${room.roomNumber}</h1>
                         </div>
-                        <c:choose>
-                            <c:when test="${room.status == 'AVAILABLE'}">
-                                <a href="booking?roomId=${room.roomId}" class="btn btn-primary btn-lg">Đặt Phòng</a>
-                            </c:when>
-                            <c:otherwise>
-                                <span class="btn btn-secondary btn-lg disabled">Phòng Không Có Sẵn</span>
-                            </c:otherwise>
-                        </c:choose>
-                    </div>
 
-                    <!-- Room Details -->
-                    <div class="details-grid">
-                        <div class="detail-item">
-                            <span class="detail-label">Loại Phòng</span>
-                            <span class="detail-value">${roomType.typeName}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Sức Chứa</span>
-                            <span class="detail-value">${roomType.maxOccupancy} Khách</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Tầng</span>
-                            <span class="detail-value">${room.floor}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Trạng Thái</span>
-                            <span class="detail-value"><c:out value='${room.status}'/></span>
+                        <!-- Room Details -->
+                        <div class="details-grid">
+                            <div class="detail-item">
+                                <span class="price-label">Price per night</span>
+                                <span class="price"><c:out value='${roomType.basePrice}'/>₫</span>
+                                <span class="per-night">/Night</span>
+                            </div>
+                            <c:choose>
+                                <c:when test="${room.status == 'AVAILABLE'}">
+                                    <a href="booking?roomId=${room.roomId}" class="btn btn-primary btn-lg">Book room</a>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="btn btn-secondary btn-lg disabled">Room not available</span>
+                                </c:otherwise>
+                            </c:choose>
                         </div>
                     </div>
 
                     <!-- Description -->
                     <div class="description">
-                        <h3>Mô Tả Phòng</h3>
-                        <p><c:out value='${room.description != null ? room.description : roomType.description}'/></p>
                     </div>
 
                     <!-- Amenities -->
                     <div class="amenities-section">
-                        <h3>Tiện Nghi Phòng</h3>
+                        <h3>Room Amenities</h3>
                         <div class="amenities-list">
                             <!-- Tùy chỉnh thêm theo cơ sở dữ liệu hoặc cứng tạm thời -->
                             <div class="amenity-item">
                                 <span class="amenity-icon">🛏️</span>
-                                <span class="amenity-name">Giường Tiêu Chuẩn</span>
+                                <span class="detail-label">Room type</span>
+                                <span class="detail-value">${roomType.typeName}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Occupancy</span>
+                                <span class="detail-value">${roomType.maxOccupancy} People</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Floor</span>
+                                <span class="detail-value">${room.floor}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Status</span>
+                                <span class="detail-value"><c:out value='${room.status}'/></span>
                             </div>
                             <div class="amenity-item">
                                 <span class="amenity-icon">🌡️</span>
-                                <span class="amenity-name">Điều Hòa Nhiệt Độ</span>
+                                <span class="amenity-name">Air Conditioning</span>
                             </div>
                             <div class="amenity-item">
                                 <span class="amenity-icon">📺</span>
-                                <span class="amenity-name">TV</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Call to Action -->
-                    <div class="cta-buttons">
-                        <c:choose>
-                            <c:when test="${room.status == 'AVAILABLE'}">
-                                <a href="booking?roomId=${room.roomId}" class="btn btn-primary btn-lg">Đặt Phòng Ngay</a>
-                            </c:when>
-                            <c:otherwise>
-                                <span class="btn btn-secondary btn-lg disabled">Phòng Không Có Sẵn</span>
-                            </c:otherwise>
-                        </c:choose>
-                        <a href="rooms" class="btn btn-secondary">Quay Lại Danh Sách</a>
-                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <%@ include file="./../Components/Footer.jsp" %>
-        <%@ include file="./../public/notify.jsp" %>
+    <%@ include file="./../Components/Footer.jsp" %>
+    <%@ include file="./../public/notify.jsp" %>
 
-        <script>
-            function changeImage(thumbnail) {
-                const mainImage = document.getElementById('mainImage');
-                mainImage.src = thumbnail.src;
+    <script>
+        function changeImage(thumbnail) {
+            const mainImage = document.getElementById('mainImage');
+            mainImage.src = thumbnail.src;
 
-                document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-                thumbnail.classList.add('active');
-            }
-        </script>
-    </body>
+            <h3>Mô Tả Phòng</h3>
+        <p><c:out value='${room.description != null ? room.description : roomType.description}'/></p>
+                    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+            thumbnail.classList.add('active');
+        }
+    </script>
+</body>
 </html>
