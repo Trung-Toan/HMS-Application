@@ -1,14 +1,22 @@
 package Controller.Room;
 
+import DAL.Guest.DAOGuest;
+import Model.RoomType;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import Model.Room;
 
 @WebServlet(name = "RoomController", urlPatterns = {"/rooms", "/room-detail"})
 public class RoomController extends HttpServlet {
+
+    private static final int PAGE_SIZE = 6;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -17,10 +25,10 @@ public class RoomController extends HttpServlet {
 
         switch (path) {
             case "/rooms" ->
-                request.getRequestDispatcher("Views/Room/RoomList.jsp").forward(request, response);
+                loadRoomList(request, response);
 
             case "/room-detail" ->
-                request.getRequestDispatcher("Views/Room/RoomDetail.jsp").forward(request, response);
+                loadRoomDetail(request, response);
 
             default ->
                 response.sendError(404);
@@ -31,6 +39,72 @@ public class RoomController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+    }
+
+    private void loadRoomList(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String roomTypeParam = request.getParameter("roomType");
+        Integer roomTypeId = null;
+        if (roomTypeParam != null && !roomTypeParam.isBlank()) {
+            try {
+                roomTypeId = Integer.parseInt(roomTypeParam);
+            } catch (NumberFormatException e) {
+            }
+        }
+
+        int page = 1;
+        String pageParam = request.getParameter("page");
+        if (pageParam != null && !pageParam.isBlank()) {
+            try {
+                page = Integer.parseInt(pageParam);
+            } catch (NumberFormatException e) {
+            }
+        }
+
+        List<Map.Entry<Room, RoomType>> rooms = DAOGuest.INSTANCE.getAvailableRooms(roomTypeId, page, PAGE_SIZE);
+        int totalCount = DAOGuest.INSTANCE.countAvailableRooms(roomTypeId);
+        int totalPage = (int) Math.ceil((double) totalCount / PAGE_SIZE);
+
+        List<RoomType> roomTypes = DAOGuest.INSTANCE.getAllRoomTypes();
+
+        request.setAttribute("rooms", rooms);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPage", totalPage);
+        request.setAttribute("selectedType", roomTypeId);
+        request.setAttribute("roomTypes", roomTypes);
+
+        request.getRequestDispatcher("Views/Room/RoomList.jsp").forward(request, response);
+    }
+
+    private void loadRoomDetail(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String idParam = request.getParameter("id");
+        if (idParam == null || idParam.isBlank()) {
+            request.setAttribute("type", "error");
+            request.setAttribute("mess", "Cannot find room you need!");
+            request.getRequestDispatcher("Views/Room/RoomList.jsp").forward(request, response);
+            return;
+        }
+
+        try {
+            int roomId = Integer.parseInt(idParam);
+            Map.Entry<Room, RoomType> entry = DAOGuest.INSTANCE.getRoomDetailWithType(roomId);
+
+            if (entry == null) {
+                request.setAttribute("type", "error");
+                request.setAttribute("mess", "Room not found or unavailable!");
+                request.getRequestDispatcher("Views/Room/RoomDetail.jsp").forward(request, response);
+                return;
+            }
+
+            request.setAttribute("room", entry.getKey());
+            request.setAttribute("roomType", entry.getValue());
+            request.getRequestDispatcher("Views/Room/RoomDetail.jsp").forward(request, response);
+
+        } catch (NumberFormatException e) {
+            response.sendRedirect("rooms");
+        }
     }
 
     @Override

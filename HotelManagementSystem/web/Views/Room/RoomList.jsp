@@ -28,30 +28,15 @@
             <div class="search-section">
                 <form class="search-form" method="GET" action="rooms">
                     <div class="search-group">
-                        <label for="check-in">Check-in Date</label>
-                        <input type="date" id="check-in" name="checkIn" class="search-input">
-                    </div>
-                    <div class="search-group">
-                        <label for="check-out">Check-out Date</label>
-                        <input type="date" id="check-out" name="checkOut" class="search-input">
-                    </div>
-                    <div class="search-group">
-                        <label for="guests">Number of Guests</label>
-                        <select id="guests" name="guests" class="search-input">
-                            <option value="">-- Select number of guests --</option>
-                            <option value="1">1 Guest</option>
-                            <option value="2">2 Guests</option>
-                            <option value="3">3 Guests</option>
-                            <option value="4">4+ Guests</option>
-                        </select>
-                    </div>
-                    <div class="search-group">
                         <label for="room-type">Room Type</label>
                         <select id="room-type" name="roomType" class="search-input">
                             <option value="">-- All Types --</option>
-                            <option value="single">Single Room</option>
-                            <option value="double">Double Room</option>
-                            <option value="suite">Suite</option>
+                            <c:forEach var="type" items="${roomTypes}">
+                                <option value="${type.roomTypeId}" 
+                                        ${type.roomTypeId == selectedType ? 'selected' : ''}>
+                                    ${type.typeName}
+                                </option>
+                            </c:forEach>
                         </select>
                     </div>
                     <button type="submit" class="btn btn-primary search-btn">Search</button>
@@ -60,98 +45,54 @@
 
             <!-- Room List -->
             <div class="room-list">
-                <!-- Sample Room Card 1 -->
-                <div class="room-card">
-                    <div class="room-image">
-                        <img src="/placeholder.svg?height=250&width=350" alt="Single Room">
-                        <span class="room-type-badge">Single Room</span>
-                    </div>
-                    <div class="room-info">
-                        <h3>Standard Single Room</h3>
-                        <p class="room-description">
-                            Comfortable room with a single bed, private bathroom, and open view.
-                        </p>
-                        <div class="room-amenities">
-                            <span class="amenity">🛏️ Single Bed</span>
-                            <span class="amenity">🌡️ Air Conditioning</span>
-                            <span class="amenity">📺 TV</span>
-                            <span class="amenity">🚿 Bathroom</span>
-                        </div>
-                        <div class="room-footer">
-                            <div class="room-price">
-                                <span class="price">500,000₫</span>
-                                <span class="per-night">/Night</span>
+                <c:choose>
+                    <c:when test="${not empty rooms}">
+                        <c:forEach var="entry" items="${rooms}">
+                            <c:set var="room" value="${entry.key}" />
+                            <c:set var="type" value="${entry.value}" />
+                            <div class="room-card">
+                                <div class="room-image">
+                                    <img src="${room.imageUrl != null ? room.imageUrl : '/placeholder.svg?height=250&width=350'}" 
+                                         alt="${type.typeName}">
+                                    <span class="room-type-badge">${type.typeName}</span>
+                                </div>
+                                <div class="room-info">
+                                    <h3>Room ${room.roomNumber}</h3>
+                                    <p class="room-description">${room.description}</p>
+                                    <p class="room-description">${type.maxOccupancy}</p>
+                                    <div class="room-footer">
+                                        <div class="room-price">
+                                            <span class="price">${type.basePrice}₫</span>
+                                            <span class="per-night">/Night</span>
+                                        </div>
+                                        <a href="room-detail?id=${room.roomId}" class="btn btn-secondary">View Details</a>
+                                    </div>
+                                </div>
                             </div>
-                            <a href="room-detail?id=1" class="btn btn-secondary">View Details</a>
+                        </c:forEach>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="no-results">
+                            <p>No suitable rooms found. Please try again with different criteria.</p>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Sample Room Card 2 -->
-                <div class="room-card">
-                    <div class="room-image">
-                        <img src="/placeholder.svg?height=250&width=350" alt="Double Room">
-                        <span class="room-type-badge">Double Room</span>
-                    </div>
-                    <div class="room-info">
-                        <h3>Standard Double Room</h3>
-                        <p class="room-description">
-                            Elegant room with a double bed, bathtub, and modern amenities.
-                        </p>
-                        <div class="room-amenities">
-                            <span class="amenity">🛏️ Double Bed</span>
-                            <span class="amenity">🌡️ Air Conditioning</span>
-                            <span class="amenity">📺 TV</span>
-                            <span class="amenity">🛁 Bathtub</span>
-                        </div>
-                        <div class="room-footer">
-                            <div class="room-price">
-                                <span class="price">750,000₫</span>
-                                <span class="per-night">/Night</span>
-                            </div>
-                            <a href="room-detail?id=2" class="btn btn-secondary">View Details</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sample Room Card 3 -->
-                <div class="room-card">
-                    <div class="room-image">
-                        <img src="/placeholder.svg?height=250&width=350" alt="Suite">
-                        <span class="room-type-badge">Suite</span>
-                    </div>
-                    <div class="room-info">
-                        <h3>Luxury Suite</h3>
-                        <p class="room-description">
-                            Luxurious suite with a separate living room, spacious bedroom,
-                            and premium amenities.
-                        </p>
-                        <div class="room-amenities">
-                            <span class="amenity">🛏️ King Bed</span>
-                            <span class="amenity">🌡️ Air Conditioning</span>
-                            <span class="amenity">📺 TV</span>
-                            <span class="amenity">🏊 Spa Bathtub</span>
-                        </div>
-                        <div class="room-footer">
-                            <div class="room-price">
-                                <span class="price">1,500,000₫</span>
-                                <span class="per-night">/Night</span>
-                            </div>
-                            <a href="room-detail?id=3" class="btn btn-secondary">View Details</a>
-                        </div>
-                    </div>
-                </div>
+                    </c:otherwise>
+                </c:choose>
             </div>
 
             <!-- Pagination -->
             <div class="pagination">
-                <a href="#" class="page-link" id="prevPage">&laquo; Prev</a>
+                <c:if test="${currentPage > 1}">
+                    <a href="rooms?page=${currentPage - 1}&roomType=${selectedType}" class="page-link">&laquo; Prev</a>
+                </c:if>
 
-                <a href="#" class="page-link active" data-page="1">1</a>
-                <a href="#" class="page-link" data-page="2">2</a>
-                <a href="#" class="page-link" data-page="3">3</a>
+                <c:forEach begin="1" end="${totalPage}" var="i">
+                    <a href="rooms?page=${i}&roomType=${selectedType}" 
+                       class="page-link ${i == currentPage ? 'active' : ''}">${i}</a>
+                </c:forEach>
 
-                <a href="#" class="page-link" id="nextPage">Next &raquo;</a>
+                <c:if test="${currentPage < totalPage}">
+                    <a href="rooms?page=${currentPage + 1}&roomType=${selectedType}" class="page-link">Next &raquo;</a>
+                </c:if>
             </div>
 
 

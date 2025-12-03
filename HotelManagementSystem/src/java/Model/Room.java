@@ -19,18 +19,19 @@ public class Room {
     private String imageUrl;
     private String description;
     private Boolean isActive;
+    private RoomType roomType;
 
     public Room() {
     }
 
     public Room(Integer roomId,
-                String roomNumber,
-                Integer roomTypeId,
-                Integer floor,
-                Status status,
-                String imageUrl,
-                String description,
-                Boolean isActive) {
+            String roomNumber,
+            Integer roomTypeId,
+            Integer floor,
+            Status status,
+            String imageUrl,
+            String description,
+            Boolean isActive) {
 
         setRoomId(roomId);
         setRoomNumber(roomNumber);
@@ -127,14 +128,22 @@ public class Room {
         isActive = (active == null) ? Boolean.TRUE : active;
     }
 
+    public RoomType getRoomType() {
+        return roomType;
+    }
+
+    public void setRoomType(RoomType roomType) {
+        this.roomType = roomType;
+    }
+
     @Override
     public String toString() {
-        return "Room{" +
-                "roomId=" + roomId +
-                ", roomNumber='" + roomNumber + '\'' +
-                ", roomTypeId=" + roomTypeId +
-                ", floor=" + floor +
-                ", status=" + status +
-                '}';
+        return "Room{"
+                + "roomId=" + roomId
+                + ", roomNumber='" + roomNumber + '\''
+                + ", roomTypeId=" + roomTypeId
+                + ", floor=" + floor
+                + ", status=" + status
+                + '}';
     }
 }

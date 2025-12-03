@@ -11,34 +11,32 @@
     </head>
     <body>
         <%@ include file="./../Components/Header.jsp" %>
-        
+
         <div class="room-detail-container">
             <div class="breadcrumb">
                 <a href="home">Trang Chủ</a>
                 <span>/</span>
                 <a href="rooms">Danh Sách Phòng</a>
                 <span>/</span>
-                <span class="current">Chi Tiết Phòng</span>
+                <span class="current">${roomType.typeName} - ${room.roomNumber}</span>
             </div>
 
             <div class="detail-content">
                 <!-- Image Gallery -->
                 <div class="image-gallery">
                     <div class="main-image">
-                        <img id="mainImage" src="/placeholder.svg?height=500&width=800" alt="Phòng">
+                        <img id="mainImage" src="<c:out value='${room.imageUrl != null ? room.imageUrl : "/placeholder.svg?height=500&width=800"}'/>" alt="Phòng">
                     </div>
                     <div class="thumbnail-gallery">
-                        <img src="/placeholder.svg?height=100&width=100" alt="Hình 1" class="thumbnail active" onclick="changeImage(this)">
-                        <img src="/placeholder.svg?height=100&width=100" alt="Hình 2" class="thumbnail" onclick="changeImage(this)">
-                        <img src="/placeholder.svg?height=100&width=100" alt="Hình 3" class="thumbnail" onclick="changeImage(this)">
-                        <img src="/placeholder.svg?height=100&width=100" alt="Hình 4" class="thumbnail" onclick="changeImage(this)">
+                        <!-- Có thể add nhiều hình nếu room.imageUrl là danh sách -->
+                        <img src="<c:out value='${room.imageUrl != null ? room.imageUrl : "/placeholder.svg?height=100&width=100"}'/>" alt="Hình 1" class="thumbnail active" onclick="changeImage(this)">
                     </div>
                 </div>
 
                 <!-- Room Info Section -->
                 <div class="info-section">
                     <div class="room-header">
-                        <h1>Suite Hạng Sang</h1>
+                        <h1>${roomType.typeName} - ${room.roomNumber}</h1>
                         <div class="rating">
                             <span class="stars">⭐⭐⭐⭐⭐</span>
                             <span class="rating-text">(125 đánh giá)</span>
@@ -49,49 +47,53 @@
                     <div class="price-booking">
                         <div class="price-info">
                             <span class="price-label">Giá mỗi đêm</span>
-                            <span class="price">1.500.000₫</span>
+                            <span class="price"><c:out value='${roomType.basePrice}'/>₫</span>
                             <span class="per-night">/Đêm</span>
                         </div>
-                        <a href="login" class="btn btn-primary btn-lg">Đặt Phòng</a>
+                        <c:choose>
+                            <c:when test="${room.status == 'AVAILABLE'}">
+                                <a href="booking?roomId=${room.roomId}" class="btn btn-primary btn-lg">Đặt Phòng</a>
+                            </c:when>
+                            <c:otherwise>
+                                <span class="btn btn-secondary btn-lg disabled">Phòng Không Có Sẵn</span>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
 
                     <!-- Room Details -->
                     <div class="details-grid">
                         <div class="detail-item">
                             <span class="detail-label">Loại Phòng</span>
-                            <span class="detail-value">Suite</span>
+                            <span class="detail-value">${roomType.typeName}</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Sức Chứa</span>
-                            <span class="detail-value">2-4 Khách</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Diện Tích</span>
-                            <span class="detail-value">45m²</span>
+                            <span class="detail-value">${roomType.maxOccupancy} Khách</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Tầng</span>
-                            <span class="detail-value">Tầng 5-10</span>
+                            <span class="detail-value">${room.floor}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Trạng Thái</span>
+                            <span class="detail-value"><c:out value='${room.status}'/></span>
                         </div>
                     </div>
 
                     <!-- Description -->
                     <div class="description">
                         <h3>Mô Tả Phòng</h3>
-                        <p>
-                            Suite hạng sang của chúng tôi mang đến trải nghiệm lưu trú tuyệt vời với thiết kế sang trọng và đầy đủ tiện nghi hiện đại. 
-                            Phòng được trang bị các vật dụng chất lượng cao, bao gồm giường King size thoải mái, phòng ngủ riêng, phòng khách rộng rãi 
-                            và phòng tắm sang trọng với bồn tắm spa. Từ ban công, bạn có thể ngắm nhìn cảnh quan thành phố tuyệt đẹp.
-                        </p>
+                        <p><c:out value='${room.description != null ? room.description : roomType.description}'/></p>
                     </div>
 
                     <!-- Amenities -->
                     <div class="amenities-section">
                         <h3>Tiện Nghi Phòng</h3>
                         <div class="amenities-list">
+                            <!-- Tùy chỉnh thêm theo cơ sở dữ liệu hoặc cứng tạm thời -->
                             <div class="amenity-item">
                                 <span class="amenity-icon">🛏️</span>
-                                <span class="amenity-name">Giường King Size</span>
+                                <span class="amenity-name">Giường Tiêu Chuẩn</span>
                             </div>
                             <div class="amenity-item">
                                 <span class="amenity-icon">🌡️</span>
@@ -99,46 +101,21 @@
                             </div>
                             <div class="amenity-item">
                                 <span class="amenity-icon">📺</span>
-                                <span class="amenity-name">TV 55 Inch</span>
-                            </div>
-                            <div class="amenity-item">
-                                <span class="amenity-icon">🛁</span>
-                                <span class="amenity-name">Bồn Tắm Spa</span>
-                            </div>
-                            <div class="amenity-item">
-                                <span class="amenity-icon">📶</span>
-                                <span class="amenity-name">WiFi Miễn Phí</span>
-                            </div>
-                            <div class="amenity-item">
-                                <span class="amenity-icon">☕</span>
-                                <span class="amenity-name">Máy Pha Cà Phê</span>
-                            </div>
-                            <div class="amenity-item">
-                                <span class="amenity-icon">🛏️</span>
-                                <span class="amenity-name">Sofa Phòng Khách</span>
-                            </div>
-                            <div class="amenity-item">
-                                <span class="amenity-icon">❄️</span>
-                                <span class="amenity-name">Mini Bar</span>
+                                <span class="amenity-name">TV</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Rules & Info -->
-                    <div class="rules-section">
-                        <h3>Quy Định & Thông Tin</h3>
-                        <ul class="rules-list">
-                            <li>✓ Nhận phòng từ 14:00, Trả phòng trước 11:00</li>
-                            <li>✓ Thú cưng được phép với phí bổ sung 200.000₫</li>
-                            <li>✓ Hủy phòng miễn phí trước 24 giờ</li>
-                            <li>✓ Không được hút thuốc trong phòng</li>
-                            <li>✓ Bữa sáng đi kèm với đặt phòng</li>
-                        </ul>
-                    </div>
-
                     <!-- Call to Action -->
                     <div class="cta-buttons">
-                        <a href="login" class="btn btn-primary btn-lg">Đặt Phòng Ngay</a>
+                        <c:choose>
+                            <c:when test="${room.status == 'AVAILABLE'}">
+                                <a href="booking?roomId=${room.roomId}" class="btn btn-primary btn-lg">Đặt Phòng Ngay</a>
+                            </c:when>
+                            <c:otherwise>
+                                <span class="btn btn-secondary btn-lg disabled">Phòng Không Có Sẵn</span>
+                            </c:otherwise>
+                        </c:choose>
                         <a href="rooms" class="btn btn-secondary">Quay Lại Danh Sách</a>
                     </div>
                 </div>
@@ -152,8 +129,7 @@
             function changeImage(thumbnail) {
                 const mainImage = document.getElementById('mainImage');
                 mainImage.src = thumbnail.src;
-                
-                // Update active thumbnail
+
                 document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
                 thumbnail.classList.add('active');
             }
