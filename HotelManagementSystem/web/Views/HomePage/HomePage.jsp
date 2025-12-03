@@ -64,7 +64,7 @@
                                     <span class="amenity">📺 </span>
                                     <span class="amenity">🚿</span>
                                 </div>
-                                <a href="room-detail" class="btn-book">View Details</a>
+                                <a href="room-detail?id=1" class="btn-book">View Details</a>
                             </div>
                         </div>
 
@@ -100,7 +100,7 @@
                                     <span title="King Bed">🛌</span>
                                     <span title="Air Conditioning">❄️</span>
                                 </div>
-                                <a href="roomDetail?id=3" class="btn-book">View Details</a>
+                                <a href="room-detail?id=3" class="btn-book">View Details</a>
                             </div>
                         </div>
                     </div>
