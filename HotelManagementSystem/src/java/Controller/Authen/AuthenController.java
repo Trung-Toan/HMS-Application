@@ -100,7 +100,8 @@ public class AuthenController extends HttpServlet {
         if (identifier == null || identifier.isBlank() || password == null || password.isBlank()) {
             request.setAttribute("type", "error");
             request.setAttribute("mess", "Email/Phone and password not blank!");
-            request.setAttribute("href", "login");
+            request.setAttribute("href", "home");
+            request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
             return;
         }
 
@@ -111,14 +112,16 @@ public class AuthenController extends HttpServlet {
             request.getSession().setAttribute("currentUser", user);
             request.setAttribute("type", "success");
             request.setAttribute("mess", "Login successful!");
-            request.setAttribute("href", "login");
-            return;
+            if (user.getRoleId() == 3) {
+                request.setAttribute("href", "housekeeping/dashboard");
+            } else {
+                request.setAttribute("href", "home");
+            }
         } else {
-            // Sai thông tin đăng nhập
             request.setAttribute("type", "error");
             request.setAttribute("mess", "Email/Phone or password incorrect!");
-            request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
         }
+        request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
     }
 
     @Override
