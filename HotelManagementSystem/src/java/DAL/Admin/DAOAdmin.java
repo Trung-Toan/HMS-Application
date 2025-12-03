@@ -36,29 +36,118 @@ public class DAOAdmin extends DBContext {
     }
     
     // ==========================================
-    // USER MANAGEMENT
+    // USER MANAGEMENT (Advanced)
     // ==========================================
     
-    public List<User> getAllUsers() {
+    public List<User> getUsers(String search, String roleIdStr, String statusStr, 
+                               String sortBy, String sortOrder, int page, int pageSize) {
         List<User> list = new ArrayList<>();
-        String sql = "SELECT * FROM users";
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                User u = new User();
-                u.setUserId(rs.getInt("user_id"));
-                u.setUsername(rs.getString("username"));
-                u.setFullName(rs.getString("full_name"));
-                u.setEmail(rs.getString("email"));
-                u.setPhone(rs.getString("phone"));
-                u.setRoleId(rs.getInt("role_id"));
-                u.setActive(rs.getBoolean("is_active"));
-                list.add(u);
+        StringBuilder sql = new StringBuilder("SELECT * FROM users WHERE 1=1");
+        
+        if (search != null && !search.isBlank()) {
+            sql.append(" AND (username LIKE ? OR full_name LIKE ? OR email LIKE ? OR phone LIKE ?)");
+        }
+        if (roleIdStr != null && !roleIdStr.isBlank()) {
+            sql.append(" AND role_id = ?");
+        }
+        if (statusStr != null && !statusStr.isBlank()) {
+            sql.append(" AND is_active = ?");
+        }
+        
+        // Sorting
+        if (sortBy == null || sortBy.isBlank()) sortBy = "user_id";
+        if (sortOrder == null || sortOrder.isBlank()) sortOrder = "ASC";
+        
+        String validSort = switch (sortBy) {
+            case "username" -> "username";
+            case "fullName" -> "full_name";
+            case "roleId" -> "role_id";
+            case "status" -> "is_active";
+            default -> "user_id";
+        };
+        
+        sql.append(" ORDER BY ").append(validSort).append(" ").append("DESC".equalsIgnoreCase(sortOrder) ? "DESC" : "ASC");
+        
+        // Pagination
+        if (page > 0 && pageSize > 0) {
+            sql.append(" LIMIT ? OFFSET ?");
+        }
+        
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            int idx = 1;
+            if (search != null && !search.isBlank()) {
+                String kw = "%" + search + "%";
+                ps.setString(idx++, kw);
+                ps.setString(idx++, kw);
+                ps.setString(idx++, kw);
+                ps.setString(idx++, kw);
+            }
+            if (roleIdStr != null && !roleIdStr.isBlank()) {
+                ps.setInt(idx++, Integer.parseInt(roleIdStr));
+            }
+            if (statusStr != null && !statusStr.isBlank()) {
+                ps.setBoolean(idx++, Boolean.parseBoolean(statusStr));
+            }
+            if (page > 0 && pageSize > 0) {
+                ps.setInt(idx++, pageSize);
+                ps.setInt(idx++, (page - 1) * pageSize);
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    User u = new User();
+                    u.setUserId(rs.getInt("user_id"));
+                    u.setUsername(rs.getString("username"));
+                    u.setFullName(rs.getString("full_name"));
+                    u.setEmail(rs.getString("email"));
+                    u.setPhone(rs.getString("phone"));
+                    u.setRoleId(rs.getInt("role_id"));
+                    u.setActive(rs.getBoolean("is_active"));
+                    list.add(u);
+                }
             }
         } catch (SQLException ex) {
             Logger.getLogger(DAOAdmin.class.getName()).log(Level.SEVERE, null, ex);
         }
         return list;
+    }
+    
+    public int countUsers(String search, String roleIdStr, String statusStr) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM users WHERE 1=1");
+        
+        if (search != null && !search.isBlank()) {
+            sql.append(" AND (username LIKE ? OR full_name LIKE ? OR email LIKE ? OR phone LIKE ?)");
+        }
+        if (roleIdStr != null && !roleIdStr.isBlank()) {
+            sql.append(" AND role_id = ?");
+        }
+        if (statusStr != null && !statusStr.isBlank()) {
+            sql.append(" AND is_active = ?");
+        }
+        
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            int idx = 1;
+            if (search != null && !search.isBlank()) {
+                String kw = "%" + search + "%";
+                ps.setString(idx++, kw);
+                ps.setString(idx++, kw);
+                ps.setString(idx++, kw);
+                ps.setString(idx++, kw);
+            }
+            if (roleIdStr != null && !roleIdStr.isBlank()) {
+                ps.setInt(idx++, Integer.parseInt(roleIdStr));
+            }
+            if (statusStr != null && !statusStr.isBlank()) {
+                ps.setBoolean(idx++, Boolean.parseBoolean(statusStr));
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(DAOAdmin.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return 0;
     }
     
     public User getUserById(int id) {

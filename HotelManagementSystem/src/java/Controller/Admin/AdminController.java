@@ -98,8 +98,34 @@ public class AdminController extends HttpServlet {
 
     private void showUserList(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        List<User> users = DAOAdmin.INSTANCE.getAllUsers();
+        String search = request.getParameter("search");
+        String roleId = request.getParameter("roleId");
+        String status = request.getParameter("status");
+        String sortBy = request.getParameter("sortBy");
+        String sortOrder = request.getParameter("sortOrder");
+        String pageStr = request.getParameter("page");
+        
+        int page = 1;
+        int pageSize = 10;
+        try {
+            if (pageStr != null) page = Integer.parseInt(pageStr);
+        } catch (NumberFormatException e) {}
+        
+        List<User> users = DAOAdmin.INSTANCE.getUsers(search, roleId, status, sortBy, sortOrder, page, pageSize);
+        int totalUsers = DAOAdmin.INSTANCE.countUsers(search, roleId, status);
+        int totalPages = (int) Math.ceil((double) totalUsers / pageSize);
+        
         request.setAttribute("users", users);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalUsers", totalUsers);
+        
+        request.setAttribute("search", search);
+        request.setAttribute("roleId", roleId);
+        request.setAttribute("status", status);
+        request.setAttribute("sortBy", sortBy);
+        request.setAttribute("sortOrder", sortOrder);
+        
         request.getRequestDispatcher("/Views/Admin/UserList.jsp").forward(request, response);
     }
 

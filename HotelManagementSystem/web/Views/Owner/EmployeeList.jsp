@@ -34,6 +34,51 @@
                         </div>
 
                         <div class="card shadow-sm">
+                            <div class="card-header bg-white py-3">
+                                <form action="<c:url value='/owner/employees'/>" method="get">
+                                    <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text bg-light border-end-0"><i
+                                                        class="bi bi-search"></i></span>
+                                                <input type="text" name="search" class="form-control border-start-0"
+                                                    placeholder="Search name, email..." value="${search}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select name="roleId" class="form-select form-select-sm">
+                                                <option value="">All Roles</option>
+                                                <option value="2" ${roleId=='2' ? 'selected' : '' }>Receptionist
+                                                </option>
+                                                <option value="3" ${roleId=='3' ? 'selected' : '' }>Housekeeping
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select name="status" class="form-select form-select-sm">
+                                                <option value="">All Status</option>
+                                                <option value="true" ${status=='true' ? 'selected' : '' }>Active
+                                                </option>
+                                                <option value="false" ${status=='false' ? 'selected' : '' }>Inactive
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select name="sortBy" class="form-select form-select-sm">
+                                                <option value="user_id" ${sortBy=='user_id' ? 'selected' : '' }>Sort by
+                                                    ID</option>
+                                                <option value="fullName" ${sortBy=='fullName' ? 'selected' : '' }>Sort
+                                                    by Name</option>
+                                                <option value="roleId" ${sortBy=='roleId' ? 'selected' : '' }>Sort by
+                                                    Role</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="submit" class="btn btn-sm btn-primary w-100">Filter</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
                                     <table class="table table-hover align-middle mb-0">
@@ -48,6 +93,14 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            <c:if test="${empty employees}">
+                                                <tr>
+                                                    <td colspan="6" class="text-center py-5 text-muted">
+                                                        <i class="bi bi-people fs-1 d-block mb-2"></i>
+                                                        No employees found matching your criteria.
+                                                    </td>
+                                                </tr>
+                                            </c:if>
                                             <c:forEach items="${employees}" var="e">
                                                 <tr>
                                                     <td class="ps-4 text-muted">#${e.userId}</td>
@@ -104,6 +157,28 @@
                                         </tbody>
                                     </table>
                                 </div>
+                            </div>
+                            <div class="card-footer bg-white py-3">
+                                <nav class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">Showing ${employees.size()} of ${totalEmployees}
+                                        employees</small>
+                                    <ul class="pagination pagination-sm mb-0">
+                                        <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                            <a class="page-link"
+                                                href="?page=${currentPage - 1}&search=${search}&roleId=${roleId}&status=${status}&sortBy=${sortBy}">Previous</a>
+                                        </li>
+                                        <c:forEach begin="1" end="${totalPages}" var="p">
+                                            <li class="page-item ${currentPage == p ? 'active' : ''}">
+                                                <a class="page-link"
+                                                    href="?page=${p}&search=${search}&roleId=${roleId}&status=${status}&sortBy=${sortBy}">${p}</a>
+                                            </li>
+                                        </c:forEach>
+                                        <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                            <a class="page-link"
+                                                href="?page=${currentPage + 1}&search=${search}&roleId=${roleId}&status=${status}&sortBy=${sortBy}">Next</a>
+                                        </li>
+                                    </ul>
+                                </nav>
                             </div>
                         </div>
                     </div>

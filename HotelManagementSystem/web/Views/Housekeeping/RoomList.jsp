@@ -6,7 +6,7 @@
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Room Management | HMS Owner</title>
+            <title>Room List | HMS Housekeeping</title>
             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
                 rel="stylesheet">
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
@@ -17,30 +17,22 @@
         <body>
 
             <div class="layout-wrapper">
-                <jsp:include page="../Shared/OwnerSidebar.jsp" />
+                <jsp:include page="../Shared/Sidebar.jsp" />
 
                 <div class="main-content">
                     <jsp:include page="../Shared/Header.jsp" />
 
                     <div class="container-fluid py-4 px-4">
-                        <h2 class="mb-4">Room Management Oversight</h2>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h2 class="mb-1">Room Status</h2>
+                                <p class="text-muted mb-0">Overview of all rooms and their cleaning status.</p>
+                            </div>
+                        </div>
 
                         <div class="card shadow-sm">
-                            <div class="card-header bg-white">
-                                <ul class="nav nav-tabs card-header-tabs">
-                                    <li class="nav-item">
-                                        <a class="nav-link active" href="#">Room List</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="#">Pricing Policy</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="#">Room Types</a>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="card-body">
-                                <form action="<c:url value='/owner/rooms'/>" method="get" class="mb-4">
+                            <div class="card-header bg-white py-3">
+                                <form action="<c:url value='/housekeeping/rooms'/>" method="get">
                                     <div class="row g-3">
                                         <div class="col-md-4">
                                             <div class="input-group input-group-sm">
@@ -78,47 +70,39 @@
                                         </div>
                                     </div>
                                 </form>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row g-4">
+                                    <c:if test="${empty rooms}">
+                                        <div class="col-12 text-center py-5 text-muted">
+                                            <i class="bi bi-door-closed fs-1 d-block mb-2"></i>
+                                            No rooms found matching your criteria.
+                                        </div>
+                                    </c:if>
+                                    <c:forEach items="${rooms}" var="r">
+                                        <div class="col-md-4 col-lg-3">
+                                            <div class="card h-100 border-0 shadow-sm room-card">
+                                                <div class="card-body text-center">
+                                                    <h5 class="card-title fw-bold mb-1">Room ${r.roomNumber}</h5>
+                                                    <p class="text-muted small mb-3">Floor ${r.floor}</p>
 
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-hover align-middle">
-                                        <thead class="bg-light">
-                                            <tr>
-                                                <th>Room Number</th>
-                                                <th>Floor</th>
-                                                <th>Type ID</th>
-                                                <th>Status</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <c:if test="${empty rooms}">
-                                                <tr>
-                                                    <td colspan="5" class="text-center py-5 text-muted">
-                                                        <i class="bi bi-door-closed fs-1 d-block mb-2"></i>
-                                                        No rooms found matching your criteria.
-                                                    </td>
-                                                </tr>
-                                            </c:if>
-                                            <c:forEach items="${rooms}" var="r">
-                                                <tr>
-                                                    <td class="fw-bold">Room ${r.roomNumber}</td>
-                                                    <td>${r.floor}</td>
-                                                    <td>${r.roomTypeId}</td>
-                                                    <td>
-                                                        <span class="badge rounded-pill 
-                                                    ${r.status == 'AVAILABLE' ? 'bg-success' : 
-                                                      (r.status == 'DIRTY' ? 'bg-danger' : 
-                                                      (r.status == 'CLEANING' ? 'bg-warning' : 'bg-secondary'))}">
-                                                            ${r.status}
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <button class="btn btn-sm btn-outline-secondary">Edit</button>
-                                                    </td>
-                                                </tr>
-                                            </c:forEach>
-                                        </tbody>
-                                    </table>
+                                                    <span class="badge rounded-pill mb-3 px-3 py-2
+                                                ${r.status == 'AVAILABLE' ? 'bg-success' : 
+                                                  (r.status == 'DIRTY' ? 'bg-danger' : 
+                                                  (r.status == 'CLEANING' ? 'bg-warning' : 'bg-secondary'))}">
+                                                        ${r.status}
+                                                    </span>
+
+                                                    <div class="d-grid">
+                                                        <a href="<c:url value='/housekeeping/room-update'><c:param name='roomId' value='${r.roomId}'/></c:url>"
+                                                            class="btn btn-sm btn-outline-primary">
+                                                            Update Status
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </c:forEach>
                                 </div>
                             </div>
                             <div class="card-footer bg-white py-3">

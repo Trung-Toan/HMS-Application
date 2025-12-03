@@ -51,7 +51,7 @@ public class OwnerController extends HttpServlet {
                 showEmployeeDetail(request, response);
                 break;
             case "/owner/assignments":
-                request.getRequestDispatcher("/Views/Owner/JobAssignment.jsp").forward(request, response);
+                showAssignments(request, response);
                 break;
             case "/owner/staff-status":
                 request.getRequestDispatcher("/Views/Owner/StaffStatus.jsp").forward(request, response);
@@ -60,7 +60,7 @@ public class OwnerController extends HttpServlet {
                 request.getRequestDispatcher("/Views/Owner/Reports.jsp").forward(request, response);
                 break;
             case "/owner/rooms":
-                request.getRequestDispatcher("/Views/Owner/RoomManagement.jsp").forward(request, response);
+                showRoomList(request, response);
                 break;
             default:
                 response.sendError(404);
@@ -92,9 +92,54 @@ public class OwnerController extends HttpServlet {
             case "toggleStatus":
                 handleToggleStatus(request, response);
                 break;
+            case "createAssignment":
+                handleCreateAssignment(request, response);
+                break;
+            case "deleteAssignment":
+                handleDeleteAssignment(request, response);
+                break;
             default:
                 doGet(request, response);
         }
+    }
+
+    private void showAssignments(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        String dateStr = request.getParameter("date");
+        LocalDate date = LocalDate.now();
+        if (dateStr != null && !dateStr.isBlank()) {
+            try {
+                date = LocalDate.parse(dateStr);
+            } catch (Exception e) {}
+        }
+        
+        List<StaffAssignment> assignments = DAOOwner.INSTANCE.getAssignments(date);
+        List<User> employees = DAOOwner.INSTANCE.getEmployees(null, null, "true", "username", "ASC", 0, 0); // Get all active employees
+        
+        request.setAttribute("assignments", assignments);
+        request.setAttribute("employees", employees);
+        request.setAttribute("date", date);
+        
+        request.getRequestDispatcher("/Views/Owner/JobAssignment.jsp").forward(request, response);
+    }
+
+    private void handleCreateAssignment(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        int employeeId = Integer.parseInt(request.getParameter("employeeId"));
+        LocalDate date = LocalDate.parse(request.getParameter("date"));
+        String shift = request.getParameter("shift");
+        
+        boolean success = DAOOwner.INSTANCE.createAssignment(employeeId, date, shift);
+        response.sendRedirect("assignments?date=" + date);
+    }
+
+    private void handleDeleteAssignment(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        int id = Integer.parseInt(request.getParameter("id"));
+        String dateStr = request.getParameter("date");
+        
+        DAOOwner.INSTANCE.deleteAssignment(id);
+        response.sendRedirect("assignments?date=" + dateStr);
     }
 
     private void showDashboard(HttpServletRequest request, HttpServletResponse response) 
@@ -113,9 +158,66 @@ public class OwnerController extends HttpServlet {
 
     private void showEmployeeList(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        List<User> employees = DAOOwner.INSTANCE.getAllEmployees();
+        String search = request.getParameter("search");
+        String roleId = request.getParameter("roleId");
+        String status = request.getParameter("status");
+        String sortBy = request.getParameter("sortBy");
+        String sortOrder = request.getParameter("sortOrder");
+        String pageStr = request.getParameter("page");
+        
+        int page = 1;
+        int pageSize = 10;
+        try {
+            if (pageStr != null) page = Integer.parseInt(pageStr);
+        } catch (NumberFormatException e) {}
+        
+        List<User> employees = DAOOwner.INSTANCE.getEmployees(search, roleId, status, sortBy, sortOrder, page, pageSize);
+        int totalEmployees = DAOOwner.INSTANCE.countEmployees(search, roleId, status);
+        int totalPages = (int) Math.ceil((double) totalEmployees / pageSize);
+        
         request.setAttribute("employees", employees);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalEmployees", totalEmployees);
+        
+        request.setAttribute("search", search);
+        request.setAttribute("roleId", roleId);
+        request.setAttribute("status", status);
+        request.setAttribute("sortBy", sortBy);
+        request.setAttribute("sortOrder", sortOrder);
+        
         request.getRequestDispatcher("/Views/Owner/EmployeeList.jsp").forward(request, response);
+    }
+    
+    private void showRoomList(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        String search = request.getParameter("search");
+        String status = request.getParameter("status");
+        String sortBy = request.getParameter("sortBy");
+        String sortOrder = request.getParameter("sortOrder");
+        String pageStr = request.getParameter("page");
+        
+        int page = 1;
+        int pageSize = 12;
+        try {
+            if (pageStr != null) page = Integer.parseInt(pageStr);
+        } catch (NumberFormatException e) {}
+        
+        List<Model.Room> rooms = DAOOwner.INSTANCE.getRooms(status, search, sortBy, sortOrder, page, pageSize);
+        int totalRooms = DAOOwner.INSTANCE.countRooms(status, search);
+        int totalPages = (int) Math.ceil((double) totalRooms / pageSize);
+        
+        request.setAttribute("rooms", rooms);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalRooms", totalRooms);
+        
+        request.setAttribute("search", search);
+        request.setAttribute("status", status);
+        request.setAttribute("sortBy", sortBy);
+        request.setAttribute("sortOrder", sortOrder);
+        
+        request.getRequestDispatcher("/Views/Owner/RoomManagement.jsp").forward(request, response);
     }
 
     private void showEmployeeDetail(HttpServletRequest request, HttpServletResponse response) 
