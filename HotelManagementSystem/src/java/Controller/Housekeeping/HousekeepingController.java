@@ -23,7 +23,8 @@ import jakarta.servlet.http.HttpServletResponse;
             "/housekeeping/task-detail",
             "/housekeeping/task-update",
             "/housekeeping/issue-report",
-            "/housekeeping/room-update"
+            "/housekeeping/room-update",
+            "/housekeeping/create-task"
         }
 )
 public class HousekeepingController extends HttpServlet {
@@ -64,6 +65,8 @@ public class HousekeepingController extends HttpServlet {
                 showIssueReportForm(request, response);
             case "/housekeeping/room-update" ->
                 showRoomUpdateForm(request, response);
+            case "/housekeeping/create-task" ->
+                showCreateTaskForm(request, response);
             default ->
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
@@ -104,6 +107,14 @@ public class HousekeepingController extends HttpServlet {
             case "/housekeeping/room-update" -> {
                 if ("updateRoomStatus".equals(action)) {
                     handleUpdateRoomStatus(request, response);
+                } else {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown action: " + action);
+                }
+            }
+
+            case "/housekeeping/create-task" -> {
+                if ("createTask".equals(action)) {
+                    handleCreateTask(request, response);
                 } else {
                     response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown action: " + action);
                 }
@@ -170,7 +181,7 @@ public class HousekeepingController extends HttpServlet {
         request.setAttribute("filterDate", dateStr);
         request.setAttribute("filterStatus", statusStr);
 
-        request.getRequestDispatcher("Views/Housekeeping/TaskList.jsp")
+        request.getRequestDispatcher("/Views/Housekeeping/TaskList.jsp")
                 .forward(request, response);
     }
 
@@ -253,7 +264,7 @@ public class HousekeepingController extends HttpServlet {
         }
         request.setAttribute("room", room);
 
-        request.getRequestDispatcher("Views/Housekeeping/IssueReport.jsp")
+        request.getRequestDispatcher("/Views/Housekeeping/IssueReport.jsp")
                 .forward(request, response);
     }
 
@@ -301,6 +312,75 @@ public class HousekeepingController extends HttpServlet {
         }
 
         request.getRequestDispatcher("Views/Housekeeping/IssueReport.jsp")
+                .forward(request, response);
+    }
+
+    // ======================================================
+    // 8. Create Task Screen (New)
+    // ======================================================
+    private void showCreateTaskForm(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Lấy danh sách phòng để chọn
+        List<Room> rooms = DAOHousekeeping.INSTANCE.getAllRooms();
+        request.setAttribute("rooms", rooms);
+
+        // Lấy danh sách nhân viên housekeeping để assign
+        // (Tạm thời hardcode hoặc lấy list user role=HOUSEKEEPING nếu có DAO User)
+        // Ở đây để đơn giản, ta chỉ hiển thị form nhập ID hoặc giả định người tạo tự assign cho mình hoặc ai đó.
+        // Thực tế nên có dropdown chọn nhân viên.
+        
+        request.getRequestDispatcher("/Views/Housekeeping/CreateTask.jsp")
+                .forward(request, response);
+    }
+
+    private void handleCreateTask(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        User currentUser = (User) request.getSession().getAttribute("currentUser");
+
+        String roomIdStr = request.getParameter("roomId");
+        String assignedToStr = request.getParameter("assignedTo");
+        String taskDateStr = request.getParameter("taskDate");
+        String taskTypeStr = request.getParameter("taskType");
+        String note = request.getParameter("note");
+
+        if (roomIdStr == null || assignedToStr == null || taskDateStr == null) {
+            request.setAttribute("type", "error");
+            request.setAttribute("mess", "Thiếu thông tin bắt buộc");
+            request.getRequestDispatcher("Views/Housekeeping/CreateTask.jsp").forward(request, response);
+            return;
+        }
+
+        try {
+            int roomId = Integer.parseInt(roomIdStr);
+            int assignedTo = Integer.parseInt(assignedToStr);
+            LocalDate taskDate = LocalDate.parse(taskDateStr);
+            HousekeepingTask.TaskType taskType = HousekeepingTask.TaskType.valueOf(taskTypeStr);
+
+            boolean ok = DAOHousekeeping.INSTANCE.createTask(
+                    roomId,
+                    assignedTo,
+                    taskDate,
+                    taskType,
+                    note,
+                    currentUser.getUserId()
+            );
+
+            if (ok) {
+                request.setAttribute("type", "success");
+                request.setAttribute("mess", "Tạo công việc thành công");
+                request.setAttribute("href", "housekeeping/tasks");
+            } else {
+                request.setAttribute("type", "error");
+                request.setAttribute("mess", "Tạo công việc thất bại");
+                request.setAttribute("href", "housekeeping/create-task");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("type", "error");
+            request.setAttribute("mess", "Dữ liệu không hợp lệ: " + e.getMessage());
+        }
+
+        request.getRequestDispatcher("Views/Housekeeping/CreateTask.jsp")
                 .forward(request, response);
     }
 

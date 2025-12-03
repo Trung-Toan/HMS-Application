@@ -28,6 +28,32 @@ public class DAOHousekeeping extends DAO {
     // ======================================================
     // Dashboard: phòng cần dọn
     // ======================================================
+    public List<Room> getAllRooms() {
+        List<Room> list = new ArrayList<>();
+        String sql = "SELECT * FROM rooms";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Room r = new Room();
+                r.setRoomId(rs.getInt("room_id"));
+                r.setRoomNumber(rs.getString("room_number"));
+                r.setRoomTypeId(rs.getInt("room_type_id"));
+                r.setFloor((Integer) rs.getInt("floor"));
+                r.setStatus(rs.getString("status"));
+                r.setImageUrl(rs.getString("image_url"));
+                r.setDescription(rs.getString("description"));
+                r.setActive(rs.getBoolean("is_active"));
+                list.add(r);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public List<Room> getRoomsNeedingCleaning() {
         List<Room> list = new ArrayList<>();
         String sql = "SELECT * FROM rooms WHERE status IN ('DIRTY', 'CLEANING')";
@@ -300,22 +326,61 @@ public class DAOHousekeeping extends DAO {
     // ======================================================
     // Issue Report – SUPPLY / EQUIPMENT
     // ======================================================
+    // ======================================================
+    // Issue Report – SUPPLY / EQUIPMENT
+    // ======================================================
     public boolean createIssueReport(int roomId,
                                      int reportedBy,
                                      IssueType issueType,
                                      String description) {
-        String sql = "INSERT INTO issue_reports "
-                + "(room_id, booking_id, reported_by, issue_type, description, status, created_at, updated_at) "
-                + "VALUES (?, NULL, ?, ?, ?, 'NEW', NOW(), NOW())";
+        // Sử dụng Stored Procedure: sp_create_issue_report
+        String sql = "{CALL sp_create_issue_report(?, NULL, ?, ?, ?, ?, ?)}";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, roomId);
-            ps.setInt(2, reportedBy);
-            ps.setString(3, issueType.name());
-            ps.setString(4, description);
+        try (CallableStatement cs = connection.prepareCall(sql)) {
+            cs.setInt(1, roomId);
+            cs.setInt(2, reportedBy);
+            cs.setString(3, issueType.name());
+            cs.setString(4, description);
+            cs.setString(5, "NEW"); // Status mặc định
+            cs.registerOutParameter(6, Types.INTEGER); // p_new_issue_id
 
-            int n = ps.executeUpdate();
-            return n > 0;
+            cs.execute();
+            
+            int newId = cs.getInt(6);
+            return newId > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // ======================================================
+    // Create Task (New)
+    // ======================================================
+    public boolean createTask(int roomId,
+                              int assignedTo,
+                              LocalDate taskDate,
+                              TaskType taskType,
+                              String note,
+                              int createdBy) {
+        // Sử dụng Stored Procedure: sp_create_housekeeping_task
+        String sql = "{CALL sp_create_housekeeping_task(?, ?, ?, ?, ?, ?, ?, ?)}";
+
+        try (CallableStatement cs = connection.prepareCall(sql)) {
+            cs.setInt(1, roomId);
+            cs.setInt(2, assignedTo);
+            cs.setDate(3, Date.valueOf(taskDate));
+            cs.setString(4, taskType.name());
+            cs.setString(5, "NEW"); // Status mặc định
+            cs.setString(6, note);
+            cs.setInt(7, createdBy);
+            cs.registerOutParameter(8, Types.INTEGER); // p_new_task_id
+
+            cs.execute();
+
+            int newId = cs.getInt(8);
+            return newId > 0;
 
         } catch (SQLException e) {
             e.printStackTrace();
