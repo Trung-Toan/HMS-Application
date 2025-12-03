@@ -5,117 +5,117 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Chi Tiết Phòng - Hotel Manager</title>
+        <title>Room Details - Hotel Manager</title>
         <link rel="stylesheet" href="CSS/Authen/login.css" />
         <link rel="stylesheet" href="CSS/Pages/room-detail.css" />
     </head>
     <body>
         <%@ include file="./../Components/Header.jsp" %>
-        
+
         <div class="room-detail-container">
             <div class="breadcrumb">
-                <a href="home">Trang Chủ</a>
+                <a href="home">Home</a>
                 <span>/</span>
-                <a href="rooms">Danh Sách Phòng</a>
+                <a href="rooms">Room List</a>
                 <span>/</span>
-                <span class="current">Chi Tiết Phòng</span>
+                <span class="current">Room Details</span>
             </div>
 
             <div class="detail-content">
                 <!-- Image Gallery -->
                 <div class="image-gallery">
                     <div class="main-image">
-                        <img id="mainImage" src="/placeholder.svg?height=500&width=800" alt="Phòng">
+                        <img id="mainImage" src="/placeholder.svg?height=500&width=800" alt="Room">
                     </div>
                     <div class="thumbnail-gallery">
-                        <img src="/placeholder.svg?height=100&width=100" alt="Hình 1" class="thumbnail active" onclick="changeImage(this)">
-                        <img src="/placeholder.svg?height=100&width=100" alt="Hình 2" class="thumbnail" onclick="changeImage(this)">
-                        <img src="/placeholder.svg?height=100&width=100" alt="Hình 3" class="thumbnail" onclick="changeImage(this)">
-                        <img src="/placeholder.svg?height=100&width=100" alt="Hình 4" class="thumbnail" onclick="changeImage(this)">
+                        <img src="/placeholder.svg?height=100&width=100" alt="Image 1" class="thumbnail active" onclick="changeImage(this)">
+                        <img src="/placeholder.svg?height=100&width=100" alt="Image 2" class="thumbnail" onclick="changeImage(this)">
+                        <img src="/placeholder.svg?height=100&width=100" alt="Image 3" class="thumbnail" onclick="changeImage(this)">
+                        <img src="/placeholder.svg?height=100&width=100" alt="Image 4" class="thumbnail" onclick="changeImage(this)">
                     </div>
                 </div>
 
                 <!-- Room Info Section -->
                 <div class="info-section">
                     <div class="room-header">
-                        <h1>Suite Hạng Sang</h1>
+                        <h1>Luxury Suite</h1>
                         <div class="rating">
                             <span class="stars">⭐⭐⭐⭐⭐</span>
-                            <span class="rating-text">(125 đánh giá)</span>
+                            <span class="rating-text">(125 reviews)</span>
                         </div>
                     </div>
 
                     <!-- Price & Booking -->
                     <div class="price-booking">
                         <div class="price-info">
-                            <span class="price-label">Giá mỗi đêm</span>
-                            <span class="price">1.500.000₫</span>
-                            <span class="per-night">/Đêm</span>
+                            <span class="price-label">Price per night</span>
+                            <span class="price">1,500,000₫</span>
+                            <span class="per-night">/Night</span>
                         </div>
-                        <a href="login" class="btn btn-primary btn-lg">Đặt Phòng</a>
+                        <a href="login" class="btn btn-primary btn-lg">Book Now</a>
                     </div>
 
                     <!-- Room Details -->
                     <div class="details-grid">
                         <div class="detail-item">
-                            <span class="detail-label">Loại Phòng</span>
+                            <span class="detail-label">Room Type</span>
                             <span class="detail-value">Suite</span>
                         </div>
                         <div class="detail-item">
-                            <span class="detail-label">Sức Chứa</span>
-                            <span class="detail-value">2-4 Khách</span>
+                            <span class="detail-label">Capacity</span>
+                            <span class="detail-value">2-4 Guests</span>
                         </div>
                         <div class="detail-item">
-                            <span class="detail-label">Diện Tích</span>
+                            <span class="detail-label">Area</span>
                             <span class="detail-value">45m²</span>
                         </div>
                         <div class="detail-item">
-                            <span class="detail-label">Tầng</span>
-                            <span class="detail-value">Tầng 5-10</span>
+                            <span class="detail-label">Floor</span>
+                            <span class="detail-value">Floors 5-10</span>
                         </div>
                     </div>
 
                     <!-- Description -->
                     <div class="description">
-                        <h3>Mô Tả Phòng</h3>
+                        <h3>Room Description</h3>
                         <p>
-                            Suite hạng sang của chúng tôi mang đến trải nghiệm lưu trú tuyệt vời với thiết kế sang trọng và đầy đủ tiện nghi hiện đại. 
-                            Phòng được trang bị các vật dụng chất lượng cao, bao gồm giường King size thoải mái, phòng ngủ riêng, phòng khách rộng rãi 
-                            và phòng tắm sang trọng với bồn tắm spa. Từ ban công, bạn có thể ngắm nhìn cảnh quan thành phố tuyệt đẹp.
+                            Our luxury suite offers an exceptional stay experience with elegant design and modern amenities. 
+                            The room features high-quality furnishings, including a comfortable king-size bed, private bedroom, spacious living room, 
+                            and a luxurious bathroom with a spa bathtub. From the balcony, you can enjoy a beautiful city view.
                         </p>
                     </div>
 
                     <!-- Amenities -->
                     <div class="amenities-section">
-                        <h3>Tiện Nghi Phòng</h3>
+                        <h3>Room Amenities</h3>
                         <div class="amenities-list">
                             <div class="amenity-item">
                                 <span class="amenity-icon">🛏️</span>
-                                <span class="amenity-name">Giường King Size</span>
+                                <span class="amenity-name">King Size Bed</span>
                             </div>
                             <div class="amenity-item">
                                 <span class="amenity-icon">🌡️</span>
-                                <span class="amenity-name">Điều Hòa Nhiệt Độ</span>
+                                <span class="amenity-name">Air Conditioning</span>
                             </div>
                             <div class="amenity-item">
                                 <span class="amenity-icon">📺</span>
-                                <span class="amenity-name">TV 55 Inch</span>
+                                <span class="amenity-name">55 Inch TV</span>
                             </div>
                             <div class="amenity-item">
                                 <span class="amenity-icon">🛁</span>
-                                <span class="amenity-name">Bồn Tắm Spa</span>
+                                <span class="amenity-name">Spa Bathtub</span>
                             </div>
                             <div class="amenity-item">
                                 <span class="amenity-icon">📶</span>
-                                <span class="amenity-name">WiFi Miễn Phí</span>
+                                <span class="amenity-name">Free WiFi</span>
                             </div>
                             <div class="amenity-item">
                                 <span class="amenity-icon">☕</span>
-                                <span class="amenity-name">Máy Pha Cà Phê</span>
+                                <span class="amenity-name">Coffee Machine</span>
                             </div>
                             <div class="amenity-item">
-                                <span class="amenity-icon">🛏️</span>
-                                <span class="amenity-name">Sofa Phòng Khách</span>
+                                <span class="amenity-icon">🛋️</span>
+                                <span class="amenity-name">Living Room Sofa</span>
                             </div>
                             <div class="amenity-item">
                                 <span class="amenity-icon">❄️</span>
@@ -126,20 +126,20 @@
 
                     <!-- Rules & Info -->
                     <div class="rules-section">
-                        <h3>Quy Định & Thông Tin</h3>
+                        <h3>Rules & Information</h3>
                         <ul class="rules-list">
-                            <li>✓ Nhận phòng từ 14:00, Trả phòng trước 11:00</li>
-                            <li>✓ Thú cưng được phép với phí bổ sung 200.000₫</li>
-                            <li>✓ Hủy phòng miễn phí trước 24 giờ</li>
-                            <li>✓ Không được hút thuốc trong phòng</li>
-                            <li>✓ Bữa sáng đi kèm với đặt phòng</li>
+                            <li>✓ Check-in from 14:00, Check-out before 11:00</li>
+                            <li>✓ Pets allowed with an additional fee of 200,000₫</li>
+                            <li>✓ Free cancellation up to 24 hours before</li>
+                            <li>✓ No smoking in the room</li>
+                            <li>✓ Breakfast included with booking</li>
                         </ul>
                     </div>
 
                     <!-- Call to Action -->
                     <div class="cta-buttons">
-                        <a href="login" class="btn btn-primary btn-lg">Đặt Phòng Ngay</a>
-                        <a href="rooms" class="btn btn-secondary">Quay Lại Danh Sách</a>
+                        <a href="login" class="btn btn-primary btn-lg">Book Now</a>
+                        <a href="rooms" class="btn btn-secondary">Back to List</a>
                     </div>
                 </div>
             </div>
@@ -152,7 +152,7 @@
             function changeImage(thumbnail) {
                 const mainImage = document.getElementById('mainImage');
                 mainImage.src = thumbnail.src;
-                
+
                 // Update active thumbnail
                 document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
                 thumbnail.classList.add('active');
