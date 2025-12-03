@@ -8,7 +8,8 @@
         <title>Login - Hotel System</title>
 
         <!-- Google Font -->
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+              rel="stylesheet">
 
         <!-- Dùng chung CSS với Register -->
         <link rel="stylesheet" href="CSS/Authen/login.css">
@@ -30,22 +31,19 @@
 
                 <form class="auth-form" method="post" action="login">
                     <input type="hidden" name="action" value="login">
+                    <c:if test="${not empty redirect}">
+                        <input type="hidden" name="redirect" value="${redirect}">
+                    </c:if>
 
                     <div class="form-group">
                         <label>Email or Phone Number</label>
-                        <input type="text" 
-                               name="identifier" 
-                               placeholder="you@gmail.com or 0912345678"
-                               value="${identifier}"
-                               required>
+                        <input type="text" name="identifier" placeholder="you@gmail.com or 0912345678"
+                               value="${identifier}" required>
                     </div>
 
                     <div class="form-group">
                         <label>Password</label>
-                        <input type="password" 
-                               name="password"
-                               placeholder="Enter your password"
-                               required>
+                        <input type="password" name="password" placeholder="Enter your password" required>
                     </div>
 
                     <div class="form-actions">
@@ -54,7 +52,7 @@
 
                     <div class="auth-footer-links">
                         <p>
-                            Don’t have an account? 
+                            Don’t have an account?
                             <a href="register">Register now</a>
                         </p>
                         <p style="margin-top: 5px;">
