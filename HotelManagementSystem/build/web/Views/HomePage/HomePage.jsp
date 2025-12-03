@@ -64,7 +64,7 @@
                                     <span class="amenity">📺 </span>
                                     <span class="amenity">🚿</span>
                                 </div>
-                                <a href="roomDetail?id=1" class="btn-book">View Details</a>
+                                <a href="room-detail" class="btn-book">View Details</a>
                             </div>
                         </div>
 
