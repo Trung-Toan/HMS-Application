@@ -63,19 +63,41 @@ public class AuthenController extends HttpServlet {
             throws ServletException, IOException {
         try {
             String username = request.getParameter("username");
-            String fullname = request.getParameter("fullname");
+            String fullName = request.getParameter("fullName");
             String email = request.getParameter("email");
             String phone = request.getParameter("phone");
             String password = request.getParameter("password");
+            String confirmPassword = request.getParameter("confirmPassword");
+
+            request.setAttribute("username", username);
+            request.setAttribute("fullName", fullName);
+            request.setAttribute("email", email);
+            request.setAttribute("phone", phone);
+
+            if (username == null || username.isBlank() || fullName == null || fullName.isBlank()
+                    || email == null || email.isBlank() || phone == null || phone.isBlank()
+                    || confirmPassword == null || confirmPassword.isBlank() || password == null || password.isBlank()) {
+                request.setAttribute("type", "error");
+                request.setAttribute("mess", "All fields can not blank!");
+                request.getRequestDispatcher("Views/Authen/Register.jsp").forward(request, response);
+                return;
+            }
+
+            if (!password.equals(confirmPassword)) {
+                request.setAttribute("type", "error");
+                request.setAttribute("mess", "Password and Confirm Password does not match, try again!");
+                request.getRequestDispatcher("Views/Authen/Register.jsp").forward(request, response);
+                return;
+            }
 
             User user = new User();
             user.setUsername(username);
-            user.setFullName(fullname);
+            user.setFullName(fullName);
             user.setEmail(email);
             user.setPhone(phone);
             user.setRoleId(1);
             user.setActive(true);
-            user.setPlainPassword(password);
+            user.setPlainPassword(confirmPassword);
 
             int result = DAOAuthen.INSTANCE.registerCustomer(user);
 
@@ -83,10 +105,11 @@ public class AuthenController extends HttpServlet {
                 request.setAttribute("type", "success");
                 request.setAttribute("mess", "Register successful!");
                 request.setAttribute("href", "login");
+                request.getRequestDispatcher("Views/Authen/Register.jsp").forward(request, response);
             } else {
                 request.setAttribute("type", "error");
                 request.setAttribute("mess", "Register fail!");
-                request.setAttribute("href", "register");
+                request.getRequestDispatcher("Views/Authen/Register.jsp").forward(request, response);
             }
         } catch (Exception e) {
         }
@@ -96,11 +119,12 @@ public class AuthenController extends HttpServlet {
             throws ServletException, IOException {
         String identifier = request.getParameter("identifier");
         String password = request.getParameter("password");
+        
+        request.setAttribute("identifier", identifier);
 
         if (identifier == null || identifier.isBlank() || password == null || password.isBlank()) {
             request.setAttribute("type", "error");
             request.setAttribute("mess", "Email/Phone and password not blank!");
-            request.setAttribute("href", "home");
             request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
             return;
         }

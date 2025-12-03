@@ -36,6 +36,7 @@
                         <input type="text" 
                                name="identifier" 
                                placeholder="you@gmail.com or 0912345678"
+                               value="${identifier}"
                                required>
                     </div>
 

@@ -28,19 +28,24 @@
                     <input type="hidden" name="action" value="register">
 
                     <div class="form-group">
+                        <label for="username">User Name</label>
+                        <input type="text" id="username" name="username" placeholder="VanA" value="${username}" required>
+                    </div>
+
+                    <div class="form-group">
                         <label for="fullName">Full Name</label>
-                        <input type="text" id="fullName" name="fullName" placeholder="Nguyễn Văn A" required>
+                        <input type="text" id="fullName" name="fullName" placeholder="Nguyễn Văn A" value="${fullName}" required>
                     </div>
 
                     <!-- Phone Number -->
                     <div class="form-group">
                         <label for="phone">Phone Number</label>
-                        <input type="text" id="phone" name="phone" placeholder="098 7654321" required>
+                        <input type="text" id="phone" name="phone" placeholder="098 7654321" value="${phone}" required>
                     </div>
 
                     <div class="form-group">
                         <label for="email">Email</label>
-                        <input type="email" id="email" name="email" placeholder="user@gmail.com" required>
+                        <input type="email" id="email" name="email" placeholder="user@gmail.com" value="${email}" required>
                     </div>
 
                     <div class="form-group">
@@ -66,6 +71,6 @@
 
         <!-- Include Footer -->
         <%@include file="../Components/Footer.jsp" %>
-
+        <%@ include file="../public/notify.jsp" %>
     </body>
 </html>
