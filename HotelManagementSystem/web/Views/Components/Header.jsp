@@ -1,7 +1,7 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<link rel="stylesheet" href="CSS/Components/header.css" />
+<link rel="stylesheet" href="${pageContext.request.contextPath}/CSS/Components/header.css" />
 
 <header class="header">
     <div class="header-container">
@@ -17,9 +17,9 @@
         </button>
 
         <ul class="header-nav" id="main-nav">
-            <li><a href="home">Home</a></li>
-            <li><a href="rooms">Rooms</a></li>
-            <li><a href="my_booking">My Booking</a></li>
+            <li><a href="${pageContext.request.contextPath}/home">Home</a></li>
+            <li><a href="${pageContext.request.contextPath}/rooms">Rooms</a></li>
+            <li><a href="${pageContext.request.contextPath}/my_booking">My Booking</a></li>
             <li class="nav-auth-item mobile-only-auth"> 
                 <a href="login" class="login-button">Login</a>
             </li>
