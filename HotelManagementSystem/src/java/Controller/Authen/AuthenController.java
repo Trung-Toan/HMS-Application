@@ -9,7 +9,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet(name = "AuthenController", urlPatterns = { "/login", "/register", "/forgotPassword", "/resetPassword" })
+@WebServlet(name = "AuthenController", urlPatterns = { "/login", "/register", "/forgotPassword", "/resetPassword",
+        "/logout" })
 public class AuthenController extends HttpServlet {
 
     @Override
@@ -34,6 +35,12 @@ public class AuthenController extends HttpServlet {
 
             case "/resetPassword" ->
                 request.getRequestDispatcher("Views/Authen/ResetPassword.jsp").forward(request, response);
+
+            case "/logout" -> {
+                // Invalidate session and redirect to home
+                request.getSession().invalidate();
+                response.sendRedirect(request.getContextPath() + "/home");
+            }
 
             default ->
                 response.sendError(404);
