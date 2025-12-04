@@ -137,6 +137,26 @@ public class RoomController extends HttpServlet {
 
             request.setAttribute("room", entry.getKey());
             request.setAttribute("roomType", entry.getValue());
+
+            // Fetch feedback
+            int feedbackPage = 1;
+            try {
+                String p = request.getParameter("page");
+                if (p != null)
+                    feedbackPage = Integer.parseInt(p);
+            } catch (NumberFormatException e) {
+            }
+
+            int feedbackPageSize = 5;
+            java.util.List<Model.Feedback> feedbacks = DAL.Feedback.DAOFeedback.INSTANCE.getFeedbacksByRoomId(roomId,
+                    feedbackPage, feedbackPageSize);
+            int totalFeedbacks = DAL.Feedback.DAOFeedback.INSTANCE.countFeedbacksByRoomId(roomId);
+            int totalFeedbackPage = (int) Math.ceil((double) totalFeedbacks / feedbackPageSize);
+
+            request.setAttribute("feedbacks", feedbacks);
+            request.setAttribute("feedbackPage", feedbackPage);
+            request.setAttribute("totalFeedbackPage", totalFeedbackPage);
+
             request.getRequestDispatcher("Views/Room/RoomDetail.jsp").forward(request, response);
 
         } catch (NumberFormatException e) {

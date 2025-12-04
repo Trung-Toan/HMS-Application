@@ -124,6 +124,60 @@ public class DAOFeedback extends DAO {
         }
     }
 
+    // Get feedbacks by room ID with pagination
+    public java.util.List<Feedback> getFeedbacksByRoomId(int roomId, int page, int pageSize) {
+        java.util.List<Feedback> list = new java.util.ArrayList<>();
+        int offset = (page - 1) * pageSize;
+        String sql = """
+                SELECT f.*, u.full_name
+                FROM feedbacks f
+                JOIN bookings b ON f.booking_id = b.booking_id
+                JOIN users u ON f.customer_id = u.user_id
+                WHERE b.room_id = ?
+                ORDER BY f.created_at DESC
+                LIMIT ? OFFSET ?
+                """;
+
+        try (PreparedStatement ps = this.connection.prepareStatement(sql)) {
+            ps.setInt(1, roomId);
+            ps.setInt(2, pageSize);
+            ps.setInt(3, offset);
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Feedback fb = mapFeedback(rs);
+                try {
+                    fb.setCustomerName(rs.getString("full_name"));
+                } catch (SQLException e) {
+                    // Column might not exist if mapFeedback called from other queries
+                }
+                list.add(fb);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public int countFeedbacksByRoomId(int roomId) {
+        String sql = """
+                SELECT COUNT(*)
+                FROM feedbacks f
+                JOIN bookings b ON f.booking_id = b.booking_id
+                WHERE b.room_id = ?
+                """;
+        try (PreparedStatement ps = this.connection.prepareStatement(sql)) {
+            ps.setInt(1, roomId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     // Map ResultSet to Feedback object
     private Feedback mapFeedback(ResultSet rs) throws SQLException {
         Feedback feedback = new Feedback();
