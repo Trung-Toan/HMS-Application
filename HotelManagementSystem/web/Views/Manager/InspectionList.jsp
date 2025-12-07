@@ -5,7 +5,7 @@
 
         <head>
             <meta charset="UTF-8">
-            <title>Issue Management | HMS Manager</title>
+            <title>Inspection History | HMS</title>
             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
             <link rel="stylesheet" href="<c:url value='/CSS/housekeeping.css'/>">
@@ -18,49 +18,74 @@
                     <jsp:include page="../Shared/Header.jsp" />
 
                     <div class="container-fluid p-4">
-                        <div class="card shadow-sm">
-                            <div class="card-header bg-white py-3">
-                                <h5 class="mb-0"><i class="bi bi-tools me-2"></i>Reported Issues</h5>
+                        <h2 class="mb-4">Recent Inspections</h2>
+
+                        <!-- Search and Filter Row -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <form method="GET" class="d-flex">
+                                    <input type="hidden" name="type" value="${typeFilter}">
+                                    <input type="text" class="form-control" name="search"
+                                        placeholder="Search by ID, room, inspector, or note..." value="${searchQuery}">
+                                    <button type="submit" class="btn btn-primary ms-2">
+                                        <i class="bi bi-search"></i> Search
+                                    </button>
+                                    <c:if test="${not empty searchQuery}">
+                                        <a href="?type=${typeFilter}" class="btn btn-secondary ms-2">
+                                            <i class="bi bi-x-circle"></i>
+                                        </a>
+                                    </c:if>
+                                </form>
                             </div>
-                            <div class="card-body">
+                            <div class="col-md-6">
+                                <div class="btn-group w-100">
+                                    <a href="?search=${searchQuery}&type=ALL"
+                                        class="btn btn-sm ${typeFilter == 'ALL' ? 'btn-primary' : 'btn-outline-primary'}">All</a>
+                                    <a href="?search=${searchQuery}&type=CHECKIN"
+                                        class="btn btn-sm ${typeFilter == 'CHECKIN' ? 'btn-success' : 'btn-outline-success'}">Check-in</a>
+                                    <a href="?search=${searchQuery}&type=CHECKOUT"
+                                        class="btn btn-sm ${typeFilter == 'CHECKOUT' ? 'btn-primary' : 'btn-outline-primary'}">Check-out</a>
+                                    <a href="?search=${searchQuery}&type=ROUTINE"
+                                        class="btn btn-sm ${typeFilter == 'ROUTINE' ? 'btn-secondary' : 'btn-outline-secondary'}">Routine</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card shadow-sm">
+                            <div class="card-body p-0">
                                 <div class="table-responsive">
-                                    <table class="table table-hover align-middle">
+                                    <table class="table table-hover mb-0 align-middle">
                                         <thead class="table-light">
                                             <tr>
                                                 <th>ID</th>
                                                 <th>Room</th>
                                                 <th>Type</th>
-                                                <th>Description</th>
-                                                <th>Status</th>
-                                                <th>Actions</th>
+                                                <th>Date</th>
+                                                <th>Inspector</th>
+                                                <th>Note</th>
+                                                <th>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <c:forEach items="${issues}" var="i">
+                                            <c:forEach items="${inspections}" var="i">
                                                 <tr>
-                                                    <td>#${i.issueId}</td>
-                                                    <td>${i.roomId}</td>
-                                                    <td>${i.issueType}</td>
-                                                    <td>${i.description}</td>
+                                                    <td>#${i.inspectionId}</td>
+                                                    <td class="fw-bold">Room ${i.roomId}</td>
                                                     <td>
                                                         <span
-                                                            class="badge rounded-pill 
-                                                    ${i.status == 'NEW' ? 'text-bg-danger' : 
-                                                      i.status == 'RESOLVED' ? 'text-bg-success' : 'text-bg-secondary'}">
-                                                            ${i.status}
+                                                            class="badge ${i.type == 'CHECKIN' ? 'bg-success' : 
+                                                                   i.type == 'CHECKOUT' ? 'bg-primary' : 'bg-secondary'}">
+                                                            ${i.type}
                                                         </span>
                                                     </td>
+                                                    <td>${i.inspectionDate}</td>
+                                                    <td>User #${i.inspectorId}</td>
+                                                    <td class="text-truncate" style="max-width: 200px;">${i.note}</td>
                                                     <td>
-                                                        <c:if test="${i.status != 'RESOLVED' && i.status != 'CLOSED'}">
-                                                            <form action="issues" method="post" class="d-inline">
-                                                                <input type="hidden" name="action" value="resolve">
-                                                                <input type="hidden" name="issueId"
-                                                                    value="${i.issueId}">
-                                                                <button type="submit" class="btn btn-sm btn-success">
-                                                                    <i class="bi bi-check-lg me-1"></i>Resolve
-                                                                </button>
-                                                            </form>
-                                                        </c:if>
+                                                        <a href="<c:url value='/housekeeping/inspection-history'><c:param name='roomId' value='${i.roomId}'/></c:url>"
+                                                            class="btn btn-sm btn-outline-primary">
+                                                            View Details
+                                                        </a>
                                                     </td>
                                                 </tr>
                                             </c:forEach>
@@ -74,13 +99,14 @@
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="text-muted">
                                         Showing ${(currentPage - 1) * pageSize + 1} to ${(currentPage - 1) * pageSize +
-                                        issues.size()} of ${totalIssues} issues
+                                        inspections.size()} of ${totalInspections} inspections
                                     </div>
                                     <c:if test="${totalPages > 1}">
                                         <nav>
                                             <ul class="pagination mb-0">
                                                 <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
-                                                    <a class="page-link" href="?page=${currentPage - 1}">
+                                                    <a class="page-link"
+                                                        href="?search=${searchQuery}&type=${typeFilter}&page=${currentPage - 1}">
                                                         <i class="bi bi-chevron-left"></i>
                                                     </a>
                                                 </li>
@@ -89,7 +115,8 @@
                                                     <c:if
                                                         test="${i == 1 || i == totalPages || (i >= currentPage - 2 && i <= currentPage + 2)}">
                                                         <li class="page-item ${currentPage == i ? 'active' : ''}">
-                                                            <a class="page-link" href="?page=${i}">${i}</a>
+                                                            <a class="page-link"
+                                                                href="?search=${searchQuery}&type=${typeFilter}&page=${i}">${i}</a>
                                                         </li>
                                                     </c:if>
                                                     <c:if test="${i == 2 && currentPage > 4}">
@@ -103,7 +130,8 @@
                                                 </c:forEach>
 
                                                 <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
-                                                    <a class="page-link" href="?page=${currentPage + 1}">
+                                                    <a class="page-link"
+                                                        href="?search=${searchQuery}&type=${typeFilter}&page=${currentPage + 1}">
                                                         <i class="bi bi-chevron-right"></i>
                                                     </a>
                                                 </li>

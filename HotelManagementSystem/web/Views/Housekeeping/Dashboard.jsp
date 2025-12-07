@@ -133,6 +133,27 @@
                                                                 </span>
                                                             </td>
                                                             <td class="text-end">
+                                                            <td class="text-end">
+                                                                <c:choose>
+                                                                    <c:when test="${r.status == 'DIRTY'}">
+                                                                        <a href="<c:url value='/housekeeping/inspection'><c:param name='roomId' value='${r.roomId}'/><c:param name='type' value='CHECK_OUT'/></c:url>"
+                                                                            class="btn btn-sm btn-outline-danger me-1">
+                                                                            Check-out Inspect
+                                                                        </a>
+                                                                    </c:when>
+                                                                    <c:when test="${r.status == 'CLEANING'}">
+                                                                        <a href="<c:url value='/housekeeping/inspection'><c:param name='roomId' value='${r.roomId}'/><c:param name='type' value='CHECK_IN'/></c:url>"
+                                                                            class="btn btn-sm btn-outline-success me-1">
+                                                                            Finish & Inspect
+                                                                        </a>
+                                                                    </c:when>
+                                                                    <c:otherwise>
+                                                                        <a href="<c:url value='/housekeeping/inspection'><c:param name='roomId' value='${r.roomId}'/><c:param name='type' value='ROUTINE'/></c:url>"
+                                                                            class="btn btn-sm btn-outline-primary me-1">
+                                                                            Routine Inspect
+                                                                        </a>
+                                                                    </c:otherwise>
+                                                                </c:choose>
                                                                 <a href="<c:url value='/housekeeping/room-update'><c:param name='roomId' value='${r.roomId}'/></c:url>"
                                                                     class="btn btn-sm btn-outline-secondary">
                                                                     Update
