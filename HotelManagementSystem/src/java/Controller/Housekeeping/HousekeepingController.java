@@ -15,22 +15,20 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet(
-        name = "HousekeepingController",
-        urlPatterns = {
-            "/housekeeping/dashboard",
-            "/housekeeping/tasks",
-            "/housekeeping/task-detail",
-            "/housekeeping/task-update",
-            "/housekeeping/issue-report",
-            "/housekeeping/room-update",
-            "/housekeeping/create-task",
-            "/housekeeping/rooms"
-        }
-)
+@WebServlet(name = "HousekeepingController", urlPatterns = {
+        "/housekeeping/dashboard",
+        "/housekeeping/tasks",
+        "/housekeeping/task-detail",
+        "/housekeeping/task-update",
+        "/housekeeping/issue-report",
+        "/housekeeping/room-update",
+        "/housekeeping/create-task",
+        "/housekeeping/rooms"
+})
 public class HousekeepingController extends HttpServlet {
 
-    // Cần khớp với role_id = HOUSEKEEPING trong bảng roles (theo script insert trước là 3)
+    // Cần khớp với role_id = HOUSEKEEPING trong bảng roles (theo script insert
+    // trước là 3)
     private static final int ROLE_HOUSEKEEPING = 3;
 
     private boolean ensureHousekeeping(HttpServletRequest request, HttpServletResponse response)
@@ -131,12 +129,10 @@ public class HousekeepingController extends HttpServlet {
         List<Room> roomsNeedCleaning = DAOHousekeeping.INSTANCE.getRoomsNeedingCleaning();
 
         // Task dọn phòng của nhân viên hôm nay
-        List<HousekeepingTask> todayTasks
-                = DAOHousekeeping.INSTANCE.getTasksForStaffOnDate(staffId, today);
+        List<HousekeepingTask> todayTasks = DAOHousekeeping.INSTANCE.getTasksForStaffOnDate(staffId, today);
 
         // Phân ca làm việc hôm nay
-        List<StaffAssignment> todayAssignments
-                = DAOHousekeeping.INSTANCE.getAssignmentsForStaffOnDate(staffId, today);
+        List<StaffAssignment> todayAssignments = DAOHousekeeping.INSTANCE.getAssignmentsForStaffOnDate(staffId, today);
 
         request.setAttribute("roomsNeedCleaning", roomsNeedCleaning);
         request.setAttribute("todayTasks", todayTasks);
@@ -165,30 +161,42 @@ public class HousekeepingController extends HttpServlet {
         String sortBy = request.getParameter("sortBy");
         String sortOrder = request.getParameter("sortOrder");
         String pageStr = request.getParameter("page");
-        
+        String type = request.getParameter("type"); // CLEANING, INSPECTION (or INSPECTION_ALL)
+
         LocalDate dateFrom = null;
         LocalDate dateTo = null;
         try {
-            if (dateFromStr != null && !dateFromStr.isBlank()) dateFrom = LocalDate.parse(dateFromStr);
-            if (dateToStr != null && !dateToStr.isBlank()) dateTo = LocalDate.parse(dateToStr);
-        } catch (DateTimeParseException e) {}
-        
+            if (dateFromStr != null && !dateFromStr.isBlank())
+                dateFrom = LocalDate.parse(dateFromStr);
+            if (dateToStr != null && !dateToStr.isBlank())
+                dateTo = LocalDate.parse(dateToStr);
+        } catch (DateTimeParseException e) {
+        }
+
         int page = 1;
         int pageSize = 10;
         try {
-            if (pageStr != null) page = Integer.parseInt(pageStr);
-        } catch (NumberFormatException e) {}
-        
+            if (pageStr != null)
+                page = Integer.parseInt(pageStr);
+        } catch (NumberFormatException e) {
+        }
+
+        // Map UI type to DB type logic
+        String dbTaskType = type;
+        if ("INSPECTION".equals(type)) {
+            dbTaskType = "INSPECTION_ALL"; // Special flag for DAO to get INSPECTION, CHECKIN, CHECKOUT
+        }
+
         List<HousekeepingTask> tasks = DAOHousekeeping.INSTANCE.getTasks(
-                staffId, dateFrom, dateTo, statusStr, search, sortBy, sortOrder, page, pageSize);
-        int totalTasks = DAOHousekeeping.INSTANCE.countTasks(staffId, dateFrom, dateTo, statusStr, search);
+                staffId, dateFrom, dateTo, statusStr, search, dbTaskType, sortBy, sortOrder, page, pageSize);
+        int totalTasks = DAOHousekeeping.INSTANCE.countTasks(staffId, dateFrom, dateTo, statusStr, search, dbTaskType);
         int totalPages = (int) Math.ceil((double) totalTasks / pageSize);
 
         request.setAttribute("tasks", tasks);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("totalTasks", totalTasks);
-        
+
         // Preserve filter params
         request.setAttribute("dateFrom", dateFromStr);
         request.setAttribute("dateTo", dateToStr);
@@ -196,6 +204,7 @@ public class HousekeepingController extends HttpServlet {
         request.setAttribute("search", search);
         request.setAttribute("sortBy", sortBy);
         request.setAttribute("sortOrder", sortOrder);
+        request.setAttribute("type", type); // Pass back to view for title/active state
 
         request.getRequestDispatcher("/Views/Housekeeping/TaskList.jsp")
                 .forward(request, response);
@@ -211,27 +220,29 @@ public class HousekeepingController extends HttpServlet {
         String sortBy = request.getParameter("sortBy");
         String sortOrder = request.getParameter("sortOrder");
         String pageStr = request.getParameter("page");
-        
+
         int page = 1;
         int pageSize = 12; // Grid view might look better with 12
         try {
-            if (pageStr != null) page = Integer.parseInt(pageStr);
-        } catch (NumberFormatException e) {}
-        
+            if (pageStr != null)
+                page = Integer.parseInt(pageStr);
+        } catch (NumberFormatException e) {
+        }
+
         List<Room> rooms = DAOHousekeeping.INSTANCE.getRooms(statusStr, search, sortBy, sortOrder, page, pageSize);
         int totalRooms = DAOHousekeeping.INSTANCE.countRooms(statusStr, search);
         int totalPages = (int) Math.ceil((double) totalRooms / pageSize);
-        
+
         request.setAttribute("rooms", rooms);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("totalRooms", totalRooms);
-        
+
         request.setAttribute("status", statusStr);
         request.setAttribute("search", search);
         request.setAttribute("sortBy", sortBy);
         request.setAttribute("sortOrder", sortOrder);
-        
+
         request.getRequestDispatcher("/Views/Housekeeping/RoomList.jsp").forward(request, response);
     }
 
@@ -275,8 +286,7 @@ public class HousekeepingController extends HttpServlet {
 
         int taskId = Integer.parseInt(idStr);
         try {
-            HousekeepingTask.TaskStatus newStatus
-                    = HousekeepingTask.TaskStatus.valueOf(statusStr);
+            HousekeepingTask.TaskStatus newStatus = HousekeepingTask.TaskStatus.valueOf(statusStr);
 
             boolean ok = DAOHousekeeping.INSTANCE.updateTaskStatusAndNote(taskId, newStatus, note);
 
@@ -356,8 +366,7 @@ public class HousekeepingController extends HttpServlet {
                 roomId,
                 currentUser.getUserId(),
                 issueType,
-                description
-        );
+                description);
 
         if (ok) {
             request.setAttribute("type", "success");
@@ -372,7 +381,6 @@ public class HousekeepingController extends HttpServlet {
         request.getRequestDispatcher("Views/Housekeeping/IssueReport.jsp")
                 .forward(request, response);
     }
-
 
     // ======================================================
     // 7. Room State Update Screen

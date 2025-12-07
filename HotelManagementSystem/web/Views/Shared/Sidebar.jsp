@@ -19,10 +19,10 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="<c:url value='/manager/create-task'/>"
-                                    class="nav-link ${pageContext.request.servletPath.endsWith('CreateTask.jsp') ? 'active' : ''}">
-                                    <i class="bi bi-plus-square"></i>
-                                    <span>Assign Task</span>
+                                <a href="<c:url value='/manager/bookings'/>"
+                                    class="nav-link ${pageContext.request.servletPath.endsWith('BookingList.jsp') ? 'active' : ''}">
+                                    <i class="bi bi-calendar-check"></i>
+                                    <span>Bookings</span>
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -30,6 +30,41 @@
                                     class="nav-link ${pageContext.request.servletPath.endsWith('IssueList.jsp') ? 'active' : ''}">
                                     <i class="bi bi-exclamation-triangle"></i>
                                     <span>Issues</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="<c:url value='/manager/replenishment-requests'/>"
+                                    class="nav-link ${pageContext.request.servletPath.endsWith('ReplenishmentRequests.jsp') ? 'active' : ''}">
+                                    <i class="bi bi-box-seam"></i>
+                                    <span>Replenishment</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="<c:url value='/manager/inspections'/>"
+                                    class="nav-link ${pageContext.request.servletPath.endsWith('InspectionList.jsp') ? 'active' : ''}">
+                                    <i class="bi bi-clipboard-check"></i>
+                                    <span>Inspections</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="<c:url value='/manager/rooms'/>"
+                                    class="nav-link ${pageContext.request.servletPath.endsWith('RoomList.jsp') ? 'active' : ''}">
+                                    <i class="bi bi-door-open"></i>
+                                    <span>Rooms</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="<c:url value='/manager/staff'/>"
+                                    class="nav-link ${pageContext.request.servletPath.endsWith('StaffList.jsp') ? 'active' : ''}">
+                                    <i class="bi bi-people"></i>
+                                    <span>Staff</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="<c:url value='/manager/create-inspection'/>"
+                                    class="nav-link ${pageContext.request.servletPath.endsWith('CreateInspection.jsp') ? 'active' : ''}">
+                                    <i class="bi bi-plus-circle"></i>
+                                    <span>Create Inspection</span>
                                 </a>
                             </li>
                         </c:when>
@@ -44,24 +79,31 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="<c:url value='/housekeeping/tasks'/>"
-                                        class="nav-link ${pageContext.request.servletPath.endsWith('TaskList.jsp') ? 'active' : ''}">
-                                        <i class="bi bi-list-check"></i>
-                                        <span>My Tasks</span>
+                                    <a href="<c:url value='/housekeeping/tasks'><c:param name='type' value='CLEANING'/></c:url>"
+                                        class="nav-link ${param.type == 'CLEANING' ? 'active' : ''}">
+                                        <i class="bi bi-bucket"></i>
+                                        <span>Cleaning Tasks</span>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="<c:url value='/housekeeping/create-task'/>"
-                                        class="nav-link ${pageContext.request.servletPath.endsWith('CreateTask.jsp') ? 'active' : ''}">
-                                        <i class="bi bi-plus-square"></i>
-                                        <span>Create Task</span>
+                                    <a href="<c:url value='/housekeeping/tasks'><c:param name='type' value='INSPECTION'/></c:url>"
+                                        class="nav-link ${param.type == 'INSPECTION' ? 'active' : ''}">
+                                        <i class="bi bi-clipboard-check"></i>
+                                        <span>Inspection Tasks</span>
                                     </a>
                                 </li>
+
+                                <a href="<c:url value='/housekeeping/issue-report'/>"
+                                    class="nav-link ${pageContext.request.servletPath.endsWith('IssueReport.jsp') ? 'active' : ''}">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <span>Report Issue</span>
+                                </a>
+                                </li>
                                 <li class="nav-item">
-                                    <a href="<c:url value='/housekeeping/issue-report'/>"
-                                        class="nav-link ${pageContext.request.servletPath.endsWith('IssueReport.jsp') ? 'active' : ''}">
-                                        <i class="bi bi-exclamation-triangle"></i>
-                                        <span>Report Issue</span>
+                                    <a href="<c:url value='/housekeeping/inspection-history'/>"
+                                        class="nav-link ${pageContext.request.servletPath.endsWith('InspectionHistory.jsp') ? 'active' : ''}">
+                                        <i class="bi bi-clipboard-check"></i>
+                                        <span>Inspections</span>
                                     </a>
                                 </li>
                             </c:otherwise>

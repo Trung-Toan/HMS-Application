@@ -25,10 +25,6 @@ DROP PROCEDURE IF EXISTS sp_assign_amenity_to_room_type;
 DROP PROCEDURE IF EXISTS sp_create_room_inspection;
 DROP PROCEDURE IF EXISTS sp_add_inspection_detail;
 
--- NEW: Replenishment
-DROP PROCEDURE IF EXISTS sp_create_replenishment_request;
-DROP PROCEDURE IF EXISTS sp_update_replenishment_status;
-
 
 /* ============================================
    CREATE TABLES
@@ -196,32 +192,6 @@ CREATE TABLE inspection_details (
     comment          TEXT,
     FOREIGN KEY (inspection_id) REFERENCES room_inspections(inspection_id),
     FOREIGN KEY (amenity_id)    REFERENCES amenities(amenity_id)
-);
-
-/* ============================================
-   NEW TABLE — REPLENISHMENT REQUESTS
-   ============================================ */
-CREATE TABLE IF NOT EXISTS replenishment_requests (
-    request_id          INT AUTO_INCREMENT PRIMARY KEY,
-    inspection_id       INT NOT NULL,
-    amenity_id          INT NOT NULL,
-    quantity_requested  INT NOT NULL DEFAULT 1,
-    reason              TEXT,
-    status              VARCHAR(20) NOT NULL DEFAULT 'PENDING',
-    requested_by        INT NOT NULL,
-    approved_by         INT NULL,
-    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at          DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (inspection_id) REFERENCES room_inspections(inspection_id),
-    FOREIGN KEY (amenity_id)    REFERENCES amenities(amenity_id),
-    FOREIGN KEY (requested_by)  REFERENCES users(user_id),
-    FOREIGN KEY (approved_by)   REFERENCES users(user_id),
-    
-    INDEX idx_status (status),
-    INDEX idx_inspection (inspection_id),
-    INDEX idx_requested_by (requested_by),
-    INDEX idx_created_at (created_at)
 );
 
 
@@ -437,50 +407,6 @@ BEGIN
     VALUES(p_inspection, p_amenity, p_qty, p_status, p_comment);
 
     SET p_id = LAST_INSERT_ID();
-END $$
-
-/* NEW — CREATE REPLENISHMENT REQUEST */
-CREATE PROCEDURE sp_create_replenishment_request(
-    IN p_inspection_id INT,
-    IN p_amenity_id INT,
-    IN p_quantity INT,
-    IN p_reason TEXT,
-    IN p_requested_by INT,
-    OUT p_id INT
-)
-BEGIN
-    INSERT INTO replenishment_requests(
-        inspection_id, 
-        amenity_id, 
-        quantity_requested, 
-        reason, 
-        status, 
-        requested_by
-    )
-    VALUES(
-        p_inspection_id, 
-        p_amenity_id, 
-        p_quantity, 
-        p_reason, 
-        'PENDING', 
-        p_requested_by
-    );
-    
-    SET p_id = LAST_INSERT_ID();
-END $$
-
-/* NEW — UPDATE REPLENISHMENT REQUEST STATUS */
-CREATE PROCEDURE sp_update_replenishment_status(
-    IN p_request_id INT,
-    IN p_status VARCHAR(20),
-    IN p_approved_by INT
-)
-BEGIN
-    UPDATE replenishment_requests
-    SET status = p_status,
-        approved_by = p_approved_by,
-        updated_at = CURRENT_TIMESTAMP
-    WHERE request_id = p_request_id;
 END $$
 
 DELIMITER ;
@@ -935,63 +861,6 @@ CALL sp_add_inspection_detail(@insp_b10_co, @am_bath_towel, 2, 'USED',    'Đã 
 CALL sp_add_inspection_detail(@insp_b10_co, @am_hand_towel, 2, 'USED',    'Đã dùng.',               @tmp_detail);
 CALL sp_add_inspection_detail(@insp_b10_co, @am_tv_remote,  1, 'OK',      'OK.',                    @tmp_detail);
 CALL sp_add_inspection_detail(@insp_b10_co, @am_hair_dryer, 1, 'OK',      'OK.',                    @tmp_detail);
-
-
-
-/* ============================================
-   SAMPLE DATA — REPLENISHMENT REQUESTS
-   Sinh từ các inspection bị MISSING/DAMAGED
-   ============================================ */
-
-SET @repl1 := 0;
-SET @repl2 := 0;
-SET @repl3 := 0;
-SET @repl4 := 0;
-
--- Booking 1 CHECKOUT: thiếu 1 khăn tay (Hand Towel) – hk01 yêu cầu bổ sung
-CALL sp_create_replenishment_request(
-    @insp_b1_co,
-    @am_hand_towel,
-    1,
-    'Bổ sung 1 khăn tay bị thiếu sau checkout phòng 101.',
-    @u7,        -- hk01
-    @repl1
-);
-
--- Booking 2 CHECKOUT: remote tivi hỏng – hk02 yêu cầu thay mới
-CALL sp_create_replenishment_request(
-    @insp_b2_co,
-    @am_tv_remote,
-    1,
-    'Remote TV bị hỏng nút, cần thay mới cho phòng 102.',
-    @u8,        -- hk02
-    @repl2
-);
-
--- Booking 5 CHECKOUT: thiếu 1 khăn tắm – hk01 yêu cầu bổ sung
-CALL sp_create_replenishment_request(
-    @insp_b5_co,
-    @am_bath_towel,
-    1,
-    'Thiếu 1 khăn tắm sau checkout phòng 105.',
-    @u7,        -- hk01
-    @repl3
-);
-
--- Booking 9 CHECKOUT: thiếu 1 khăn tay – hk02 yêu cầu bổ sung
-CALL sp_create_replenishment_request(
-    @insp_b9_co,
-    @am_hand_towel,
-    1,
-    'Thiếu 1 khăn tay sau checkout phòng 204.',
-    @u8,        -- hk02
-    @repl4
-);
-
--- Một số request được duyệt bởi owner/admin
-CALL sp_update_replenishment_status(@repl1, 'APPROVED', @u9);   -- owner duyệt
-CALL sp_update_replenishment_status(@repl2, 'APPROVED', @u10);  -- admin duyệt
--- @repl3, @repl4 giữ trạng thái PENDING để demo backlog
 
 
 
