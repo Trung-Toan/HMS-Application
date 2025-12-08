@@ -68,16 +68,77 @@ public class DAOBooking extends DAO {
     // ======================================================
     public List<Booking> getAllBookings() {
         List<Booking> list = new ArrayList<>();
-        String sql = "SELECT * FROM bookings ORDER BY created_at DESC";
+        String sql = "SELECT b.*, c.full_name as customer_name, c.email as customer_email, " +
+                "r.room_number, rt.type_name " +
+                "FROM bookings b " +
+                "JOIN users c ON b.customer_id = c.user_id " +
+                "JOIN rooms r ON b.room_id = r.room_id " +
+                "JOIN room_types rt ON r.room_type_id = rt.room_type_id " +
+                "ORDER BY b.created_at DESC";
         try (PreparedStatement ps = connection.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                list.add(mapBooking(rs));
+                list.add(mapBookingWithDetails(rs));
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return list;
+    }
+
+    // ======================================================
+    // Get Bookings by Status
+    // ======================================================
+    public List<Booking> getBookingsByStatus(Status status) {
+        List<Booking> list = new ArrayList<>();
+        String sql = "SELECT b.*, c.full_name as customer_name, c.email as customer_email, " +
+                "r.room_number, rt.type_name " +
+                "FROM bookings b " +
+                "JOIN users c ON b.customer_id = c.user_id " +
+                "JOIN rooms r ON b.room_id = r.room_id " +
+                "JOIN room_types rt ON r.room_type_id = rt.room_type_id " +
+                "WHERE b.status = ? ORDER BY b.created_at DESC";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, status.name());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapBookingWithDetails(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    
+    public Booking getLastBookingByRoomId(int roomId) {
+        String sql = "SELECT * FROM bookings WHERE room_id = ? AND status = 'CHECKED_OUT' ORDER BY checkout_date DESC LIMIT 1";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, roomId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapBooking(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    public Booking getCurrentBookingByRoomId(int roomId) {
+        String sql = "SELECT * FROM bookings WHERE room_id = ? AND status = 'CHECKED_IN'";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, roomId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapBooking(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     // ======================================================
@@ -341,6 +402,29 @@ public class DAOBooking extends DAO {
         Timestamp uAt = rs.getTimestamp("updated_at");
         if (uAt != null)
             b.setUpdatedAt(uAt.toLocalDateTime());
+
+        return b;
+    }
+
+    private Booking mapBookingWithDetails(ResultSet rs) throws SQLException {
+        Booking b = mapBooking(rs);
+
+        // Map customer details
+        Model.User customer = new Model.User();
+        customer.setUserId(b.getCustomerId());
+        customer.setFullName(rs.getString("customer_name"));
+        customer.setEmail(rs.getString("customer_email"));
+        b.setCustomer(customer);
+
+        // Map room details
+        Room room = new Room();
+        room.setRoomId(b.getRoomId());
+        room.setRoomNumber(rs.getString("room_number"));
+
+        Model.RoomType roomType = new Model.RoomType();
+        roomType.setTypeName(rs.getString("type_name"));
+        room.setRoomType(roomType);
+        b.setRoom(room);
 
         return b;
     }

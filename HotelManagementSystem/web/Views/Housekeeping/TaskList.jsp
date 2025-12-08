@@ -25,14 +25,29 @@
                     <div class="container-fluid py-4 px-4">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <div>
-                                <h2 class="mb-1">My Tasks</h2>
-                                <p class="text-muted mb-0">Manage your cleaning assignments.</p>
+                                <h2 class="mb-1">
+                                    <c:choose>
+                                        <c:when test="${param.type == 'CLEANING'}">Cleaning Tasks</c:when>
+                                        <c:when test="${param.type == 'INSPECTION'}">Inspection Tasks</c:when>
+                                        <c:otherwise>My Tasks</c:otherwise>
+                                    </c:choose>
+                                </h2>
+                                <p class="text-muted mb-0">
+                                    <c:choose>
+                                        <c:when test="${param.type == 'CLEANING'}">Manage your daily cleaning
+                                            assignments.</c:when>
+                                        <c:when test="${param.type == 'INSPECTION'}">Perform room inspections and
+                                            checks.</c:when>
+                                        <c:otherwise>Manage all your assignments.</c:otherwise>
+                                    </c:choose>
+                                </p>
                             </div>
                         </div>
 
                         <div class="card shadow-sm">
                             <div class="card-header bg-white py-3">
                                 <form action="<c:url value='/housekeeping/tasks'/>" method="get">
+                                    <input type="hidden" name="type" value="${param.type}">
                                     <div class="row g-3">
                                         <div class="col-md-3">
                                             <div class="input-group input-group-sm">
@@ -106,8 +121,21 @@
                                                         <span class="fw-bold text-primary">#${t.roomId}</span>
                                                     </td>
                                                     <td>${t.taskDate}</td>
-                                                    <td><span
-                                                            class="badge bg-light text-dark border">${t.taskType}</span>
+                                                    <td>
+                                                        <c:choose>
+                                                            <c:when test="${t.taskType == 'CHECKIN'}">
+                                                                <span class="badge bg-success">Check-in</span>
+                                                            </c:when>
+                                                            <c:when test="${t.taskType == 'CHECKOUT'}">
+                                                                <span class="badge bg-primary">Check-out</span>
+                                                            </c:when>
+                                                            <c:when test="${t.taskType == 'INSPECTION'}">
+                                                                <span class="badge bg-info text-dark">Inspection</span>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <span class="badge bg-secondary">Cleaning</span>
+                                                            </c:otherwise>
+                                                        </c:choose>
                                                     </td>
                                                     <td>
                                                         <span
@@ -135,17 +163,17 @@
                                     <ul class="pagination pagination-sm mb-0">
                                         <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
                                             <a class="page-link"
-                                                href="?page=${currentPage - 1}&search=${search}&status=${status}&dateFrom=${dateFrom}&dateTo=${dateTo}&sortBy=${sortBy}">Previous</a>
+                                                href="?page=${currentPage - 1}&search=${search}&status=${status}&dateFrom=${dateFrom}&dateTo=${dateTo}&sortBy=${sortBy}&type=${param.type}">Previous</a>
                                         </li>
                                         <c:forEach begin="1" end="${totalPages}" var="p">
                                             <li class="page-item ${currentPage == p ? 'active' : ''}">
                                                 <a class="page-link"
-                                                    href="?page=${p}&search=${search}&status=${status}&dateFrom=${dateFrom}&dateTo=${dateTo}&sortBy=${sortBy}">${p}</a>
+                                                    href="?page=${p}&search=${search}&status=${status}&dateFrom=${dateFrom}&dateTo=${dateTo}&sortBy=${sortBy}&type=${param.type}">${p}</a>
                                             </li>
                                         </c:forEach>
                                         <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
                                             <a class="page-link"
-                                                href="?page=${currentPage + 1}&search=${search}&status=${status}&dateFrom=${dateFrom}&dateTo=${dateTo}&sortBy=${sortBy}">Next</a>
+                                                href="?page=${currentPage + 1}&search=${search}&status=${status}&dateFrom=${dateFrom}&dateTo=${dateTo}&sortBy=${sortBy}&type=${param.type}">Next</a>
                                         </li>
                                     </ul>
                                 </nav>
