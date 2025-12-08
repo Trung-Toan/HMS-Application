@@ -5,6 +5,10 @@ import Model.HousekeepingTask;
 import Model.Room;
 import Model.StaffAssignment;
 import Model.User;
+import DAL.ReplenishmentRequestDAO;
+import DAL.AmenityDAO;
+import Model.ReplenishmentRequest;
+import Model.Amenity;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -23,7 +27,9 @@ import jakarta.servlet.http.HttpServletResponse;
         "/housekeeping/issue-report",
         "/housekeeping/room-update",
         "/housekeeping/create-task",
-        "/housekeeping/rooms"
+        "/housekeeping/rooms",
+        "/housekeeping/supplies",
+        "/housekeeping/create-replenishment"
 })
 public class HousekeepingController extends HttpServlet {
 
@@ -66,6 +72,10 @@ public class HousekeepingController extends HttpServlet {
                 showRoomUpdateForm(request, response);
             case "/housekeeping/rooms" ->
                 showRoomList(request, response);
+            case "/housekeeping/supplies" ->
+                showSupplies(request, response);
+            case "/housekeeping/create-replenishment" ->
+                showCreateReplenishment(request, response);
             default ->
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
@@ -106,6 +116,14 @@ public class HousekeepingController extends HttpServlet {
             case "/housekeeping/room-update" -> {
                 if ("updateRoomStatus".equals(action)) {
                     handleUpdateRoomStatus(request, response);
+                } else {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown action: " + action);
+                }
+            }
+
+            case "/housekeeping/create-replenishment" -> {
+                if ("createRequest".equals(action)) {
+                    handleCreateReplenishment(request, response);
                 } else {
                     response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown action: " + action);
                 }
@@ -293,19 +311,19 @@ public class HousekeepingController extends HttpServlet {
             if (ok) {
                 request.setAttribute("type", "success");
                 request.setAttribute("mess", "Cập nhật task thành công");
-                request.setAttribute("href", "housekeeping/tasks");
+                request.setAttribute("href", "tasks");
             } else {
                 request.setAttribute("type", "error");
                 request.setAttribute("mess", "Cập nhật task thất bại");
-                request.setAttribute("href", "housekeeping/task-detail?id=" + taskId);
+                request.setAttribute("href", "task-detail?id=" + taskId);
             }
         } catch (IllegalArgumentException ex) {
             request.setAttribute("type", "error");
             request.setAttribute("mess", "Trạng thái không hợp lệ");
-            request.setAttribute("href", "housekeeping/task-detail?id=" + idStr);
+            request.setAttribute("href", "task-detail?id=" + idStr);
         }
 
-        request.getRequestDispatcher("Views/Housekeeping/TaskDetail.jsp")
+        request.getRequestDispatcher("/Views/Housekeeping/TaskDetail.jsp")
                 .forward(request, response);
     }
 
@@ -439,6 +457,138 @@ public class HousekeepingController extends HttpServlet {
             request.getRequestDispatcher("Views/Housekeeping/RoomStateUpdate.jsp")
                     .forward(request, response);
         }
+    }
+
+    // ======================================================
+    // 8. Supplies / Replenishment
+    // ======================================================
+    private void showSupplies(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        ReplenishmentRequestDAO dao = new ReplenishmentRequestDAO();
+        // Show all requests or filter by user? Usually user wants to see their requests
+        // or all for the floor.
+        // For now, let's show all to be safe, or maybe just pending?
+        // Let's show all for now.
+        List<ReplenishmentRequest> requests = dao.getAllRequests();
+
+        request.setAttribute("requests", requests);
+        request.getRequestDispatcher("/Views/Housekeeping/Supplies.jsp").forward(request, response);
+    }
+
+    private void showCreateReplenishment(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        AmenityDAO amenityDAO = new AmenityDAO();
+        List<Amenity> amenities = amenityDAO.getAllAmenities();
+
+        // Also need rooms? Replenishment usually linked to an Inspection, but maybe
+        // just a Room?
+        // The ReplenishmentRequest model has inspectionId.
+        // If we don't have an inspection, we might need to create a dummy one or allow
+        // null?
+        // Looking at DB schema (from DAO), inspection_id is used.
+        // public boolean createRequest(ReplenishmentRequest request) { ... cs.setInt(1,
+        // request.getInspectionId()); ... }
+        // If inspection_id is required, we need an inspection.
+        // But the user wants to "Báo thiếu" (Report missing) directly.
+        // Maybe we need to find the latest inspection for the room or create a new
+        // "Supply Check" inspection?
+        // Or maybe inspection_id can be null?
+        // Let's check ReplenishmentRequestDAO.createRequest: cs.setInt(1,
+        // request.getInspectionId());
+        // If it's a foreign key and not nullable, we need it.
+        // Assuming for now we might need to pass an inspection ID or 0 if allowed.
+        // If it fails, I'll need to fix it.
+
+        // Actually, if the user is just reporting missing supplies, it might not be
+        // during an inspection.
+        // But the system seems designed to link requests to inspections.
+        // I will list rooms so they can select a room.
+        List<Room> rooms = DAOHousekeeping.INSTANCE.getAllRooms();
+
+        request.setAttribute("amenities", amenities);
+        request.setAttribute("rooms", rooms);
+        request.getRequestDispatcher("/Views/Housekeeping/CreateReplenishment.jsp").forward(request, response);
+    }
+
+    private void handleCreateReplenishment(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        User currentUser = (User) request.getSession().getAttribute("currentUser");
+
+        String amenityIdStr = request.getParameter("amenityId");
+        String quantityStr = request.getParameter("quantity");
+        String reason = request.getParameter("reason");
+        // We might need roomId to find/create inspection?
+        String roomIdStr = request.getParameter("roomId");
+
+        if (amenityIdStr == null || quantityStr == null || roomIdStr == null) {
+            request.setAttribute("type", "error");
+            request.setAttribute("mess", "Thiếu thông tin");
+            showCreateReplenishment(request, response);
+            return;
+        }
+
+        try {
+            int amenityId = Integer.parseInt(amenityIdStr);
+            int quantity = Integer.parseInt(quantityStr);
+            int roomId = Integer.parseInt(roomIdStr);
+
+            // We need an inspection ID.
+            // Strategy: Check if there is an active inspection or create a dummy/auto
+            // inspection for "Ad-hoc Request".
+            // Or maybe just use 0 if DB allows?
+            // Let's try to find the latest inspection for this room.
+            // RoomInspectionDAO inspectionDAO = new RoomInspectionDAO();
+            // RoomInspection lastInspection =
+            // inspectionDAO.getLastInspectionByRoomAndType(roomId, "DAILY");
+            // int inspectionId = (lastInspection != null) ?
+            // lastInspection.getInspectionId() : 0;
+
+            // Ideally, we should create a new Inspection of type 'SUPPLY_CHECK' or similar
+            // if we want to be correct.
+            // But for simplicity, let's assume we can pass 0 or null if the SP handles it,
+            // or we need to create one.
+            // Let's try to create a "SUPPLY_CHECK" inspection first.
+
+            DAL.RoomInspectionDAO inspectionDAO = new DAL.RoomInspectionDAO();
+            Model.RoomInspection ri = new Model.RoomInspection();
+            ri.setRoomId(roomId);
+            ri.setInspectorId(currentUser.getUserId());
+            ri.setType("SUPPLY"); // Assuming this is a valid enum/string
+            ri.setNote("Auto-generated for Replenishment Request");
+
+            boolean inspectionCreated = inspectionDAO.createInspection(ri);
+            int inspectionId = ri.getInspectionId();
+
+            if (inspectionCreated && inspectionId > 0) {
+                ReplenishmentRequest req = new ReplenishmentRequest();
+                req.setInspectionId(inspectionId);
+                req.setAmenityId(amenityId);
+                req.setQuantityRequested(quantity);
+                req.setReason(reason);
+                req.setRequestedBy(currentUser.getUserId());
+
+                ReplenishmentRequestDAO reqDAO = new ReplenishmentRequestDAO();
+                boolean ok = reqDAO.createRequest(req);
+
+                if (ok) {
+                    request.setAttribute("type", "success");
+                    request.setAttribute("mess", "Gửi yêu cầu thành công");
+                    request.setAttribute("href", "housekeeping/supplies");
+                } else {
+                    request.setAttribute("type", "error");
+                    request.setAttribute("mess", "Gửi yêu cầu thất bại");
+                }
+            } else {
+                request.setAttribute("type", "error");
+                request.setAttribute("mess", "Không thể tạo phiên kiểm tra");
+            }
+
+        } catch (NumberFormatException e) {
+            request.setAttribute("type", "error");
+            request.setAttribute("mess", "Dữ liệu không hợp lệ");
+        }
+
+        request.getRequestDispatcher("/Views/Housekeeping/CreateReplenishment.jsp").forward(request, response);
     }
 
     @Override

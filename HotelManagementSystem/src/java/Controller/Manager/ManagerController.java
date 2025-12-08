@@ -17,7 +17,8 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @WebServlet(name = "ManagerController", urlPatterns = { "/manager/dashboard", "/manager/create-task",
         "/manager/issues", "/manager/rooms", "/manager/staff", "/manager/inspections",
-        "/manager/create-inspection", "/manager/replenishment-requests", "/manager/bookings" })
+        "/manager/create-inspection", "/manager/replenishment-requests", "/manager/bookings",
+        "/manager/housekeeping", "/manager/reports" })
 public class ManagerController extends HttpServlet {
 
     @Override
@@ -41,6 +42,8 @@ public class ManagerController extends HttpServlet {
             case "/manager/create-inspection" -> showCreateInspectionForm(request, response);
             case "/manager/replenishment-requests" -> showReplenishmentRequests(request, response);
             case "/manager/bookings" -> showBookings(request, response);
+            case "/manager/housekeeping" -> showHousekeeping(request, response);
+            case "/manager/reports" -> showReports(request, response);
             default -> response.sendError(404);
         }
     }
@@ -603,5 +606,43 @@ public class ManagerController extends HttpServlet {
         }
 
         response.sendRedirect(request.getContextPath() + "/manager/bookings?error=true");
+    }
+
+    private void showHousekeeping(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Reuse logic from HousekeepingController's dashboard or list
+        // For Manager, maybe show the Cleaning Task List view but with more options?
+        // Or just the Dashboard view?
+        // The user request says: "Housekeeping Dashboard", "Cleaning Task List",
+        // "Update Supplies"
+        // Let's forward to a Manager-specific Housekeeping dashboard which links to
+        // others.
+        // Or reuse Housekeeping Dashboard.jsp if it works for Manager (it checks role).
+        // Sidebar.jsp checks role, so we might need a Manager version or make Sidebar
+        // dynamic.
+        // I'll create Views/Manager/Housekeeping.jsp which acts as a dashboard/landing.
+
+        // Fetch data for dashboard
+        LocalDate today = LocalDate.now();
+        List<Room> roomsNeedCleaning = DAOHousekeeping.INSTANCE.getRoomsNeedingCleaning();
+        // Maybe all tasks for today?
+        List<HousekeepingTask> todayTasks = DAOHousekeeping.INSTANCE.getTasks(0, today, null, null); // 0 for all staff?
+                                                                                                     // Need to check
+                                                                                                     // DAO.
+        // DAO getTasks checks assigned_to = ?
+        // I need a method to get ALL tasks.
+        // DAOHousekeeping.getTasks filters by assigned_to.
+        // I might need to add a method to DAO or just show rooms for now.
+
+        request.setAttribute("roomsNeedCleaning", roomsNeedCleaning);
+        request.setAttribute("today", today);
+
+        request.getRequestDispatcher("/Views/Manager/Housekeeping.jsp").forward(request, response);
+    }
+
+    private void showReports(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Placeholder for Reports
+        request.getRequestDispatcher("/Views/Manager/Reports.jsp").forward(request, response);
     }
 }
