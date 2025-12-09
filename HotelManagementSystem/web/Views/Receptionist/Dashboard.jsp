@@ -21,6 +21,10 @@
                                     class="active">Dashboard</a>
                                 <a href="${pageContext.request.contextPath}/reservation_approval">Duyệt Phòng</a>
                                 <a href="${pageContext.request.contextPath}/receptionist/reservations">Danh Sách</a>
+                                <a href="${pageContext.request.contextPath}/receptionist/checkinout">Check-in/out</a>
+                                <a href="${pageContext.request.contextPath}/receptionist/direct-booking">Walk-in</a>
+                                <a href="${pageContext.request.contextPath}/receptionist/room-status">Phòng</a>
+                                <a href="${pageContext.request.contextPath}/receptionist/profile">Profile</a>
                                 <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
                             </div>
                             <div class="staff-profile">
@@ -61,7 +65,7 @@
                         <div class="actions-section">
                             <h2>⚡ Thao Tác Nhanh</h2>
                             <div
-                                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+                                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
                                 <a href="${pageContext.request.contextPath}/reservation_approval"
                                     class="btn btn-primary">
                                     ✓ Duyệt Đặt Phòng
@@ -70,6 +74,16 @@
                                     class="btn btn-primary"
                                     style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
                                     📋 Danh Sách Đặt Phòng
+                                </a>
+                                <a href="${pageContext.request.contextPath}/receptionist/checkinout"
+                                    class="btn btn-primary"
+                                    style="background: linear-gradient(135deg, #dc3545 0%, #e85d6d 100%);">
+                                    🔑 Check-in/Check-out
+                                </a>
+                                <a href="${pageContext.request.contextPath}/receptionist/direct-booking"
+                                    class="btn btn-primary"
+                                    style="background: linear-gradient(135deg, #fd7e14 0%, #fd9843 100%);">
+                                    ➕ Đặt Phòng Trực Tiếp
                                 </a>
                             </div>
                         </div>

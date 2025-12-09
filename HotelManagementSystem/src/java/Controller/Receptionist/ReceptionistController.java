@@ -15,8 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @WebServlet(name = "ReceptionistController", urlPatterns = {
         "/receptionist/dashboard",
-        "/receptionist/reservations",
-        "/receptionist/reservation-detail"
+        "/receptionist/reservations"
 })
 public class ReceptionistController extends HttpServlet {
 
@@ -52,8 +51,6 @@ public class ReceptionistController extends HttpServlet {
                 showDashboard(request, response);
             case "/receptionist/reservations" ->
                 showReservationList(request, response);
-            case "/receptionist/reservation-detail" ->
-                showReservationDetail(request, response);
             default ->
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
@@ -144,33 +141,6 @@ public class ReceptionistController extends HttpServlet {
                 .forward(request, response);
     }
 
-    // ======================================================
-    // Reservation Detail
-    // ======================================================
-    private void showReservationDetail(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String idStr = request.getParameter("id");
-        if (idStr == null || idStr.isBlank()) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing booking ID");
-            return;
-        }
-
-        try {
-            int bookingId = Integer.parseInt(idStr);
-            Map<String, Object> booking = DAOReceptionist.INSTANCE.getBookingWithDetails(bookingId);
-
-            if (booking == null) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Booking not found");
-                return;
-            }
-
-            request.setAttribute("booking", booking);
-            request.getRequestDispatcher("/Views/Receptionist/ReservationDetail.jsp")
-                    .forward(request, response);
-        } catch (NumberFormatException e) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid booking ID");
-        }
-    }
 
     @Override
     public String getServletInfo() {
