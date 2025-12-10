@@ -44,11 +44,11 @@ public class CustomerController extends HttpServlet {
                     return;
                 }
 
-                // Get latest booking
+                // Get active booking (CHECKED_IN)
                 DAL.Booking.DAOBooking daoBooking = DAL.Booking.DAOBooking.INSTANCE;
-                Model.Booking booking = daoBooking.getLatestBookingByCustomerId(currentUser.getUserId());
+                Model.Booking booking = daoBooking.getActiveBookingByCustomerId(currentUser.getUserId());
 
-                if (booking != null && booking.getStatus() == Model.Booking.Status.CHECKED_IN) {
+                if (booking != null) {
                     // Get inspection details for this booking (CHECKIN type)
                     DAL.RoomInspectionDAO daoInspection = new DAL.RoomInspectionDAO();
                     Model.RoomInspection inspection = daoInspection

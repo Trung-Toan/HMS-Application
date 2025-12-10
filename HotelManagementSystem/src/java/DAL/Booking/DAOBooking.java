@@ -110,7 +110,7 @@ public class DAOBooking extends DAO {
         }
         return list;
     }
-    
+
     public Booking getLastBookingByRoomId(int roomId) {
         String sql = "SELECT * FROM bookings WHERE room_id = ? AND status = 'CHECKED_OUT' ORDER BY checkout_date DESC LIMIT 1";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -125,7 +125,7 @@ public class DAOBooking extends DAO {
         }
         return null;
     }
-    
+
     public Booking getCurrentBookingByRoomId(int roomId) {
         String sql = "SELECT * FROM bookings WHERE room_id = ? AND status = 'CHECKED_IN'";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -299,6 +299,30 @@ public class DAOBooking extends DAO {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return mapBooking(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // Get active booking (CHECKED_IN) for a customer with full details
+    public Booking getActiveBookingByCustomerId(int customerId) {
+        String sql = "SELECT b.*, c.full_name as customer_name, c.email as customer_email, " +
+                "r.room_number, rt.type_name, rt.room_type_id " +
+                "FROM bookings b " +
+                "JOIN users c ON b.customer_id = c.user_id " +
+                "JOIN rooms r ON b.room_id = r.room_id " +
+                "JOIN room_types rt ON r.room_type_id = rt.room_type_id " +
+                "WHERE b.customer_id = ? AND b.status = 'CHECKED_IN' " +
+                "LIMIT 1";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, customerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapBookingWithDetails(rs);
                 }
             }
         } catch (SQLException e) {
