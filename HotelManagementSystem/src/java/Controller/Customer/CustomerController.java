@@ -110,12 +110,74 @@ public class CustomerController extends HttpServlet {
         switch (action) {
             case "update_profile" -> handleUpdateProfile(request, response, currentUser, session);
             case "change_password" -> handleChangePassword(request, response, currentUser, session);
+            case "report_issue" -> handleReportIssue(request, response, currentUser, session);
             default -> {
                 request.setAttribute("type", "error");
                 request.setAttribute("mess", "Unknown action!");
                 request.getRequestDispatcher("/Views/Customer/Profile.jsp").forward(request, response);
             }
         }
+    }
+
+    private void handleReportIssue(HttpServletRequest request, HttpServletResponse response,
+            User currentUser, HttpSession session)
+            throws ServletException, IOException {
+        try {
+            String issueTypeStr = request.getParameter("issueType");
+            String description = request.getParameter("description");
+            String bookingIdStr = request.getParameter("bookingId");
+            String roomIdStr = request.getParameter("roomId");
+
+            // Validate
+            if (description == null || description.isBlank()) {
+                request.setAttribute("type", "error");
+                request.setAttribute("mess", "Please provide a description of the issue.");
+                request.getRequestDispatcher("/Views/Customer/AmenityList.jsp").forward(request, response);
+                return;
+            }
+
+            Model.IssueReport report = new Model.IssueReport();
+            report.setReportedBy(currentUser.getUserId());
+            report.setDescription(description.trim());
+            report.setIssueType(issueTypeStr);
+            report.setStatus(Model.IssueReport.IssueStatus.NEW);
+
+            if (bookingIdStr != null && !bookingIdStr.isEmpty()) {
+                report.setBookingId(Integer.parseInt(bookingIdStr));
+            }
+
+            if (roomIdStr != null && !roomIdStr.isEmpty()) {
+                report.setRoomId(Integer.parseInt(roomIdStr));
+            } else {
+                // Try to get room from active booking if not provided
+                DAL.Booking.DAOBooking daoBooking = DAL.Booking.DAOBooking.INSTANCE;
+                Model.Booking booking = daoBooking.getActiveBookingByCustomerId(currentUser.getUserId());
+                if (booking != null) {
+                    report.setRoomId(booking.getRoomId());
+                    report.setBookingId(booking.getBookingId());
+                } else {
+                    throw new IllegalArgumentException("No active room found to report issue for.");
+                }
+            }
+
+            boolean success = DAL.IssueReportDAO.INSTANCE.createIssueReport(report);
+
+            if (success) {
+                request.setAttribute("type", "success");
+                request.setAttribute("mess", "Issue reported successfully! We will attend to it shortly.");
+            } else {
+                request.setAttribute("type", "error");
+                request.setAttribute("mess", "Failed to submit report. Please try again.");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("type", "error");
+            request.setAttribute("mess", "Error: " + e.getMessage());
+        }
+
+        // Reload amenities page
+        doGet(request, response);
     }
 
     private void handleUpdateProfile(HttpServletRequest request, HttpServletResponse response,
