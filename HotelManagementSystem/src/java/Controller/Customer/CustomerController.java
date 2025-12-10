@@ -2,6 +2,8 @@ package Controller.Customer;
 
 import DAL.Authen.DAOAuthen;
 import Model.User;
+import Model.Booking;
+import Model.RoomInspection;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -10,7 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-@WebServlet(name = "CustomerController", urlPatterns = { "/customer/profile" })
+@WebServlet(name = "CustomerController", urlPatterns = { "/customer/profile", "/customer/amenities" })
 public class CustomerController extends HttpServlet {
 
     @Override
@@ -31,6 +33,53 @@ public class CustomerController extends HttpServlet {
 
                 // User đã đăng nhập, forward đến trang profile
                 request.getRequestDispatcher("/Views/Customer/Profile.jsp").forward(request, response);
+            }
+
+            case "/customer/amenities" -> {
+                HttpSession session = request.getSession();
+                User currentUser = (User) session.getAttribute("currentUser");
+
+                if (currentUser == null) {
+                    response.sendRedirect(request.getContextPath() + "/login");
+                    return;
+                }
+
+                // Get latest booking
+                DAL.Booking.DAOBooking daoBooking = DAL.Booking.DAOBooking.INSTANCE;
+                Model.Booking booking = daoBooking.getLatestBookingByCustomerId(currentUser.getUserId());
+
+                if (booking != null && booking.getStatus() == Model.Booking.Status.CHECKED_IN) {
+                    // Get inspection details for this booking (CHECKIN type)
+                    DAL.RoomInspectionDAO daoInspection = new DAL.RoomInspectionDAO();
+                    Model.RoomInspection inspection = daoInspection
+                            .getInspectionByBookingAndType(booking.getBookingId(), "CHECKIN");
+
+                    if (inspection != null) {
+                        request.setAttribute("inspection", inspection);
+                        request.setAttribute("amenityList", inspection.getDetails());
+                    } else {
+                        // Fallback: Get default amenities for the room type
+                        DAL.AmenityDAO daoAmenity = new DAL.AmenityDAO();
+                        if (booking.getRoom() != null) {
+                            java.util.List<Model.RoomTypeAmenity> defaultAmenities = daoAmenity
+                                    .getAmenitiesByRoomType(booking.getRoom().getRoomTypeId());
+
+                            java.util.List<Model.InspectionDetail> details = new java.util.ArrayList<>();
+                            for (Model.RoomTypeAmenity rta : defaultAmenities) {
+                                Model.InspectionDetail detail = new Model.InspectionDetail();
+                                detail.setAmenity(rta.getAmenity());
+                                detail.setQuantityActual(rta.getDefaultQuantity());
+                                detail.setConditionStatus("OK");
+                                details.add(detail);
+                            }
+                            request.setAttribute("amenityList", details);
+                            request.setAttribute("isDefaultList", true);
+                        }
+                    }
+                    request.setAttribute("booking", booking);
+                }
+
+                request.getRequestDispatcher("/Views/Customer/AmenityList.jsp").forward(request, response);
             }
 
             default ->

@@ -17,9 +17,9 @@
                     </button>
 
                     <ul class="header-nav" id="main-nav">
-                        <li><a href="${pageContext.request.contextPath}/home">Home</a></li>
                         <li><a href="${pageContext.request.contextPath}/rooms">Rooms</a></li>
                         <li><a href="${pageContext.request.contextPath}/my_booking">My Booking</a></li>
+                        <li><a href="${pageContext.request.contextPath}/customer/amenities">Room Amenities</a></li>
 
                         <c:if test="${not empty sessionScope.currentUser}">
                             <!-- Mobile User Menu -->
@@ -30,12 +30,12 @@
                                 <a href="${pageContext.request.contextPath}/logout" class="login-button">Logout</a>
                             </li>
                         </c:if>
-                        <c:if test="${empty sessionScope.currentUser}">
-                            <!-- Mobile Login Button -->
-                            <li class="nav-auth-item mobile-only-auth">
-                                <a href="login" class="login-button">Login</a>
-                            </li>
-                        </c:if>
+                    <c:if test="${empty sessionScope.currentUser}">
+                        <!-- Mobile Login Button -->
+                        <li class="nav-auth-item mobile-only-auth">
+                            <a href="login" class="login-button">Login</a>
+                        </li>
+                    </c:if>
                     </ul>
 
                     <div class="header-right desktop-only-auth">
@@ -61,7 +61,7 @@
                             <c:otherwise>
                                 <!-- Desktop Login Button -->
                                 <a href="login" class="login-button">Login</a>
-                            </c:otherwise>
+                                        </c:otherwise>
                         </c:choose>
                     </div>
                 </div>
