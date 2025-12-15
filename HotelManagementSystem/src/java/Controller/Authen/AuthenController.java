@@ -135,57 +135,65 @@ public class AuthenController extends HttpServlet {
 
     private void handleLogin(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String identifier = request.getParameter("identifier");
-        String password = request.getParameter("password");
-        String redirect = request.getParameter("redirect");
+        try {
+            String identifier = request.getParameter("identifier");
+            String password = request.getParameter("password");
+            String redirect = request.getParameter("redirect");
 
-        request.setAttribute("identifier", identifier);
+            request.setAttribute("identifier", identifier);
 
-        if (identifier == null || identifier.isBlank() || password == null || password.isBlank()) {
-            request.setAttribute("type", "error");
-            request.setAttribute("mess", "Email/Phone and password not blank!");
-            if (redirect != null) {
-                request.setAttribute("redirect", redirect);
+            if (identifier == null || identifier.isBlank() || password == null || password.isBlank()) {
+                request.setAttribute("type", "error");
+                request.setAttribute("mess", "Email/Phone and password not blank!");
+                if (redirect != null) {
+                    request.setAttribute("redirect", redirect);
+                }
+                request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
+                return;
             }
-            request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
-            return;
-        }
 
-        User user = DAOAuthen.INSTANCE.login(identifier, password);
+            User user = DAOAuthen.INSTANCE.login(identifier, password);
 
-        if (user != null) {
-            // Đăng nhập thành công
-            request.getSession().setAttribute("currentUser", user);
-            request.setAttribute("type", "success");
-            request.setAttribute("mess", "Login successful!");
-            if (null == user.getRoleId()) {
-                request.setAttribute("href", "home");
+            if (user != null) {
+                // Đăng nhập thành công
+                request.getSession().setAttribute("currentUser", user);
+                request.setAttribute("type", "success");
+                request.setAttribute("mess", "Login successful!");
+                if (null == user.getRoleId()) {
+                    request.setAttribute("href", "home");
+                } else {
+                    switch (user.getRoleId()) {
+                        case 2 ->
+                            request.setAttribute("href", "receptionist/dashboard");
+                        case 3 ->
+                            request.setAttribute("href", "housekeeping/dashboard");
+                        case 4 ->
+                            request.setAttribute("href", "owner/dashboard");
+                        case 5 ->
+                            request.setAttribute("href", "admin/dashboard");
+                        case 6 ->
+                            request.setAttribute("href", "manager/dashboard");
+                        default ->
+                            request.setAttribute("href", "home");
+                    }
+                }
+
+                if (redirect != null && !redirect.isBlank()) {
+                    request.setAttribute("href", redirect);
+                }
             } else {
-                switch (user.getRoleId()) {
-                    case 2 ->
-                        request.setAttribute("href", "receptionist/dashboard");
-                    case 3 ->
-                        request.setAttribute("href", "housekeeping/dashboard");
-                    case 4 ->
-                        request.setAttribute("href", "owner/dashboard");
-                    case 5 ->
-                        request.setAttribute("href", "admin/dashboard");
-                    case 6 ->
-                        request.setAttribute("href", "manager/dashboard");
-                    default ->
-                        request.setAttribute("href", "home");
+                request.setAttribute("type", "error");
+                request.setAttribute("mess", "Email/Phone or password incorrect!");
+                if (redirect != null) {
+                    request.setAttribute("redirect", redirect);
                 }
             }
-
-            if (redirect != null && !redirect.isBlank()) {
-                request.setAttribute("href", redirect);
-            }
-        } else {
+        } catch (Exception e) {
+            System.err.println("--------------------------------- error login ----------------------------------");
+            System.err.println(e.getMessage());
+            System.err.println("-----------------------------------------------------------------------------------");
             request.setAttribute("type", "error");
-            request.setAttribute("mess", "Email/Phone or password incorrect!");
-            if (redirect != null) {
-                request.setAttribute("redirect", redirect);
-            }
+            request.setAttribute("mess", e.getMessage());
         }
         request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
     }
