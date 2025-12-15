@@ -17,10 +17,14 @@
                         <div class="logo">🏨 Khách Sạn Royal - Quản Lí</div>
                         <div class="header-right">
                             <div class="nav-links">
-                                <a href="${pageContext.request.contextPath}/receptionist/dashboard">Dashboard</a>
+                                <a href="${pageContext.request.contextPath}/receptionist/dashboard"
+                                    class="active">Dashboard</a>
                                 <a href="${pageContext.request.contextPath}/reservation_approval">Duyệt Phòng</a>
-                                <a href="${pageContext.request.contextPath}/receptionist/reservations"
-                                    class="active">Danh Sách</a>
+                                <a href="${pageContext.request.contextPath}/receptionist/reservations">Danh Sách</a>
+                                <a href="${pageContext.request.contextPath}/receptionist/checkinout">Check-in/out</a>
+                                <a href="${pageContext.request.contextPath}/receptionist/direct-booking">Walk-in</a>
+                                <a href="${pageContext.request.contextPath}/receptionist/room-status">Phòng</a>
+                                <a href="${pageContext.request.contextPath}/receptionist/profile">Profile</a>
                                 <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
                             </div>
                             <div class="staff-profile">
