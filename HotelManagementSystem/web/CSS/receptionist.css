@@ -204,12 +204,6 @@ header {
     border-left-color: #e74c3c;
 }
 
-box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
-overflow: hidden;
-transition: all 0.3s ease;
-border: 1px solid #e8e8e8;
-}
-
 .reservation-card:hover {
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
     transform: translateY(-5px);

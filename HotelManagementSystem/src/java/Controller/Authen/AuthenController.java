@@ -9,8 +9,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet(name = "AuthenController", urlPatterns = { "/login", "/register", "/forgotPassword", "/resetPassword",
-        "/logout" })
+@WebServlet(name = "AuthenController", urlPatterns = {"/login", "/register", "/forgotPassword", "/resetPassword",
+    "/logout"})
 public class AuthenController extends HttpServlet {
 
     @Override
@@ -124,6 +124,12 @@ public class AuthenController extends HttpServlet {
                 request.getRequestDispatcher("Views/Authen/Register.jsp").forward(request, response);
             }
         } catch (Exception e) {
+            System.err.println("--------------------------------- error register ----------------------------------");
+            System.err.println(e.getMessage());
+            System.err.println("-----------------------------------------------------------------------------------");
+            request.setAttribute("type", "error");
+            request.setAttribute("mess", e.getMessage());
+            request.getRequestDispatcher("Views/Authen/Register.jsp").forward(request, response);
         }
     }
 
@@ -138,8 +144,9 @@ public class AuthenController extends HttpServlet {
         if (identifier == null || identifier.isBlank() || password == null || password.isBlank()) {
             request.setAttribute("type", "error");
             request.setAttribute("mess", "Email/Phone and password not blank!");
-            if (redirect != null)
+            if (redirect != null) {
                 request.setAttribute("redirect", redirect);
+            }
             request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
             return;
         }
@@ -153,15 +160,22 @@ public class AuthenController extends HttpServlet {
             request.setAttribute("mess", "Login successful!");
             if (null == user.getRoleId()) {
                 request.setAttribute("href", "home");
-            } else
+            } else {
                 switch (user.getRoleId()) {
-                    case 2 -> request.setAttribute("href", "receptionist/dashboard");
-                    case 3 -> request.setAttribute("href", "housekeeping/dashboard");
-                    case 4 -> request.setAttribute("href", "owner/dashboard");
-                    case 5 -> request.setAttribute("href", "admin/dashboard");
-                    case 6 -> request.setAttribute("href", "manager/dashboard");
-                    default -> request.setAttribute("href", "home");
+                    case 2 ->
+                        request.setAttribute("href", "receptionist/dashboard");
+                    case 3 ->
+                        request.setAttribute("href", "housekeeping/dashboard");
+                    case 4 ->
+                        request.setAttribute("href", "owner/dashboard");
+                    case 5 ->
+                        request.setAttribute("href", "admin/dashboard");
+                    case 6 ->
+                        request.setAttribute("href", "manager/dashboard");
+                    default ->
+                        request.setAttribute("href", "home");
                 }
+            }
 
             if (redirect != null && !redirect.isBlank()) {
                 request.setAttribute("href", redirect);
@@ -169,8 +183,9 @@ public class AuthenController extends HttpServlet {
         } else {
             request.setAttribute("type", "error");
             request.setAttribute("mess", "Email/Phone or password incorrect!");
-            if (redirect != null)
+            if (redirect != null) {
                 request.setAttribute("redirect", redirect);
+            }
         }
         request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
     }
