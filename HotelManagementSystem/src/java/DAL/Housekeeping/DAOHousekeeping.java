@@ -32,8 +32,7 @@ public class DAOHousekeeping extends DAO {
         List<Room> list = new ArrayList<>();
         String sql = "SELECT * FROM rooms";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 Room r = new Room();
@@ -54,12 +53,35 @@ public class DAOHousekeeping extends DAO {
         return list;
     }
 
+    public <T> Room getRoomById(T id) {
+        String idString = String.valueOf(id);
+        Room r = new Room();
+        String sql = "SELECT * FROM rooms where room_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, idString);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    r.setRoomId(rs.getInt("room_id"));
+                    r.setRoomNumber(rs.getString("room_number"));
+                    r.setRoomTypeId(rs.getInt("room_type_id"));
+                    r.setFloor((Integer) rs.getInt("floor"));
+                    r.setStatus(rs.getString("status"));
+                    r.setImageUrl(rs.getString("image_url"));
+                    r.setDescription(rs.getString("description"));
+                    r.setActive(rs.getBoolean("is_active"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return r;
+    }
+
     public List<Room> getRoomsNeedingCleaning() {
         List<Room> list = new ArrayList<>();
         String sql = "SELECT * FROM rooms WHERE status IN ('DIRTY', 'CLEANING')";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 Room r = new Room();
@@ -173,10 +195,12 @@ public class DAOHousekeeping extends DAO {
         t.setCreatedBy((Integer) rs.getInt("created_by"));
         Timestamp cAt = rs.getTimestamp("created_at");
         Timestamp uAt = rs.getTimestamp("updated_at");
-        if (cAt != null)
+        if (cAt != null) {
             t.setCreatedAt(cAt.toLocalDateTime());
-        if (uAt != null)
+        }
+        if (uAt != null) {
             t.setUpdatedAt(uAt.toLocalDateTime());
+        }
 
         return t;
     }
@@ -402,12 +426,15 @@ public class DAOHousekeeping extends DAO {
         List<HousekeepingTask> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM housekeeping_tasks WHERE assigned_to = ?");
 
-        if (dateFrom != null)
+        if (dateFrom != null) {
             sql.append(" AND task_date >= ?");
-        if (dateTo != null)
+        }
+        if (dateTo != null) {
             sql.append(" AND task_date <= ?");
-        if (statusStr != null && !statusStr.isBlank())
+        }
+        if (statusStr != null && !statusStr.isBlank()) {
             sql.append(" AND status = ?");
+        }
         if (taskType != null && !taskType.isBlank()) {
             if ("INSPECTION_ALL".equals(taskType)) {
                 sql.append(" AND task_type IN ('INSPECTION', 'CHECKIN', 'CHECKOUT')");
@@ -420,17 +447,23 @@ public class DAOHousekeeping extends DAO {
         }
 
         // Sorting
-        if (sortBy == null || sortBy.isBlank())
+        if (sortBy == null || sortBy.isBlank()) {
             sortBy = "task_date";
-        if (sortOrder == null || sortOrder.isBlank())
+        }
+        if (sortOrder == null || sortOrder.isBlank()) {
             sortOrder = "ASC";
+        }
 
         // Validate sort columns to prevent SQL injection
         String validSort = switch (sortBy) {
-            case "roomId" -> "room_id";
-            case "status" -> "status";
-            case "taskType" -> "task_type";
-            default -> "task_date";
+            case "roomId" ->
+                "room_id";
+            case "status" ->
+                "status";
+            case "taskType" ->
+                "task_type";
+            default ->
+                "task_date";
         };
 
         sql.append(" ORDER BY ").append(validSort).append(" ")
@@ -445,12 +478,15 @@ public class DAOHousekeeping extends DAO {
         try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
             int idx = 1;
             ps.setInt(idx++, staffId);
-            if (dateFrom != null)
+            if (dateFrom != null) {
                 ps.setDate(idx++, Date.valueOf(dateFrom));
-            if (dateTo != null)
+            }
+            if (dateTo != null) {
                 ps.setDate(idx++, Date.valueOf(dateTo));
-            if (statusStr != null && !statusStr.isBlank())
+            }
+            if (statusStr != null && !statusStr.isBlank()) {
                 ps.setString(idx++, statusStr);
+            }
             if (taskType != null && !taskType.isBlank() && !"INSPECTION_ALL".equals(taskType)) {
                 ps.setString(idx++, taskType);
             }
@@ -479,12 +515,15 @@ public class DAOHousekeeping extends DAO {
             String taskType) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM housekeeping_tasks WHERE assigned_to = ?");
 
-        if (dateFrom != null)
+        if (dateFrom != null) {
             sql.append(" AND task_date >= ?");
-        if (dateTo != null)
+        }
+        if (dateTo != null) {
             sql.append(" AND task_date <= ?");
-        if (statusStr != null && !statusStr.isBlank())
+        }
+        if (statusStr != null && !statusStr.isBlank()) {
             sql.append(" AND status = ?");
+        }
         if (taskType != null && !taskType.isBlank()) {
             if ("INSPECTION_ALL".equals(taskType)) {
                 sql.append(" AND task_type IN ('INSPECTION', 'CHECKIN', 'CHECKOUT')");
@@ -499,12 +538,15 @@ public class DAOHousekeeping extends DAO {
         try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
             int idx = 1;
             ps.setInt(idx++, staffId);
-            if (dateFrom != null)
+            if (dateFrom != null) {
                 ps.setDate(idx++, Date.valueOf(dateFrom));
-            if (dateTo != null)
+            }
+            if (dateTo != null) {
                 ps.setDate(idx++, Date.valueOf(dateTo));
-            if (statusStr != null && !statusStr.isBlank())
+            }
+            if (statusStr != null && !statusStr.isBlank()) {
                 ps.setString(idx++, statusStr);
+            }
             if (taskType != null && !taskType.isBlank() && !"INSPECTION_ALL".equals(taskType)) {
                 ps.setString(idx++, taskType);
             }
@@ -515,8 +557,9 @@ public class DAOHousekeeping extends DAO {
             }
 
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next())
+                if (rs.next()) {
                     return rs.getInt(1);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -532,22 +575,29 @@ public class DAOHousekeeping extends DAO {
         List<Room> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM rooms WHERE 1=1");
 
-        if (statusStr != null && !statusStr.isBlank())
+        if (statusStr != null && !statusStr.isBlank()) {
             sql.append(" AND status = ?");
+        }
         if (search != null && !search.isBlank()) {
             sql.append(" AND (room_number LIKE ? OR description LIKE ?)");
         }
 
-        if (sortBy == null || sortBy.isBlank())
+        if (sortBy == null || sortBy.isBlank()) {
             sortBy = "room_number";
-        if (sortOrder == null || sortOrder.isBlank())
+        }
+        if (sortOrder == null || sortOrder.isBlank()) {
             sortOrder = "ASC";
+        }
 
         String validSort = switch (sortBy) {
-            case "status" -> "status";
-            case "floor" -> "floor";
-            case "type" -> "room_type_id";
-            default -> "room_number";
+            case "status" ->
+                "status";
+            case "floor" ->
+                "floor";
+            case "type" ->
+                "room_type_id";
+            default ->
+                "room_number";
         };
 
         sql.append(" ORDER BY ").append(validSort).append(" ")
@@ -559,8 +609,9 @@ public class DAOHousekeeping extends DAO {
 
         try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
             int idx = 1;
-            if (statusStr != null && !statusStr.isBlank())
+            if (statusStr != null && !statusStr.isBlank()) {
                 ps.setString(idx++, statusStr);
+            }
             if (search != null && !search.isBlank()) {
                 String kw = "%" + search + "%";
                 ps.setString(idx++, kw);
@@ -594,16 +645,18 @@ public class DAOHousekeeping extends DAO {
     public int countRooms(String statusStr, String search) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM rooms WHERE 1=1");
 
-        if (statusStr != null && !statusStr.isBlank())
+        if (statusStr != null && !statusStr.isBlank()) {
             sql.append(" AND status = ?");
+        }
         if (search != null && !search.isBlank()) {
             sql.append(" AND (room_number LIKE ? OR description LIKE ?)");
         }
 
         try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
             int idx = 1;
-            if (statusStr != null && !statusStr.isBlank())
+            if (statusStr != null && !statusStr.isBlank()) {
                 ps.setString(idx++, statusStr);
+            }
             if (search != null && !search.isBlank()) {
                 String kw = "%" + search + "%";
                 ps.setString(idx++, kw);
@@ -611,8 +664,9 @@ public class DAOHousekeeping extends DAO {
             }
 
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next())
+                if (rs.next()) {
                     return rs.getInt(1);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -646,8 +700,7 @@ public class DAOHousekeeping extends DAO {
     public List<Model.User> getHousekeepingStaff() {
         List<Model.User> list = new ArrayList<>();
         String sql = "SELECT * FROM users WHERE role_id = 3 AND is_active = true";
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Model.User u = new Model.User();
                 u.setUserId(rs.getInt("user_id"));

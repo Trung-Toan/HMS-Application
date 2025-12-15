@@ -50,10 +50,10 @@
                                     <input type="hidden" name="type" value="${param.type}">
                                     <div class="row g-3">
                                         <div class="col-md-3">
-                                            <div class="input-group input-group-sm">
+                                            <div class="input-group input-group-sm ">
                                                 <span class="input-group-text bg-light border-end-0"><i
                                                         class="bi bi-search"></i></span>
-                                                <input type="text" name="search" class="form-control border-start-0"
+                                                <input type="text" name="search" class="form-control border-start-0 p-2"
                                                     placeholder="Search note, room..." value="${search}">
                                             </div>
                                         </div>
@@ -84,7 +84,7 @@
                                                     Status</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-1">
+                                        <div class="col-md-1 g-2 mt-3">
                                             <button type="submit" class="btn btn-sm btn-primary w-100">Filter</button>
                                         </div>
                                     </div>
@@ -118,7 +118,7 @@
                                                     <td class="ps-4 text-muted">${(currentPage - 1) * 10 + st.index + 1}
                                                     </td>
                                                     <td>
-                                                        <span class="fw-bold text-primary">#${t.roomId}</span>
+                                                        <span class="fw-bold"> ${hkp.getRoomById(t.roomId).getRoomNumber()}</span>
                                                     </td>
                                                     <td>${t.taskDate}</td>
                                                     <td>

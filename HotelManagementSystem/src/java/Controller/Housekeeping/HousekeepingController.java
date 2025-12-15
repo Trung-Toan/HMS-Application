@@ -164,9 +164,6 @@ public class HousekeepingController extends HttpServlet {
     // ======================================================
     // 2. Cleaning Task List Screen
     // ======================================================
-    // ======================================================
-    // 2. Cleaning Task List Screen
-    // ======================================================
     private void showTaskList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         User currentUser = (User) request.getSession().getAttribute("currentUser");
@@ -214,7 +211,7 @@ public class HousekeepingController extends HttpServlet {
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("totalTasks", totalTasks);
-
+        request.setAttribute("hkp", DAOHousekeeping.INSTANCE);
         // Preserve filter params
         request.setAttribute("dateFrom", dateFromStr);
         request.setAttribute("dateTo", dateToStr);
