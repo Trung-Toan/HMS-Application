@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpSession;
 /**
  * Controller for Check-in and Check-out operations
  */
-@WebServlet(name = "CheckInOutController", urlPatterns = { "/receptionist/checkinout" })
+@WebServlet(name = "CheckInOutController", urlPatterns = {"/receptionist/checkinout"})
 public class CheckInOutController extends HttpServlet {
 
     private final DAOReceptionist daoReceptionist = DAOReceptionist.INSTANCE;
@@ -106,19 +106,24 @@ public class CheckInOutController extends HttpServlet {
                 } else {
                     errorMessage = "Failed to check-out. Please verify booking is checked-in.";
                 }
+            } else if ("noshow".equals(action)) {
+                success = daoReceptionist.markNoShow(bookingId, receptionistId);
+                if (success) {
+                    successMessage = "Booking #" + bookingId + " marked as NO SHOW";
+                } else {
+                    errorMessage = "Failed to mark No Show. Only confirmed bookings can be marked.";
+                }
             } else {
                 errorMessage = "Invalid action";
             }
 
             if (success) {
-                request.setAttribute("type", "success");
-                request.setAttribute("mess", successMessage);
-                request.getRequestDispatcher("/Views/Receptionist/CheckInOut.jsp").forward(request, response);
+                session.setAttribute("success", successMessage);
             } else {
-                request.setAttribute("type", "error");
-                request.setAttribute("mess", errorMessage);
-                request.getRequestDispatcher("/Views/Receptionist/CheckInOut.jsp").forward(request, response);
+                session.setAttribute("error", errorMessage);
             }
+            
+            response.sendRedirect(request.getContextPath() + "/receptionist/checkinout");
         } catch (NumberFormatException e) {
             request.setAttribute("type", "error");
             request.setAttribute("mess", "Invalid booking ID format");
