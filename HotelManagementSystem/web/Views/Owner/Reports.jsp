@@ -26,31 +26,73 @@
                         <h2 class="mb-4">Reports & Analytics</h2>
 
                         <div class="row g-4">
+                            <!-- Revenue Report -->
                             <div class="col-md-6">
                                 <div class="card h-100">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Revenue (Last 7 Days)</h5>
+                                    </div>
                                     <div class="card-body">
-                                        <h5 class="card-title">Revenue Report</h5>
-                                        <p class="card-text">Detailed breakdown of revenue by room type and services.
-                                        </p>
-                                        <button class="btn btn-outline-primary">View Report</button>
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Revenue</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <c:forEach var="item" items="${revenueData}">
+                                                    <tr>
+                                                        <td>${item.date}</td>
+                                                        <td>$${item.revenue}</td>
+                                                    </tr>
+                                                </c:forEach>
+                                                <c:if test="${empty revenueData}">
+                                                    <tr>
+                                                        <td colspan="2" class="text-center text-muted">No revenue data
+                                                            available.</td>
+                                                    </tr>
+                                                </c:if>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Room Status Report -->
                             <div class="col-md-6">
                                 <div class="card h-100">
-                                    <div class="card-body">
-                                        <h5 class="card-title">Occupancy Report</h5>
-                                        <p class="card-text">Room occupancy rates over time.</p>
-                                        <button class="btn btn-outline-primary">View Report</button>
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Room Status Distribution</h5>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card h-100">
                                     <div class="card-body">
-                                        <h5 class="card-title">Expense Report</h5>
-                                        <p class="card-text">Operational costs and supply expenses.</p>
-                                        <button class="btn btn-outline-primary">View Report</button>
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Status</th>
+                                                    <th>Count</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <c:forEach var="entry" items="${roomStatusData}">
+                                                    <tr>
+                                                        <td>
+                                                            <span
+                                                                class="badge bg-${entry.key == 'AVAILABLE' ? 'success' : (entry.key == 'OCCUPIED' ? 'danger' : 'warning')}">
+                                                                ${entry.key}
+                                                            </span>
+                                                        </td>
+                                                        <td>${entry.value}</td>
+                                                    </tr>
+                                                </c:forEach>
+                                                <c:if test="${empty roomStatusData}">
+                                                    <tr>
+                                                        <td colspan="2" class="text-center text-muted">No room status
+                                                            data.</td>
+                                                    </tr>
+                                                </c:if>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>

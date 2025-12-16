@@ -502,8 +502,14 @@ public class HousekeepingController extends HttpServlet {
         // I will list rooms so they can select a room.
         List<Room> rooms = DAOHousekeeping.INSTANCE.getAllRooms();
 
+        String preRoomId = request.getParameter("roomId");
+        String preAmenityId = request.getParameter("amenityId");
+
         request.setAttribute("amenities", amenities);
         request.setAttribute("rooms", rooms);
+        request.setAttribute("preRoomId", preRoomId);
+        request.setAttribute("preAmenityId", preAmenityId);
+
         request.getRequestDispatcher("/Views/Housekeeping/CreateReplenishment.jsp").forward(request, response);
     }
 

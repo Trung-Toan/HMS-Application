@@ -51,11 +51,21 @@
 
                         <%-- Manager Role (ID: 6) --%>
                             <c:when test="${sessionScope.currentUser.roleId == 6}">
+                                <li class="nav-header">Overview</li>
                                 <li class="nav-item">
                                     <a href="<c:url value='/manager/dashboard'/>"
                                         class="nav-link ${pageContext.request.servletPath.endsWith('Dashboard.jsp') ? 'active' : ''}">
                                         <i class="bi bi-speedometer2"></i>
                                         <span>Dashboard</span>
+                                    </a>
+                                </li>
+
+                                <li class="nav-header">Operations</li>
+                                <li class="nav-item">
+                                    <a href="<c:url value='/manager/rooms'/>"
+                                        class="nav-link ${pageContext.request.servletPath.endsWith('RoomList.jsp') ? 'active' : ''}">
+                                        <i class="bi bi-door-open"></i>
+                                        <span>Rooms</span>
                                     </a>
                                 </li>
                                 <li class="nav-item">
@@ -66,19 +76,35 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="<c:url value='/manager/rooms'/>"
-                                        class="nav-link ${pageContext.request.servletPath.endsWith('RoomList.jsp') ? 'active' : ''}">
-                                        <i class="bi bi-door-open"></i>
-                                        <span>Rooms</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
                                     <a href="<c:url value='/manager/housekeeping'/>"
                                         class="nav-link ${pageContext.request.servletPath.endsWith('Housekeeping.jsp') ? 'active' : ''}">
                                         <i class="bi bi-bucket"></i>
-                                        <span>Housekeeping</span>
+                                        <span>Housekeeping Overview</span>
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a href="<c:url value='/manager/inspections'/>"
+                                        class="nav-link ${pageContext.request.servletPath.endsWith('InspectionList.jsp') ? 'active' : ''}">
+                                        <i class="bi bi-clipboard-check"></i>
+                                        <span>Inspections</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="<c:url value='/manager/replenishment-requests'/>"
+                                        class="nav-link ${pageContext.request.servletPath.endsWith('ReplenishmentRequests.jsp') ? 'active' : ''}">
+                                        <i class="bi bi-box-seam"></i>
+                                        <span>Replenishment</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="<c:url value='/manager/create-task'/>"
+                                        class="nav-link ${pageContext.request.servletPath.endsWith('CreateTask.jsp') ? 'active' : ''}">
+                                        <i class="bi bi-plus-circle"></i>
+                                        <span>Create Task</span>
+                                    </a>
+                                </li>
+
+                                <li class="nav-header">Supervision</li>
                                 <li class="nav-item">
                                     <a href="<c:url value='/manager/staff'/>"
                                         class="nav-link ${pageContext.request.servletPath.endsWith('StaffList.jsp') ? 'active' : ''}">

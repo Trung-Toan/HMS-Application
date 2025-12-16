@@ -48,9 +48,11 @@
                                             <div class="mb-3">
                                                 <label for="roomId" class="form-label">Room</label>
                                                 <select class="form-select" id="roomId" name="roomId" required>
-                                                    <option value="" selected disabled>Select Room</option>
+                                                    <option value="" disabled ${empty preRoomId ? 'selected' : '' }>
+                                                        Select Room</option>
                                                     <c:forEach items="${rooms}" var="r">
-                                                        <option value="${r.roomId}">Room ${r.roomNumber}</option>
+                                                        <option value="${r.roomId}" ${r.roomId==preRoomId ? 'selected'
+                                                            : '' }>Room ${r.roomNumber}</option>
                                                     </c:forEach>
                                                 </select>
                                             </div>
@@ -58,9 +60,11 @@
                                             <div class="mb-3">
                                                 <label for="amenityId" class="form-label">Amenity</label>
                                                 <select class="form-select" id="amenityId" name="amenityId" required>
-                                                    <option value="" selected disabled>Select Amenity</option>
+                                                    <option value="" disabled ${empty preAmenityId ? 'selected' : '' }>
+                                                        Select Amenity</option>
                                                     <c:forEach items="${amenities}" var="a">
-                                                        <option value="${a.amenityId}">${a.name} (Price: ${a.price})
+                                                        <option value="${a.amenityId}" ${a.amenityId==preAmenityId
+                                                            ? 'selected' : '' }>${a.name} (Price: ${a.price})
                                                         </option>
                                                     </c:forEach>
                                                 </select>

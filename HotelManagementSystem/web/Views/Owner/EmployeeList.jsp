@@ -48,6 +48,8 @@
                                         <div class="col-md-2">
                                             <select name="roleId" class="form-select form-select-sm">
                                                 <option value="">All Roles</option>
+                                                <option value="6" ${roleId=='6' ? 'selected' : '' }>Manager
+                                                </option>
                                                 <option value="2" ${roleId=='2' ? 'selected' : '' }>Receptionist
                                                 </option>
                                                 <option value="3" ${roleId=='3' ? 'selected' : '' }>Housekeeping
@@ -119,8 +121,9 @@
                                                     </td>
                                                     <td>
                                                         <span class="badge bg-light text-dark border">
-                                                            ${e.roleId == 2 ? 'Receptionist' : (e.roleId == 3 ?
-                                                            'Housekeeping' : 'Other')}
+                                                            ${e.roleId == 6 ? 'Manager' : (e.roleId == 2 ?
+                                                            'Receptionist' : (e.roleId == 3 ?
+                                                            'Housekeeping' : 'Other'))}
                                                         </span>
                                                     </td>
                                                     <td>
@@ -140,14 +143,14 @@
                                                             Edit
                                                         </a>
                                                         <form action="<c:url value='/owner/employees'/>" method="post"
-                                                            class="d-inline">
+                                                            class="d-inline" id="toggleForm_${e.userId}">
                                                             <input type="hidden" name="action" value="toggleStatus">
                                                             <input type="hidden" name="userId" value="${e.userId}">
                                                             <input type="hidden" name="currentStatus"
                                                                 value="${e.active}">
-                                                            <button type="submit"
+                                                            <button type="button"
                                                                 class="btn btn-sm ${e.active ? 'btn-outline-danger' : 'btn-outline-success'}"
-                                                                onclick="return confirm('Are you sure you want to ${e.active ? 'deactivate' : 'activate'} this user?')">
+                                                                onclick="confirmToggle('${e.userId}', ${e.active}, '${e.fullName}')">
                                                                 ${e.active ? 'Lock' : 'Unlock'}
                                                             </button>
                                                         </form>
@@ -187,7 +190,52 @@
                 </div>
             </div>
 
+            <!-- Scripts -->
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            <script>
+                // Check if there's a notification from session
+                <%
+                    String notification = (String) session.getAttribute("notification");
+                if (notification != null && !notification.isEmpty()) {
+                    String[] parts = notification.split("\\|");
+                        String type = parts[0];
+                        String msg = parts.length > 1 ? parts[1] : "";
+                %>
+                        Swal.fire({
+                            icon: '<%= type %>',
+                            title: '<%= type.substring(0, 1).toUpperCase() + type.substring(1) %>',
+                            text: '<%= msg %>',
+                            timer: 3000,
+                            showConfirmButton: false
+                        });
+                <%
+                        session.removeAttribute("notification");
+                }
+                %>
+
+                    function confirmToggle(userId, isActive, name) {
+                        const action = isActive ? 'lock' : 'unlock';
+                        const title = isActive ? 'Lock Account?' : 'Unlock Account?';
+                        const text = "Are you sure you want to " + action + " employee " + name + "?";
+                        const confirmBtnText = isActive ? 'Yes, lock it!' : 'Yes, unlock it!';
+                        const confirmBtnColor = isActive ? '#d33' : '#3085d6';
+
+                        Swal.fire({
+                            title: title,
+                            text: text,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: confirmBtnColor,
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: confirmBtnText
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                document.getElementById('toggleForm_' + userId).submit();
+                            }
+                        });
+                    }
+            </script>
         </body>
 
         </html>

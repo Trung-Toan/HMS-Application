@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-
 public class UploadFile {
 
     private String UPLOAD_DIRECTORY;
@@ -39,8 +38,26 @@ public class UploadFile {
                     // Lấy tên của tập tin được gửi
                     String fileName = extractFileName(part);
                     if (fileName != null && !fileName.isEmpty()) {
-                        // Lưu tập tin vào thư mục upload
-                        part.write(UPLOAD_DIRECTORY + File.separator + fileName);
+                        // 1. Define Source Path (Project Workspace)
+                        Path sourcePath = Paths.get(UPLOAD_DIRECTORY, fileName);
+
+                        // 2. Define Build Path (Tomcat deployment dir)
+                        // realPath is "build/web"
+                        Path buildPath = Paths.get(realPath, "images", fileName);
+
+                        System.out.println("Saving to Source: " + sourcePath);
+                        System.out.println("Saving to Build: " + buildPath);
+
+                        // 3. Save to Source Directory (Persistence)
+                        part.write(sourcePath.toString());
+
+                        // 4. Copy to Build Directory (Immediate View)
+                        // Make sure build/web/images exists
+                        if (!Files.exists(buildPath.getParent())) {
+                            Files.createDirectories(buildPath.getParent());
+                        }
+                        Files.copy(sourcePath, buildPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
                         // Thêm tên tập tin vào danh sách
                         uploadedFileNames.add(fileName);
                     }
@@ -49,7 +66,8 @@ public class UploadFile {
         } catch (ServletException | IOException e) {
             System.out.println("===========================");
             System.out.println("Error at upload file: " + e.getMessage());
-            e.printStackTrace(); // Changed from e.getStackTrace() to e.printStackTrace() for proper error logging
+            e.printStackTrace(); // Changed from e.getStackTrace() to e.printStackTrace() for proper error
+                                 // logging
         }
         return uploadedFileNames;
     }
@@ -60,7 +78,7 @@ public class UploadFile {
      *
      * @param part Phần chứa thông tin về tập tin được gửi.
      * @return Tên của tập tin được trích xuất từ phần, hoặc chuỗi trống nếu
-     * không tìm thấy.
+     *         không tìm thấy.
      */
     private String extractFileName(Part part) {
         // Lấy tiêu đề "content-disposition" từ phần

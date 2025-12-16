@@ -452,4 +452,106 @@ public class DAOBooking extends DAO {
 
         return b;
     }
+    // ======================================================
+    // Search & Filter Bookings (Owner)
+    // ======================================================
+
+    public List<Booking> searchBookings(String statusStr, String searchQuery, int page, int pageSize) {
+        List<Booking> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(
+                "SELECT b.*, c.full_name as customer_name, c.email as customer_email, " +
+                        "r.room_number, rt.type_name " +
+                        "FROM bookings b " +
+                        "JOIN users c ON b.customer_id = c.user_id " +
+                        "JOIN rooms r ON b.room_id = r.room_id " +
+                        "JOIN room_types rt ON r.room_type_id = rt.room_type_id " +
+                        "WHERE 1=1");
+
+        if (statusStr != null && !statusStr.isBlank() && !"ALL".equalsIgnoreCase(statusStr)) {
+            sql.append(" AND b.status = ?");
+        }
+
+        if (searchQuery != null && !searchQuery.isBlank()) {
+            sql.append(
+                    " AND ( CAST(b.booking_id AS CHAR) LIKE ? OR c.full_name LIKE ? OR c.email LIKE ? OR r.room_number LIKE ? )");
+        }
+
+        sql.append(" ORDER BY b.created_at DESC");
+
+        if (page > 0 && pageSize > 0) {
+            sql.append(" LIMIT ? OFFSET ?");
+        }
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            int idx = 1;
+
+            if (statusStr != null && !statusStr.isBlank() && !"ALL".equalsIgnoreCase(statusStr)) {
+                ps.setString(idx++, statusStr);
+            }
+
+            if (searchQuery != null && !searchQuery.isBlank()) {
+                String kw = "%" + searchQuery + "%";
+                ps.setString(idx++, kw);
+                ps.setString(idx++, kw);
+                ps.setString(idx++, kw);
+                ps.setString(idx++, kw);
+            }
+
+            if (page > 0 && pageSize > 0) {
+                ps.setInt(idx++, pageSize);
+                ps.setInt(idx++, (page - 1) * pageSize);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapBookingWithDetails(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public int countBookings(String statusStr, String searchQuery) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM bookings b " +
+                        "JOIN users c ON b.customer_id = c.user_id " +
+                        "JOIN rooms r ON b.room_id = r.room_id " +
+                        "WHERE 1=1");
+
+        if (statusStr != null && !statusStr.isBlank() && !"ALL".equalsIgnoreCase(statusStr)) {
+            sql.append(" AND b.status = ?");
+        }
+
+        if (searchQuery != null && !searchQuery.isBlank()) {
+            sql.append(
+                    " AND ( CAST(b.booking_id AS CHAR) LIKE ? OR c.full_name LIKE ? OR c.email LIKE ? OR r.room_number LIKE ? )");
+        }
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            int idx = 1;
+
+            if (statusStr != null && !statusStr.isBlank() && !"ALL".equalsIgnoreCase(statusStr)) {
+                ps.setString(idx++, statusStr);
+            }
+
+            if (searchQuery != null && !searchQuery.isBlank()) {
+                String kw = "%" + searchQuery + "%";
+                ps.setString(idx++, kw);
+                ps.setString(idx++, kw);
+                ps.setString(idx++, kw);
+                ps.setString(idx++, kw);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }

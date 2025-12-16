@@ -16,9 +16,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @WebServlet(name = "ManagerController", urlPatterns = { "/manager/dashboard", "/manager/create-task",
-        "/manager/issues", "/manager/rooms", "/manager/staff", "/manager/inspections",
+        "/manager/issues", "/manager/rooms", "/manager/room-detail", "/manager/staff", "/manager/inspections",
         "/manager/create-inspection", "/manager/replenishment-requests", "/manager/bookings",
-        "/manager/housekeeping", "/manager/reports" })
+        "/manager/housekeeping", "/manager/reports", "/manager/inspection-detail",
+        "/manager/add-room-amenity", "/manager/delete-room-amenity", "/manager/edit-room-amenity" })
 public class ManagerController extends HttpServlet {
 
     @Override
@@ -37,14 +38,42 @@ public class ManagerController extends HttpServlet {
             case "/manager/create-task" -> showCreateTaskForm(request, response);
             case "/manager/issues" -> showIssues(request, response);
             case "/manager/rooms" -> showRooms(request, response);
+            case "/manager/room-detail" -> showRoomDetail(request, response);
             case "/manager/staff" -> showStaff(request, response);
             case "/manager/inspections" -> showInspections(request, response);
+            case "/manager/inspection-detail" -> showInspectionDetail(request, response);
             case "/manager/create-inspection" -> showCreateInspectionForm(request, response);
             case "/manager/replenishment-requests" -> showReplenishmentRequests(request, response);
             case "/manager/bookings" -> showBookings(request, response);
             case "/manager/housekeeping" -> showHousekeeping(request, response);
             case "/manager/reports" -> showReports(request, response);
             default -> response.sendError(404);
+        }
+    }
+
+    private void showInspectionDetail(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String idStr = request.getParameter("id");
+        if (idStr == null) {
+            response.sendError(400, "Missing inspection id");
+            return;
+        }
+
+        try {
+            int id = Integer.parseInt(idStr);
+            DAL.RoomInspectionDAO inspectionDAO = new DAL.RoomInspectionDAO();
+            Model.RoomInspection inspection = inspectionDAO.getInspectionById(id);
+
+            if (inspection == null) {
+                response.sendError(404, "Inspection not found");
+                return;
+            }
+
+            request.setAttribute("inspection", inspection);
+            request.getRequestDispatcher("/Views/Manager/InspectionDetail.jsp").forward(request, response);
+
+        } catch (NumberFormatException e) {
+            response.sendError(400, "Invalid inspection id");
         }
     }
 
@@ -59,7 +88,70 @@ public class ManagerController extends HttpServlet {
             case "/manager/create-inspection" -> handleCreateInspection(request, response);
             case "/manager/replenishment-requests" -> handleReplenishmentRequest(request, response);
             case "/manager/bookings" -> handleAssignInspection(request, response);
+            case "/manager/add-room-amenity" -> handleAddRoomAmenity(request, response);
+            case "/manager/edit-room-amenity" -> handleEditRoomAmenity(request, response);
+            case "/manager/delete-room-amenity" -> handleDeleteRoomAmenity(request, response);
             default -> response.sendError(404);
+        }
+    }
+
+    private void handleAddRoomAmenity(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String roomIdStr = request.getParameter("roomId");
+        String amenityIdStr = request.getParameter("amenityId");
+        String quantityStr = request.getParameter("quantity");
+
+        try {
+            int roomId = Integer.parseInt(roomIdStr);
+            int amenityId = Integer.parseInt(amenityIdStr);
+            int quantity = Integer.parseInt(quantityStr);
+
+            Room room = DAOHousekeeping.INSTANCE.getRoomById(roomId);
+            if (room != null) {
+                DAL.AmenityDAO dao = new DAL.AmenityDAO();
+                dao.addAmenityToRoomType(room.getRoomTypeId(), amenityId, quantity);
+                response.sendRedirect(request.getContextPath() + "/manager/room-detail?id=" + roomId + "&msg=Added");
+            } else {
+                response.sendError(404, "Room not found");
+            }
+        } catch (NumberFormatException e) {
+            response.sendError(400, "Invalid input");
+        }
+    }
+
+    private void handleEditRoomAmenity(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String roomIdStr = request.getParameter("roomId");
+        String rtaIdStr = request.getParameter("id");
+        String quantityStr = request.getParameter("quantity");
+
+        try {
+            int rtaId = Integer.parseInt(rtaIdStr);
+            int quantity = Integer.parseInt(quantityStr);
+            int roomId = Integer.parseInt(roomIdStr);
+
+            DAL.AmenityDAO dao = new DAL.AmenityDAO();
+            dao.updateRoomTypeAmenity(rtaId, quantity);
+            response.sendRedirect(request.getContextPath() + "/manager/room-detail?id=" + roomId + "&msg=Updated");
+        } catch (NumberFormatException e) {
+            response.sendError(400, "Invalid input");
+        }
+    }
+
+    private void handleDeleteRoomAmenity(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String roomIdStr = request.getParameter("roomId");
+        String rtaIdStr = request.getParameter("id");
+
+        try {
+            int rtaId = Integer.parseInt(rtaIdStr);
+            int roomId = Integer.parseInt(roomIdStr);
+
+            DAL.AmenityDAO dao = new DAL.AmenityDAO();
+            dao.deleteRoomTypeAmenity(rtaId);
+            response.sendRedirect(request.getContextPath() + "/manager/room-detail?id=" + roomId + "&msg=Deleted");
+        } catch (NumberFormatException e) {
+            response.sendError(400, "Invalid input");
         }
     }
 
@@ -202,6 +294,42 @@ public class ManagerController extends HttpServlet {
         request.getRequestDispatcher("/Views/Manager/RoomList.jsp").forward(request, response);
     }
 
+    private void showRoomDetail(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String idStr = request.getParameter("id");
+        if (idStr == null) {
+            response.sendError(400, "Missing room id");
+            return;
+        }
+
+        try {
+            int roomId = Integer.parseInt(idStr);
+            Room room = DAOHousekeeping.INSTANCE.getRoomById(roomId);
+            if (room == null) {
+                response.sendError(404, "Room not found");
+                return;
+            }
+
+            // Get standard amenities for this room type
+            DAL.AmenityDAO amenityDAO = new DAL.AmenityDAO();
+            List<Model.RoomTypeAmenity> standardAmenities = amenityDAO.getAmenitiesByRoomType(room.getRoomTypeId());
+
+            // Get items needing replenishment (Pending Requests for this room?)
+            // We can find requests linked to inspections of this room?
+            // For now, just show the standard list which allows creating new requests.
+
+            List<Model.Amenity> allAmenities = amenityDAO.getAllAmenities();
+
+            request.setAttribute("room", room);
+            request.setAttribute("amenities", standardAmenities);
+            request.setAttribute("allAmenities", allAmenities);
+            request.getRequestDispatcher("/Views/Manager/RoomDetail.jsp").forward(request, response);
+
+        } catch (NumberFormatException e) {
+            response.sendError(400, "Invalid room id");
+        }
+    }
+
     private void showStaff(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String dateStr = request.getParameter("date");
@@ -242,6 +370,12 @@ public class ManagerController extends HttpServlet {
             allInspections = allInspections.stream()
                     .filter(i -> filterType.equalsIgnoreCase(String.valueOf(i.getType())))
                     .collect(java.util.stream.Collectors.toList());
+        } else {
+            // Default: Show only CHECKIN and CHECKOUT
+            allInspections = allInspections.stream()
+                    .filter(i -> "CHECKIN".equalsIgnoreCase(String.valueOf(i.getType())) ||
+                            "CHECKOUT".equalsIgnoreCase(String.valueOf(i.getType())))
+                    .collect(java.util.stream.Collectors.toList());
         }
 
         // Apply search filter
@@ -249,9 +383,9 @@ public class ManagerController extends HttpServlet {
             String query = searchQuery.toLowerCase().trim();
             allInspections = allInspections.stream()
                     .filter(i -> String.valueOf(i.getInspectionId()).contains(query) ||
-                            String.valueOf(i.getRoomId()).contains(query) ||
+                            (i.getRoomNumber() != null && i.getRoomNumber().toLowerCase().contains(query)) ||
                             (i.getNote() != null && i.getNote().toLowerCase().contains(query)) ||
-                            String.valueOf(i.getInspectorId()).contains(query))
+                            (i.getInspectorName() != null && i.getInspectorName().toLowerCase().contains(query)))
                     .collect(java.util.stream.Collectors.toList());
         }
 

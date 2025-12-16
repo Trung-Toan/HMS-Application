@@ -30,7 +30,8 @@ public class DAOHousekeeping extends DAO {
     // ======================================================
     public List<Room> getAllRooms() {
         List<Room> list = new ArrayList<>();
-        String sql = "SELECT * FROM rooms";
+        String sql = "SELECT r.*, rt.type_name FROM rooms r " +
+                "JOIN room_types rt ON r.room_type_id = rt.room_type_id";
 
         try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
@@ -39,6 +40,7 @@ public class DAOHousekeeping extends DAO {
                 r.setRoomId(rs.getInt("room_id"));
                 r.setRoomNumber(rs.getString("room_number"));
                 r.setRoomTypeId(rs.getInt("room_type_id"));
+                r.setRoomTypeName(rs.getString("type_name"));
                 r.setFloor((Integer) rs.getInt("floor"));
                 r.setStatus(rs.getString("status"));
                 r.setImageUrl(rs.getString("image_url"));
@@ -56,11 +58,15 @@ public class DAOHousekeeping extends DAO {
     public <T> Room getRoomById(T id) {
         String idString = String.valueOf(id);
         Room r = new Room();
-        String sql = "SELECT * FROM rooms where room_id = ?";
+        // Join with room_types to get details
+        String sql = "SELECT r.*, rt.type_name, rt.base_price, rt.max_occupancy, rt.description as type_desc " +
+                "FROM rooms r " +
+                "LEFT JOIN room_types rt ON r.room_type_id = rt.room_type_id " +
+                "WHERE r.room_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, idString);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
+                if (rs.next()) {
                     r.setRoomId(rs.getInt("room_id"));
                     r.setRoomNumber(rs.getString("room_number"));
                     r.setRoomTypeId(rs.getInt("room_type_id"));
@@ -69,6 +75,19 @@ public class DAOHousekeeping extends DAO {
                     r.setImageUrl(rs.getString("image_url"));
                     r.setDescription(rs.getString("description"));
                     r.setActive(rs.getBoolean("is_active"));
+
+                    // Set Room Type Name (for existing compatibility)
+                    r.setRoomTypeName(rs.getString("type_name"));
+
+                    // Create and populate RoomType object for rich details
+                    Model.RoomType rt = new Model.RoomType();
+                    rt.setRoomTypeId(rs.getInt("room_type_id"));
+                    rt.setTypeName(rs.getString("type_name"));
+                    rt.setBasePrice(java.math.BigDecimal.valueOf(rs.getDouble("base_price")));
+                    rt.setMaxOccupancy(rs.getInt("max_occupancy"));
+                    rt.setDescription(rs.getString("type_desc"));
+
+                    r.setRoomType(rt);
                 }
             }
         } catch (SQLException e) {
@@ -279,7 +298,7 @@ public class DAOHousekeeping extends DAO {
     // Room
     // ======================================================
     public Room getRoomById(int roomId) {
-        String sql = "SELECT * FROM rooms WHERE room_id = ?";
+        String sql = "SELECT r.*, rt.type_name as room_type_name FROM rooms r join room_types rt on rt.room_type_id = r.room_type_id WHERE r.room_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, roomId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -293,6 +312,7 @@ public class DAOHousekeeping extends DAO {
                     r.setImageUrl(rs.getString("image_url"));
                     r.setDescription(rs.getString("description"));
                     r.setActive(rs.getBoolean("is_active"));
+                    r.setRoomTypeName(rs.getString("room_type_name"));
                     return r;
                 }
             }
