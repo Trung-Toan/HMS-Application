@@ -31,8 +31,7 @@ public class DAOReceptionist extends DAO {
                 + "WHERE b.status = 'PENDING' "
                 + "ORDER BY b.created_at ASC";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Map<String, Object> booking = new HashMap<>();
                 booking.put("bookingId", rs.getInt("booking_id"));
@@ -200,12 +199,18 @@ public class DAOReceptionist extends DAO {
         if (sortBy != null && !sortBy.isBlank()) {
             sql.append("ORDER BY ");
             switch (sortBy) {
-                case "bookingId" -> sql.append("b.booking_id");
-                case "customerName" -> sql.append("u.full_name");
-                case "roomNumber" -> sql.append("r.room_number");
-                case "checkinDate" -> sql.append("b.checkin_date");
-                case "status" -> sql.append("b.status");
-                default -> sql.append("b.created_at");
+                case "bookingId" ->
+                    sql.append("b.booking_id");
+                case "customerName" ->
+                    sql.append("u.full_name");
+                case "roomNumber" ->
+                    sql.append("r.room_number");
+                case "checkinDate" ->
+                    sql.append("b.checkin_date");
+                case "status" ->
+                    sql.append("b.status");
+                default ->
+                    sql.append("b.created_at");
             }
             sql.append(" ").append("DESC".equalsIgnoreCase(sortOrder) ? "DESC" : "ASC");
         } else {
@@ -312,8 +317,7 @@ public class DAOReceptionist extends DAO {
                 + "SUM(CASE WHEN checkin_date = CURDATE() AND (status = 'CONFIRMED' OR status = 'PENDING') THEN 1 ELSE 0 END) as today_arrivals "
                 + "FROM bookings";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {
                 stats.put("pending", rs.getInt("pending_count"));
                 stats.put("confirmed", rs.getInt("confirmed_count"));
@@ -342,8 +346,7 @@ public class DAOReceptionist extends DAO {
                 + "AND (b.status = 'CONFIRMED' OR b.status = 'PENDING') "
                 + "ORDER BY r.room_number";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Map<String, Object> arrival = new HashMap<>();
                 arrival.put("bookingId", rs.getInt("booking_id"));
@@ -393,6 +396,27 @@ public class DAOReceptionist extends DAO {
             e.printStackTrace();
         }
         return list;
+    }
+
+    // ======================================================
+    // No_Show Booking
+    // ======================================================
+    public boolean markNoShow(int bookingId, int receptionistId) {
+        String sql = """
+        UPDATE bookings
+        SET status = 'NO_SHOW',
+            updated_at = NOW()
+        WHERE booking_id = ?
+          AND status = 'CONFIRMED'
+    """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, bookingId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     // ======================================================
@@ -550,8 +574,7 @@ public class DAOReceptionist extends DAO {
                 + "AND b.checkin_date <= CURDATE() "
                 + "ORDER BY b.checkin_date ASC, r.room_number ASC";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Map<String, Object> booking = new HashMap<>();
                 booking.put("bookingId", rs.getInt("booking_id"));
@@ -595,8 +618,7 @@ public class DAOReceptionist extends DAO {
                 + "WHERE b.status = 'CHECKED_IN' "
                 + "ORDER BY b.checkout_date ASC, r.room_number ASC";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Map<String, Object> booking = new HashMap<>();
                 booking.put("bookingId", rs.getInt("booking_id"));
@@ -741,25 +763,23 @@ public class DAOReceptionist extends DAO {
     // ======================================================
     // Room Status Board Methods
     // ======================================================
-
     /**
      * Get all rooms with their current status and occupant information
      */
     public List<Map<String, Object>> getAllRoomsWithStatus() {
         List<Map<String, Object>> list = new ArrayList<>();
-        String sql = "SELECT r.room_id, r.room_number, r.floor, r.status as room_status, " +
-                "rt.room_type_id, rt.type_name, rt.max_occupancy, rt.base_price, " +
-                "b.booking_id, b.checkin_date, b.checkout_date, " +
-                "u.full_name as occupant_name " +
-                "FROM rooms r " +
-                "JOIN room_types rt ON r.room_type_id = rt.room_type_id " +
-                "LEFT JOIN bookings b ON r.room_id = b.room_id " +
-                "  AND b.status = 'CHECKED_IN' " +
-                "LEFT JOIN users u ON b.customer_id = u.user_id " +
-                "ORDER BY r.floor ASC, r.room_number ASC";
+        String sql = "SELECT r.room_id, r.room_number, r.floor, r.status as room_status, "
+                + "rt.room_type_id, rt.type_name, rt.max_occupancy, rt.base_price, "
+                + "b.booking_id, b.checkin_date, b.checkout_date, "
+                + "u.full_name as occupant_name "
+                + "FROM rooms r "
+                + "JOIN room_types rt ON r.room_type_id = rt.room_type_id "
+                + "LEFT JOIN bookings b ON r.room_id = b.room_id "
+                + "  AND b.status = 'CHECKED_IN' "
+                + "LEFT JOIN users u ON b.customer_id = u.user_id "
+                + "ORDER BY r.floor ASC, r.room_number ASC";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Map<String, Object> room = new HashMap<>();
                 room.put("roomId", rs.getInt("room_id"));
@@ -792,17 +812,16 @@ public class DAOReceptionist extends DAO {
      */
     public Map<String, Integer> getRoomStatusSummary() {
         Map<String, Integer> stats = new HashMap<>();
-        String sql = "SELECT " +
-                "SUM(CASE WHEN status = 'AVAILABLE' THEN 1 ELSE 0 END) as available_count, " +
-                "SUM(CASE WHEN status = 'OCCUPIED' THEN 1 ELSE 0 END) as occupied_count, " +
-                "SUM(CASE WHEN status = 'CLEANING' THEN 1 ELSE 0 END) as cleaning_count, " +
-                "SUM(CASE WHEN status = 'MAINTENANCE' THEN 1 ELSE 0 END) as maintenance_count, " +
-                "SUM(CASE WHEN status = 'OUT_OF_SERVICE' THEN 1 ELSE 0 END) as out_of_service_count, " +
-                "COUNT(*) as total_count " +
-                "FROM rooms";
+        String sql = "SELECT "
+                + "SUM(CASE WHEN status = 'AVAILABLE' THEN 1 ELSE 0 END) as available_count, "
+                + "SUM(CASE WHEN status = 'OCCUPIED' THEN 1 ELSE 0 END) as occupied_count, "
+                + "SUM(CASE WHEN status = 'CLEANING' THEN 1 ELSE 0 END) as cleaning_count, "
+                + "SUM(CASE WHEN status = 'MAINTENANCE' THEN 1 ELSE 0 END) as maintenance_count, "
+                + "SUM(CASE WHEN status = 'OUT_OF_SERVICE' THEN 1 ELSE 0 END) as out_of_service_count, "
+                + "COUNT(*) as total_count "
+                + "FROM rooms";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {
                 stats.put("available", rs.getInt("available_count"));
                 stats.put("occupied", rs.getInt("occupied_count"));
@@ -822,15 +841,15 @@ public class DAOReceptionist extends DAO {
      */
     public List<Map<String, Object>> getRoomsByFloor(int floor) {
         List<Map<String, Object>> list = new ArrayList<>();
-        String sql = "SELECT r.room_id, r.room_number, r.floor, r.status as room_status, " +
-                "rt.type_name, rt.max_occupancy, rt.base_price, " +
-                "b.booking_id, u.full_name as occupant_name " +
-                "FROM rooms r " +
-                "JOIN room_types rt ON r.room_type_id = rt.room_type_id " +
-                "LEFT JOIN bookings b ON r.room_id = b.room_id AND b.status = 'CHECKED_IN' " +
-                "LEFT JOIN users u ON b.customer_id = u.user_id " +
-                "WHERE r.floor = ? " +
-                "ORDER BY r.room_number ASC";
+        String sql = "SELECT r.room_id, r.room_number, r.floor, r.status as room_status, "
+                + "rt.type_name, rt.max_occupancy, rt.base_price, "
+                + "b.booking_id, u.full_name as occupant_name "
+                + "FROM rooms r "
+                + "JOIN room_types rt ON r.room_type_id = rt.room_type_id "
+                + "LEFT JOIN bookings b ON r.room_id = b.room_id AND b.status = 'CHECKED_IN' "
+                + "LEFT JOIN users u ON b.customer_id = u.user_id "
+                + "WHERE r.floor = ? "
+                + "ORDER BY r.room_number ASC";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, floor);
@@ -860,20 +879,19 @@ public class DAOReceptionist extends DAO {
     // ======================================================
     // Room Detail Methods
     // ======================================================
-
     /**
      * Get detailed information about a specific room
      */
     public Map<String, Object> getRoomDetailById(int roomId) {
-        String sql = "SELECT r.room_id, r.room_number, r.floor, r.status, " +
-                "rt.room_type_id, rt.type_name, rt.description, rt.max_occupancy, rt.base_price, " +
-                "b.booking_id, b.checkin_date, b.checkout_date, b.num_guests, " +
-                "u.user_id as customer_id, u.full_name as customer_name, u.phone as customer_phone " +
-                "FROM rooms r " +
-                "JOIN room_types rt ON r.room_type_id = rt.room_type_id " +
-                "LEFT JOIN bookings b ON r.room_id = b.room_id AND b.status = 'CHECKED_IN' " +
-                "LEFT JOIN users u ON b.customer_id = u.user_id " +
-                "WHERE r.room_id = ?";
+        String sql = "SELECT r.room_id, r.room_number, r.floor, r.status, "
+                + "rt.room_type_id, rt.type_name, rt.description, rt.max_occupancy, rt.base_price, "
+                + "b.booking_id, b.checkin_date, b.checkout_date, b.num_guests, "
+                + "u.user_id as customer_id, u.full_name as customer_name, u.phone as customer_phone "
+                + "FROM rooms r "
+                + "JOIN room_types rt ON r.room_type_id = rt.room_type_id "
+                + "LEFT JOIN bookings b ON r.room_id = b.room_id AND b.status = 'CHECKED_IN' "
+                + "LEFT JOIN users u ON b.customer_id = u.user_id "
+                + "WHERE r.room_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, roomId);
@@ -914,14 +932,14 @@ public class DAOReceptionist extends DAO {
      */
     public List<Map<String, Object>> getRoomBookingHistory(int roomId, int limit) {
         List<Map<String, Object>> list = new ArrayList<>();
-        String sql = "SELECT b.booking_id, b.checkin_date, b.checkout_date, b.num_guests, " +
-                "b.status, b.total_amount, b.created_at, " +
-                "u.full_name as customer_name, u.phone as customer_phone " +
-                "FROM bookings b " +
-                "JOIN users u ON b.customer_id = u.user_id " +
-                "WHERE b.room_id = ? " +
-                "ORDER BY b.checkin_date DESC " +
-                "LIMIT ?";
+        String sql = "SELECT b.booking_id, b.checkin_date, b.checkout_date, b.num_guests, "
+                + "b.status, b.total_amount, b.created_at, "
+                + "u.full_name as customer_name, u.phone as customer_phone "
+                + "FROM bookings b "
+                + "JOIN users u ON b.customer_id = u.user_id "
+                + "WHERE b.room_id = ? "
+                + "ORDER BY b.checkin_date DESC "
+                + "LIMIT ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, roomId);
@@ -964,21 +982,20 @@ public class DAOReceptionist extends DAO {
     // ======================================================
     // Reservation Detail Methods
     // ======================================================
-
     /**
      * Get comprehensive booking details by ID
      */
     public Map<String, Object> getBookingDetailById(int bookingId) {
-        String sql = "SELECT b.booking_id, b.customer_id, b.room_id, b.checkin_date, b.checkout_date, " +
-                "b.num_guests, b.status, b.total_amount, b.created_at, b.updated_at, " +
-                "u.full_name as customer_name, u.email as customer_email, u.phone as customer_phone, " +
-                "r.room_number, r.floor, r.status as room_status, " +
-                "rt.room_type_id, rt.type_name, rt.description, rt.max_occupancy, rt.base_price " +
-                "FROM bookings b " +
-                "JOIN users u ON b.customer_id = u.user_id " +
-                "JOIN rooms r ON b.room_id = r.room_id " +
-                "JOIN room_types rt ON r.room_type_id = rt.room_type_id " +
-                "WHERE b.booking_id = ?";
+        String sql = "SELECT b.booking_id, b.customer_id, b.room_id, b.checkin_date, b.checkout_date, "
+                + "b.num_guests, b.status, b.total_amount, b.created_at, b.updated_at, "
+                + "u.full_name as customer_name, u.email as customer_email, u.phone as customer_phone, "
+                + "r.room_number, r.floor, r.status as room_status, "
+                + "rt.room_type_id, rt.type_name, rt.description, rt.max_occupancy, rt.base_price "
+                + "FROM bookings b "
+                + "JOIN users u ON b.customer_id = u.user_id "
+                + "JOIN rooms r ON b.room_id = r.room_id "
+                + "JOIN room_types rt ON r.room_type_id = rt.room_type_id "
+                + "WHERE b.booking_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, bookingId);
@@ -1023,16 +1040,15 @@ public class DAOReceptionist extends DAO {
     // ======================================================
     // Profile Management Methods
     // ======================================================
-
     /**
      * Get user profile by user ID (for both view and edit)
      */
     public Map<String, Object> getUserProfile(int userId) {
-        String sql = "SELECT u.user_id, u.full_name, u.email, u.phone, u.role_id, " +
-                "r.role_name, u.created_at " +
-                "FROM users u " +
-                "LEFT JOIN roles r ON u.role_id = r.role_id " +
-                "WHERE u.user_id = ?";
+        String sql = "SELECT u.user_id, u.full_name, u.email, u.phone, u.role_id, "
+                + "r.role_name, u.created_at "
+                + "FROM users u "
+                + "LEFT JOIN roles r ON u.role_id = r.role_id "
+                + "WHERE u.user_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, userId);

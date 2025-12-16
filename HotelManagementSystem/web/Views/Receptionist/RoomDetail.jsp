@@ -82,17 +82,16 @@
 
                 <body>
                     <header>
-                        <div class="logo">🏨 Khách Sạn Royal - Quản Lí</div>
+                        <div class="logo">🏨 Hotel Management</div>
                         <div class="header-right">
                             <div class="nav-links">
                                 <a href="${pageContext.request.contextPath}/receptionist/dashboard">Dashboard</a>
-                                <a href="${pageContext.request.contextPath}/reservation_approval">Duyệt Phòng</a>
-                                <a href="${pageContext.request.contextPath}/receptionist/reservations">Danh Sách</a>
+                                <a href="${pageContext.request.contextPath}/reservation_approval">Approvals</a>
+                                <a href="${pageContext.request.contextPath}/receptionist/reservations">Reservations</a>
                                 <a href="${pageContext.request.contextPath}/receptionist/checkinout">Check-in/out</a>
-                                <a href="${pageContext.request.contextPath}/receptionist/direct-booking">Walk-in</a>
                                 <a href="${pageContext.request.contextPath}/receptionist/room-status"
-                                    class="active">Phòng</a>
-                                <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
+                                    class="active">Rooms</a>
+                                <a href="${pageContext.request.contextPath}/logout">Logout</a>
                             </div>
                             <div class="staff-profile">
                                 <span>${sessionScope.currentUser.fullName}</span>
@@ -130,7 +129,7 @@
                                 <div class="info-row">
                                     <span class="info-label">Base Price</span>
                                     <span class="info-value price">
-                                        <fmt:formatNumber value="${room.basePrice}" pattern="#,###" /> đ/night
+                                        <fmt:formatNumber value="${room.basePrice}" pattern="#,###" /> VND/night
                                     </span>
                                 </div>
                                 <div class="info-row">
@@ -258,7 +257,7 @@
                                                         </td>
                                                         <td class="price">
                                                             <fmt:formatNumber value="${booking.totalAmount}"
-                                                                pattern="#,###" /> đ
+                                                                pattern="#,###" /> VND
                                                         </td>
                                                     </tr>
                                                 </c:forEach>
@@ -271,7 +270,7 @@
                     </div>
 
                     <footer>
-                        <p>&copy; 2025 Khách Sạn Royal. Hệ Thống Quản Lí Khách Sạn</p>
+                        <p>&copy; 2025 Hotel Management System. All rights reserved.</p>
                     </footer>
                 </body>
 

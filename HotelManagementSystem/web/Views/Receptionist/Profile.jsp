@@ -95,18 +95,17 @@
 
                 <body>
                     <header>
-                        <div class="logo">🏨 Khách Sạn Royal - Quản Lí</div>
+                        <div class="logo">🏨 Hotel Management</div>
                         <div class="header-right">
                             <div class="nav-links">
                                 <a href="${pageContext.request.contextPath}/receptionist/dashboard">Dashboard</a>
-                                <a href="${pageContext.request.contextPath}/reservation_approval">Duyệt Phòng</a>
-                                <a href="${pageContext.request.contextPath}/receptionist/reservations">Danh Sách</a>
+                                <a href="${pageContext.request.contextPath}/reservation_approval">Approvals</a>
+                                <a href="${pageContext.request.contextPath}/receptionist/reservations">Reservations</a>
                                 <a href="${pageContext.request.contextPath}/receptionist/checkinout">Check-in/out</a>
-                                <a href="${pageContext.request.contextPath}/receptionist/direct-booking">Walk-in</a>
-                                <a href="${pageContext.request.contextPath}/receptionist/room-status">Phòng</a>
+                                <a href="${pageContext.request.contextPath}/receptionist/room-status">Rooms</a>
                                 <a href="${pageContext.request.contextPath}/receptionist/profile"
                                     class="active">Profile</a>
-                                <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
+                                <a href="${pageContext.request.contextPath}/logout">Logout</a>
                             </div>
                             <div class="staff-profile">
                                 <span>${sessionScope.currentUser.fullName}</span>
@@ -137,10 +136,6 @@
                                 </div>
 
                                 <form method="post" action="${pageContext.request.contextPath}/receptionist/profile">
-                                    <div class="form-group">
-                                        <label>User ID</label>
-                                        <input type="text" value="${profile.userId}" disabled>
-                                    </div>
 
                                     <div class="form-group">
                                         <label>Full Name *</label>
@@ -184,7 +179,7 @@
                     </div>
 
                     <footer>
-                        <p>&copy; 2025 Khách Sạn Royal. Hệ Thống Quản Lí Khách Sạn</p>
+                        <p>&copy; 2025 Hotel Management System. All rights reserved.</p>
                     </footer>
                 </body>
 

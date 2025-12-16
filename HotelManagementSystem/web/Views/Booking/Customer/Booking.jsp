@@ -89,14 +89,6 @@
                             🏨 Pay at the counter upon check-out
                         </label>
 
-                        <!-- ADDITIONAL NOTES -->
-                        <h2 style="margin-top: 30px;">Additional Notes</h2>
-                        <div class="form-group">
-                            <label for="notes">Special Requests</label>
-                            <textarea id="notes" name="notes"
-                                      placeholder="Enter any requests or additional notes..." rows="4"></textarea>
-                        </div>
-
                         <!-- AGREEMENT CHECKBOX -->
                         <div class="form-group" style="margin-top: 20px;">
                             <label style="display: flex; align-items: center; cursor: pointer;">

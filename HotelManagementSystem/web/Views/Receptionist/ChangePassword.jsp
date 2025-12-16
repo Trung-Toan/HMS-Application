@@ -2,29 +2,28 @@
     <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
         <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
             <!DOCTYPE html>
-            <html lang="vi">
+            <html lang="en">
 
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Đổi Mật Khẩu - Lễ Tân</title>
+                <title>Change Password - Receptionist</title>
                 <link rel="stylesheet" href="${pageContext.request.contextPath}/CSS/receptionist.css">
                 <link rel="stylesheet" href="${pageContext.request.contextPath}/CSS/receptionist-common.css">
             </head>
 
             <body>
                 <header>
-                    <div class="logo">🏨 Khách Sạn Royal - Quản Lí</div>
+                    <div class="logo">🏨 Hotel Management</div>
                     <div class="header-right">
                         <div class="nav-links">
                             <a href="${pageContext.request.contextPath}/receptionist/dashboard">Dashboard</a>
-                            <a href="${pageContext.request.contextPath}/reservation_approval">Duyệt Phòng</a>
-                            <a href="${pageContext.request.contextPath}/receptionist/reservations">Danh Sách</a>
+                            <a href="${pageContext.request.contextPath}/reservation_approval">Approvals</a>
+                            <a href="${pageContext.request.contextPath}/receptionist/reservations">Reservations</a>
                             <a href="${pageContext.request.contextPath}/receptionist/checkinout">Check-in/out</a>
-                            <a href="${pageContext.request.contextPath}/receptionist/direct-booking">Walk-in</a>
-                            <a href="${pageContext.request.contextPath}/receptionist/room-status">Phòng</a>
+                            <a href="${pageContext.request.contextPath}/receptionist/room-status">Rooms</a>
                             <a href="${pageContext.request.contextPath}/receptionist/profile" class="active">Profile</a>
-                            <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
+                            <a href="${pageContext.request.contextPath}/logout">Logout</a>
                         </div>
                         <div class="staff-profile">
                             <span>${sessionScope.currentUser.fullName}</span>
@@ -36,10 +35,10 @@
                 <div class="container">
                     <div class="password-container">
                         <a href="${pageContext.request.contextPath}/receptionist/profile" class="back-link">
-                            ← Quay lại Profile
+                            ← Back to Profile
                         </a>
 
-                        <h1 class="page-title">🔒 Đổi Mật Khẩu</h1>
+                        <h1 class="page-title">🔒 Change Password</h1>
 
                         <!-- Messages -->
                         <c:if test="${not empty type}">
@@ -51,41 +50,41 @@
                         <!-- Password Change Card -->
                         <div class="password-card">
                             <div class="password-requirements">
-                                <h4>Yêu cầu mật khẩu:</h4>
+                                <h4>Password Requirements:</h4>
                                 <ul>
-                                    <li>Tối thiểu 6 ký tự</li>
-                                    <li>Mật khẩu mới phải khớp với xác nhận</li>
-                                    <li>Mật khẩu hiện tại phải đúng</li>
+                                    <li>Minimum 6 characters</li>
+                                    <li>New password must match confirmation</li>
+                                    <li>Current password must be correct</li>
                                 </ul>
                             </div>
 
                             <form method="post" action="${pageContext.request.contextPath}/receptionist/change-password"
                                 onsubmit="return validatePassword();">
                                 <div class="form-group">
-                                    <label>Mật khẩu hiện tại *</label>
+                                    <label>Current Password *</label>
                                     <input type="password" name="oldPassword" id="oldPassword"
-                                        placeholder="Nhập mật khẩu hiện tại" required>
+                                        placeholder="Enter current password" required>
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Mật khẩu mới *</label>
+                                    <label>New Password *</label>
                                     <input type="password" name="newPassword" id="newPassword"
-                                        placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)" minlength="6" required>
+                                        placeholder="Enter new password (minimum 6 characters)" minlength="6" required>
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Xác nhận mật khẩu mới *</label>
+                                    <label>Confirm New Password *</label>
                                     <input type="password" name="confirmPassword" id="confirmPassword"
-                                        placeholder="Nhập lại mật khẩu mới" required>
+                                        placeholder="Re-enter new password" required>
                                 </div>
 
                                 <div class="button-group">
                                     <a href="${pageContext.request.contextPath}/receptionist/profile"
                                         class="btn btn-cancel" style="flex: 1; text-align: center;">
-                                        Hủy
+                                        Cancel
                                     </a>
                                     <button type="submit" class="btn btn-primary" style="flex: 1;">
-                                        🔒 Đổi Mật Khẩu
+                                        🔒 Change Password
                                     </button>
                                 </div>
                             </form>
@@ -94,7 +93,7 @@
                 </div>
 
                 <footer>
-                    <p>&copy; 2025 Khách Sạn Royal. Hệ Thống Quản Lí Khách Sạn</p>
+                    <p>&copy; 2025 Hotel Management System. All rights reserved.</p>
                 </footer>
 
                 <script>
@@ -103,12 +102,12 @@
                         var confirmPassword = document.getElementById('confirmPassword').value;
 
                         if (newPassword !== confirmPassword) {
-                            alert('Mật khẩu mới và xác nhận mật khẩu không khớp!');
+                            alert('New password and confirmation password do not match!');
                             return false;
                         }
 
                         if (newPassword.length < 6) {
-                            alert('Mật khẩu phải có ít nhất 6 ký tự!');
+                            alert('Password must be at least 6 characters!');
                             return false;
                         }
 
