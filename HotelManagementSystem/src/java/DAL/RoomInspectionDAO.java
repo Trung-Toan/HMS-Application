@@ -70,7 +70,7 @@ public class RoomInspectionDAO extends DAO {
 
     public List<RoomInspection> getInspectionsByRoom(int roomId) {
         List<RoomInspection> list = new ArrayList<>();
-        String sql = "SELECT * FROM room_inspections WHERE room_id = ? ORDER BY inspection_date DESC";
+        String sql = "SELECT ri.*, u.full_name FROM room_inspections ri LEFT JOIN users u ON ri.inspector_id = u.user_id WHERE ri.room_id = ? ORDER BY ri.inspection_date DESC";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, roomId);
             try (ResultSet rs = ps.executeQuery()) {

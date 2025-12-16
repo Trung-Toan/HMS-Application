@@ -23,7 +23,8 @@ import jakarta.servlet.http.HttpSession;
 @WebServlet(name = "InspectionController", urlPatterns = {
         "/housekeeping/inspection",
         "/housekeeping/inspection-history",
-        "/housekeeping/request-replenishment"
+        "/housekeeping/request-replenishment",
+        "/housekeeping/inspection-detail"
 })
 public class InspectionController extends HttpServlet {
 
@@ -55,6 +56,9 @@ public class InspectionController extends HttpServlet {
                 break;
             case "/housekeeping/inspection-history":
                 showInspectionHistory(request, response);
+                break;
+            case "/housekeeping/inspection-detail":
+                showInspectionDetail(request, response);
                 break;
             default:
                 response.sendError(404);
@@ -232,6 +236,22 @@ public class InspectionController extends HttpServlet {
         } else {
             response.sendRedirect("inspection?roomId=" + roomId + "&error=failed");
         }
+    }
+
+    private void showInspectionDetail(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String idStr = request.getParameter("id");
+        if (idStr != null && !idStr.isBlank()) {
+            int id = Integer.parseInt(idStr);
+            RoomInspection inspection = inspectionDAO.getInspectionById(id);
+            request.setAttribute("inspection", inspection);
+            // Set backUrl for navigation
+            request.setAttribute("backUrl", "inspection-history");
+        } else {
+            response.sendError(404);
+            return;
+        }
+        request.getRequestDispatcher("/Views/Manager/InspectionDetail.jsp").forward(request, response);
     }
 
     private void handleReplenishmentRequest(HttpServletRequest request, HttpServletResponse response, User requester)
