@@ -82,6 +82,7 @@ public class CustomerController extends HttpServlet {
                             .getIssuesByBookingId(booking.getBookingId());
                     if (reports != null && !reports.isEmpty()) {
                         request.setAttribute("latestIssueReport", reports.get(0));
+                        request.setAttribute("issueReports", reports);
                     }
 
                     request.setAttribute("booking", booking);

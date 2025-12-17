@@ -328,80 +328,140 @@
                                 </div>
                             </div>
 
-                                    <c:choose>
+                            <c:choose>
                                 <c:when test="${not empty amenityList}">
-                                    <form action="${pageContext.request.contextPath}/customer/amenities" method="POST"
-                                        id="amenityForm">
-                                        <input type="hidden" name="action" value="confirm_amenities">
-                                        <input type="hidden" name="bookingId" value="${booking.bookingId}">
-                                        <input type="hidden" name="roomId" value="${booking.roomId}">
-
-                                        <div class="amenity-grid">
-                                            <c:forEach items="${amenityList}" var="detail">
-                                                <div class="amenity-card">
-                                                    <div class="amenity-icon">
-                                                        <i class="fas fa-concierge-bell"></i>
-                                                    </div>
-                                                    <div class="amenity-name">${detail.amenity.name}</div>
-                                                    <div class="amenity-desc">${detail.amenity.description}</div>
-
-                                                    <div class="amenity-check-section"
-                                                        style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
-                                                    <input type="hidden" name="name_${detail.amenity.amenityId}" value="${detail.amenity.name}">
-                                                        <div style="display: flex; gap: 15px; justify-content: center;">
-                                                            <label
-                                                                style="cursor: pointer; display: flex; align-items: center; gap: 5px; color: #27ae60;">
-                                                                <input type="radio"
-                                                                    name="status_${detail.amenity.amenityId}" value="OK"
-                                                                    required>
-                                                                <i class="fas fa-check"></i> Sufficient
-                                                            </label>
-                                                            <label
-                                                                style="cursor: pointer; display: flex; align-items: center; gap: 5px; color: #e74c3c;">
-                                                                <input type="radio"
-                                                                    name="status_${detail.amenity.amenityId}"
-                                                                    value="MISSING">
-                                                                <i class="fas fa-times"></i> Missing
-                                                            </label>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="amenity-footer" style="margin-top: 15px;">
-                                                        <div class="amenity-qty">
-                                                            Qty: ${detail.quantityActual}
-                                                        </div>
-                                                        <!-- Removed previous status display as we are now asking for confirmation -->
-                                                    </div>
-                                                </div>
+                                    <%-- Check for existing confirmation report --%>
+                                        <c:set var="confirmationReport" value="${null}" />
+                                        <c:if test="${not empty issueReports}">
+                                            <c:forEach items="${issueReports}" var="report">
+                                                <c:if test="${report.issueType == 'CONFIRMATION'}">
+                                                    <c:set var="confirmationReport" value="${report}" />
+                                                </c:if>
                                             </c:forEach>
-                                        </div>
+                                        </c:if>
 
-                                        <div style="text-align: center; margin-top: 30px;">
-                                            <button type="submit" class="submit-btn"
-                                                style="max-width: 300px; font-size: 18px;">
-                                                <i class="fas fa-paper-plane"></i> Submit Inspection
-                                            </button>
-                                        </div>
-                                    </form>
-                                        </c:when>
-                                        <c:otherwise>
+                                        <c:choose>
+                                            <c:when test="${not empty confirmationReport}">
+                                                <div class="status-container"
+                                                    style="text-align: center; padding: 40px; background: white; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+                                                    <c:choose>
+                                                        <c:when
+                                                            test="${confirmationReport.status == 'NEW' or confirmationReport.status == 'IN_PROGRESS'}">
+                                                            <div class="pending-state">
+                                                                <i class="fas fa-clock"
+                                                                    style="font-size: 60px; color: #f39c12; margin-bottom: 20px;"></i>
+                                                                <h3 style="color: #2c3e50; margin-bottom: 10px;">
+                                                                    Inspection Submitted</h3>
+                                                                <p style="color: #7f8c8d; font-size: 16px;">Your amenity
+                                                                    inspection has been submitted and is pending manager
+                                                                    review.</p>
+                                                                <div style="margin-top: 20px;">
+                                                                    <span class="status-badge pending"
+                                                                        style="background: #fef9e7; color: #f39c12; padding: 8px 15px; border-radius: 20px; font-weight: 600;">
+                                                                        Status: ${confirmationReport.status}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </c:when>
+                                                        <c:when
+                                                            test="${confirmationReport.status == 'RESOLVED' or confirmationReport.status == 'CLOSED'}">
+                                                            <div class="resolved-state">
+                                                                <i class="fas fa-check-circle"
+                                                                    style="font-size: 60px; color: #27ae60; margin-bottom: 20px;"></i>
+                                                                <h3 style="color: #2c3e50; margin-bottom: 10px;">
+                                                                    Inspection Resolved</h3>
+                                                                <p style="color: #7f8c8d; font-size: 16px;">Your amenity
+                                                                    inspection has been reviewed and resolved.</p>
+                                                                <div style="margin-top: 20px;">
+                                                                    <span class="status-badge resolved"
+                                                                        style="background: #eafaf1; color: #27ae60; padding: 8px 15px; border-radius: 20px; font-weight: 600;">
+                                                                        Status: ${confirmationReport.status}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </c:when>
+                                                    </c:choose>
+                                                </div>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <form action="${pageContext.request.contextPath}/customer/amenities"
+                                                    method="POST" id="amenityForm">
+                                                    <input type="hidden" name="action" value="confirm_amenities">
+                                                    <input type="hidden" name="bookingId" value="${booking.bookingId}">
+                                                    <input type="hidden" name="roomId" value="${booking.roomId}">
+
+                                                    <div class="amenity-grid">
+                                                        <c:forEach items="${amenityList}" var="detail">
+                                                            <div class="amenity-card">
+                                                                <div class="amenity-icon">
+                                                                    <i class="fas fa-concierge-bell"></i>
+                                                                </div>
+                                                                <div class="amenity-name">${detail.amenity.name}</div>
+                                                                <div class="amenity-desc">${detail.amenity.description}
+                                                                </div>
+
+                                                                <div class="amenity-check-section"
+                                                                    style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                                                                    <input type="hidden"
+                                                                        name="name_${detail.amenity.amenityId}"
+                                                                        value="${detail.amenity.name}">
+                                                                    <div
+                                                                        style="display: flex; gap: 15px; justify-content: center;">
+                                                                        <label
+                                                                            style="cursor: pointer; display: flex; align-items: center; gap: 5px; color: #27ae60;">
+                                                                            <input type="radio"
+                                                                                name="status_${detail.amenity.amenityId}"
+                                                                                value="OK" required>
+                                                                            <i class="fas fa-check"></i> Sufficient
+                                                                        </label>
+                                                                        <label
+                                                                            style="cursor: pointer; display: flex; align-items: center; gap: 5px; color: #e74c3c;">
+                                                                            <input type="radio"
+                                                                                name="status_${detail.amenity.amenityId}"
+                                                                                value="MISSING">
+                                                                            <i class="fas fa-times"></i> Missing
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="amenity-footer" style="margin-top: 15px;">
+                                                                    <div class="amenity-qty">
+                                                                        Qty: ${detail.quantityActual}
+                                                                    </div>
+                                                                    <!-- Removed previous status display as we are now asking for confirmation -->
+                                                                </div>
+                                                            </div>
+                                                        </c:forEach>
+                                                    </div>
+
+                                                    <div style="text-align: center; margin-top: 30px;">
+                                                        <button type="submit" class="submit-btn"
+                                                            style="max-width: 300px; font-size: 18px;">
+                                                            <i class="fas fa-paper-plane"></i> Submit Inspection
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </c:otherwise>
+                                        </c:choose>
+                                </c:when>
+                                <c:otherwise>
                                     <div class="empty-state">
                                         <i class="fas fa-box-open"></i>
                                         <h3>No Amenities Listed</h3>
                                         <p>There are no amenity records for this room inspection.</p>
-                                </div>
+                                    </div>
                                 </c:otherwise>
-                    </c:choose>
-                    </c:when>
-                    <c:otherwise>
-                        <div class="empty-state">
-                            <i class="fas fa-door-closed"></i>
-                            <h3>No Active Room Found</h3>
-                            <p>You need to be checked into a room to view amenities.</p>
-                            <a href="${pageContext.request.contextPath}/" class="report-btn"
-                                style="background: #3498db;">Back to Home</a>
-                        </div>
-                    </c:otherwise>
+                            </c:choose>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="empty-state">
+                                <i class="fas fa-door-closed"></i>
+                                <h3>No Active Room Found</h3>
+                                <p>You need to be checked into a room to view amenities.</p>
+                                <a href="${pageContext.request.contextPath}/" class="report-btn"
+                                    style="background: #3498db;">Back to Home</a>
+                            </div>
+                        </c:otherwise>
                     </c:choose>
                 </div>
                 </div>
