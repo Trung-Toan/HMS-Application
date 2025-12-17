@@ -119,11 +119,7 @@
                             <h1 class="page-title">👤 My Profile</h1>
 
                             <!-- Messages -->
-                            <c:if test="${not empty type}">
-                                <div class="alert alert-${type}">
-                                    ${type == 'success' ? '✓' : '✗'} ${mess}
-                                </div>
-                            </c:if>
+                            <jsp:include page="../public/notify.jsp" />
 
                             <!-- Profile Card -->
                             <div class="profile-card">

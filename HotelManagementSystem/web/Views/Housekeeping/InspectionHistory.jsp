@@ -42,12 +42,10 @@
                             </div>
 
                             <c:if test="${not empty param.msg}">
-                                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                    Inspection submitted successfully!
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                        aria-label="Close"></button>
-                                </div>
+                                <c:set var="type" value="success" scope="request" />
+                                <c:set var="mess" value="Inspection submitted successfully!" scope="request" />
                             </c:if>
+                            <jsp:include page="../public/notify.jsp" />
 
                             <div class="card border-0 shadow-sm">
                                 <div class="card-body p-0">
@@ -89,7 +87,7 @@
                                                             h.inspectorId}</td>
                                                         <td>${h.note}</td>
                                                         <td class="text-end pe-4">
-                                                            <a href="inspection-detail?id=${h.inspectionId}"
+                                                            <a href="inspection-detail?id=${h.inspectionId}&source=${param.source}"
                                                                 class="btn btn-sm btn-outline-primary">View</a>
                                                         </td>
                                                     </tr>

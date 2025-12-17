@@ -90,12 +90,6 @@
                                 }
                             </script>
 
-                            </div>
-                            </main>
-
-                            <%@include file="../Components/Footer.jsp" %>
-                                <%@ include file="../public/notify.jsp" %>
-
             </body>
 
             </html>

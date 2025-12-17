@@ -42,11 +42,7 @@
                                     Dashboard</a>
                             </div>
 
-                            <c:if test="${not empty type}">
-                                <div class="alert alert-${type}">
-                                    ${mess}
-                                </div>
-                            </c:if>
+                            <jsp:include page="../../public/notify.jsp" />
 
                             <c:choose>
                                 <c:when test="${empty pendingBookings}">

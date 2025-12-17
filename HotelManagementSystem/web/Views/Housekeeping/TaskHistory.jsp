@@ -25,46 +25,22 @@
                     <div class="container-fluid py-4 px-4">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <div>
-                                <h2 class="mb-1">
-                                    <c:choose>
-                                        <c:when test="${param.type == 'CLEANING'}">Cleaning Tasks</c:when>
-                                        <c:when test="${param.type == 'INSPECTION'}">Inspection Tasks</c:when>
-                                        <c:when test="${param.status == 'DONE'}">Task History</c:when>
-                                        <c:otherwise>My Tasks</c:otherwise>
-                                    </c:choose>
-                                </h2>
-                                <p class="text-muted mb-0">
-                                    <c:choose>
-                                        <c:when test="${param.type == 'CLEANING'}">Manage your daily cleaning
-                                            assignments.</c:when>
-                                        <c:when test="${param.type == 'INSPECTION'}">Perform room inspections and
-                                            checks.</c:when>
-                                        <c:otherwise>Manage all your assignments.</c:otherwise>
-                                    </c:choose>
-                                </p>
+                                <h2 class="mb-1">Task History</h2>
+                                <p class="text-muted mb-0">View all your completed tasks and inspections.</p>
                             </div>
                         </div>
 
                         <div class="card shadow-sm">
                             <div class="card-header bg-white py-3">
-                                <form action="<c:url value='/housekeeping/tasks'/>" method="get">
-                                    <input type="hidden" name="type" value="${param.type}">
+                                <form action="<c:url value='/housekeeping/history'/>" method="get">
                                     <div class="row g-3">
-                                        <div class="col-md-3">
+                                        <div class="col-md-5">
                                             <div class="input-group input-group-sm ">
                                                 <span class="input-group-text bg-light border-end-0"><i
                                                         class="bi bi-search"></i></span>
                                                 <input type="text" name="search" class="form-control border-start-0 p-2"
                                                     placeholder="Search note, room..." value="${search}">
                                             </div>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <select name="status" class="form-select form-select-sm">
-                                                <option value="">All Status</option>
-                                                <option value="NEW" ${status=='NEW' ? 'selected' : '' }>New</option>
-                                                <option value="IN_PROGRESS" ${status=='IN_PROGRESS' ? 'selected' : '' }>
-                                                    In Progress</option>
-                                            </select>
                                         </div>
                                         <div class="col-md-2">
                                             <input type="date" name="dateFrom" class="form-control form-control-sm"
@@ -154,20 +130,30 @@
                                                                     Details
                                                                 </a>
                                                             </c:when>
-                                                            <c:when
-                                                                test="${t.status == 'DONE' && (t.taskType == 'INSPECTION' || t.taskType == 'CHECKIN' || t.taskType == 'CHECKOUT')}">
-                                                                <a href="<c:url value='/housekeeping/inspection-history'><c:param name='roomId' value='${t.roomId}'/><c:param name='source' value='tasks'/></c:url>"
-                                                                    class="btn btn-outline-secondary btn-sm">
-                                                                    <i class="bi bi-clock-history me-1"></i>View History
-                                                                </a>
+                                                            <c:when test="${t.taskId < 0}">
+                                                                <%-- Virtual Task from Inspection (ID encoded as
+                                                                    negative) --%>
+                                                                    <a href="<c:url value='/housekeeping/inspection-detail'><c:param name='id' value='${-t.taskId}'/><c:param name='source' value='history'/></c:url>"
+                                                                        class="btn btn-outline-primary btn-sm">
+                                                                        <i class="bi bi-file-text me-1"></i>View Detail
+                                                                    </a>
                                                             </c:when>
                                                             <c:when
                                                                 test="${t.taskType == 'INSPECTION' || t.taskType == 'CHECKIN' || t.taskType == 'CHECKOUT'}">
-                                                                <a href="<c:url value='/housekeeping/inspection'><c:param name='roomId' value='${t.roomId}'/><c:param name='type' value='${t.taskType}' /><c:param name='taskId' value='${t.taskId}' /></c:url>"
-                                                                    class="btn btn-sm btn-outline-primary">
-                                                                    <i class="bi bi-clipboard-check me-1"></i>Inspect
-                                                                </a>
+                                                                <%-- Should not usually happen if filtered correctly,
+                                                                    but fallback --%>
+                                                                    <a href="<c:url value='/housekeeping/inspection-history'><c:param name='roomId' value='${t.roomId}'/><c:param name='source' value='history'/></c:url>"
+                                                                        class="btn btn-outline-secondary btn-sm">
+                                                                        <i class="bi bi-clock-history me-1"></i>View
+                                                                        History
+                                                                    </a>
                                                             </c:when>
+                                                            <c:otherwise>
+                                                                <a href="<c:url value='/housekeeping/inspection'><c:param name='roomId' value='${t.roomId}'/><c:param name='type' value='${t.taskType}'/><c:param name='taskId' value='${t.taskId}'/></c:url>"
+                                                                    class="btn btn-sm btn-outline-primary">
+                                                                    Inspect
+                                                                </a>
+                                                            </c:otherwise>
                                                         </c:choose>
                                                     </td>
                                                 </tr>
@@ -203,16 +189,6 @@
                     <jsp:include page="../Shared/Footer.jsp" />
                 </div>
             </div>
-
-            <c:if test="${param.msg == 'success'}">
-                <c:set var="type" value="success" scope="request" />
-                <c:set var="mess" value="Operation completed successfully." scope="request" />
-            </c:if>
-            <c:if test="${param.msg == 'failed'}">
-                <c:set var="type" value="error" scope="request" />
-                <c:set var="mess" value="Operation failed." scope="request" />
-            </c:if>
-            <jsp:include page="../public/notify.jsp" />
 
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
         </body>

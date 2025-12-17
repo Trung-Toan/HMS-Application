@@ -3,7 +3,6 @@ package Controller.Housekeeping;
 import DAL.AmenityDAO;
 import DAL.Housekeeping.DAOHousekeeping;
 import DAL.RoomInspectionDAO;
-import Model.Amenity;
 import Model.InspectionDetail;
 import Model.Room;
 import Model.RoomInspection;
@@ -174,7 +173,11 @@ public class InspectionController extends HttpServlet {
         }
         ri.setInspectorId(inspector.getUserId());
         ri.setInspectionDate(LocalDateTime.now());
-        ri.setType(typeStr);
+        if ("INSPECTION".equals(typeStr)) {
+            ri.setType(Model.RoomInspection.Type.ROUTINE);
+        } else {
+            ri.setType(typeStr);
+        }
         ri.setNote(note);
 
         // Parse details
@@ -232,7 +235,25 @@ public class InspectionController extends HttpServlet {
                 DAOHousekeeping.INSTANCE.updateRoomStatus(roomId, Model.Room.Status.AVAILABLE);
             }
 
-            response.sendRedirect("inspection-history?roomId=" + roomId + "&msg=success");
+            // Close the task if taskId is provided
+            String taskIdStr = request.getParameter("taskId");
+            boolean isTaskFlow = false;
+            if (taskIdStr != null && !taskIdStr.isBlank()) {
+                try {
+                    int taskId = Integer.parseInt(taskIdStr);
+                    DAOHousekeeping.INSTANCE.updateTaskStatusAndNote(taskId, Model.HousekeepingTask.TaskStatus.DONE,
+                            "[Inspection Completed] " + note);
+                    isTaskFlow = true;
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (isTaskFlow) {
+                response.sendRedirect(request.getContextPath() + "/housekeeping/tasks?msg=success");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/manager/inspections?msg=success");
+            }
         } else {
             response.sendRedirect("inspection?roomId=" + roomId + "&error=failed");
         }
@@ -246,7 +267,14 @@ public class InspectionController extends HttpServlet {
             RoomInspection inspection = inspectionDAO.getInspectionById(id);
             request.setAttribute("inspection", inspection);
             // Set backUrl for navigation
-            request.setAttribute("backUrl", "inspection-history");
+            String source = request.getParameter("source");
+            if ("history".equals(source)) {
+                request.setAttribute("backUrl", request.getContextPath() + "/housekeeping/history");
+            } else if ("tasks".equals(source)) {
+                request.setAttribute("backUrl", request.getContextPath() + "/housekeeping/tasks");
+            } else {
+                request.setAttribute("backUrl", request.getContextPath() + "/manager/inspections");
+            }
         } else {
             response.sendError(404);
             return;

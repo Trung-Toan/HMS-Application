@@ -5,7 +5,7 @@
 
         <head>
             <meta charset="UTF-8">
-            <title>Staff Schedule | HMS</title>
+            <title>Staff Management | HMS</title>
             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
             <link rel="stylesheet" href="<c:url value='/CSS/housekeeping.css'/>">
@@ -19,11 +19,16 @@
 
                     <div class="container-fluid p-4">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h2>Staff Schedule</h2>
-                            <form action="<c:url value='/manager/staff'/>" method="get" class="d-flex gap-2">
-                                <input type="date" name="date" class="form-control" value="${date}">
-                                <button type="submit" class="btn btn-secondary">Filter</button>
-                            </form>
+                            <h2>Staff Management</h2>
+                            <div class="d-flex gap-2">
+                                <a href="<c:url value='/manager/all-tasks'/>" class="btn btn-outline-primary">
+                                    <i class="bi bi-list-check me-2"></i>View All Tasks
+                                </a>
+                                <form action="<c:url value='/manager/staff'/>" method="get" class="d-flex gap-2">
+                                    <input type="date" name="date" class="form-control" value="${date}">
+                                    <button type="submit" class="btn btn-secondary">Filter</button>
+                                </form>
+                            </div>
                         </div>
 
                         <div class="card shadow-sm">
@@ -35,7 +40,7 @@
                                                 <th>Employee</th>
                                                 <th>Shift</th>
                                                 <th>Status</th>
-                                                <th>Date</th>
+                                                <th>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -54,12 +59,16 @@
                                                     </td>
                                                     <td>
                                                         <span
-                                                            class="badge ${a.status == 'ON_SHIFT' ? 'bg-success' : 
-                                                                   a.status == 'ABSENT' ? 'bg-danger' : 'bg-secondary'}">
-                                                            ${a.status}
+                                                            class="badge ${a.accountActive ? 'bg-success' : 'bg-danger'}">
+                                                            ${a.accountActive ? 'Active' : 'Inactive'}
                                                         </span>
                                                     </td>
-                                                    <td>${a.workDate}</td>
+                                                    <td>
+                                                        <a href="<c:url value='/manager/all-tasks?staffId=${a.employeeId}'/>"
+                                                            class="btn btn-sm btn-outline-primary">
+                                                            <i class="bi bi-calendar3 me-1"></i>Schedule
+                                                        </a>
+                                                    </td>
                                                 </tr>
                                             </c:forEach>
                                             <c:if test="${empty assignments}">

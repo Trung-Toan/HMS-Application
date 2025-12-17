@@ -39,7 +39,7 @@
                                             <c:forEach items="${issues}" var="i">
                                                 <tr>
                                                     <td>#${i.issueId}</td>
-                                                    <td>${i.roomId}</td>
+                                                    <td>${i.roomNumber}</td>
                                                     <td>${i.issueType}</td>
                                                     <td>${i.description}</td>
                                                     <td>

@@ -20,6 +20,12 @@
                     <div class="container-fluid p-4">
                         <h2 class="mb-4">Recent Inspections</h2>
 
+                        <c:if test="${param.msg == 'success'}">
+                            <c:set var="type" value="success" scope="request" />
+                            <c:set var="mess" value="Inspection has been submitted successfully!" scope="request" />
+                        </c:if>
+                        <jsp:include page="../public/notify.jsp" />
+
                         <!-- Search and Filter Row -->
                         <div class="row g-3 mb-4">
                             <div class="col-md-6">
@@ -45,6 +51,8 @@
                                         class="btn btn-sm ${typeFilter == 'CHECKIN' ? 'btn-success' : 'btn-outline-success'}">Check-in</a>
                                     <a href="?search=${searchQuery}&type=CHECKOUT"
                                         class="btn btn-sm ${typeFilter == 'CHECKOUT' ? 'btn-primary' : 'btn-outline-primary'}">Check-out</a>
+                                    <a href="?search=${searchQuery}&type=ROUTINE"
+                                        class="btn btn-sm ${typeFilter == 'ROUTINE' ? 'btn-info' : 'btn-outline-info'}">Routine</a>
                                 </div>
                             </div>
                         </div>
@@ -79,6 +87,7 @@
                                                         <span
                                                             class="badge ${i.type == 'CHECKIN' ? 'bg-success' : 
                                                                    i.type == 'CHECKOUT' ? 'bg-primary' : 
+                                                                   i.type == 'ROUTINE' ? 'bg-info' :
                                                                    i.type == 'SUPPLY' ? 'bg-warning' : 'bg-secondary'}">
                                                             ${i.type}
                                                         </span>

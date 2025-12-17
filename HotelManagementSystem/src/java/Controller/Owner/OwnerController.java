@@ -2,6 +2,7 @@ package Controller.Owner;
 
 import DAL.Owner.DAOOwner;
 import DAL.Booking.DAOBooking;
+import DAL.AmenityDAO;
 import Model.*;
 
 import java.io.IOException;
@@ -33,16 +34,16 @@ import jakarta.servlet.annotation.MultipartConfig;
  */
 @MultipartConfig
 @WebServlet(name = "OwnerController", urlPatterns = {
-    "/owner/dashboard",
-    "/owner/employees",
-    "/owner/employee-create",
-    "/owner/employee-detail",
-    "/owner/assignments",
-    "/owner/staff-status",
-    "/owner/reports",
-    "/owner/rooms",
-    "/owner/bookings",
-    "/owner/room-form"
+        "/owner/dashboard",
+        "/owner/employees",
+        "/owner/employee-create",
+        "/owner/employee-detail",
+        "/owner/assignments",
+        "/owner/staff-status",
+        "/owner/reports",
+        "/owner/rooms",
+        "/owner/bookings",
+        "/owner/room-form"
 })
 public class OwnerController extends HttpServlet {
 
@@ -193,6 +194,26 @@ public class OwnerController extends HttpServlet {
                 handleUpdateRoom(request, response);
                 break;
 
+            case "addRoomTypeAmenity":
+                handleAddRoomTypeAmenity(request, response);
+                break;
+
+            case "updateRoomTypeAmenity":
+                handleUpdateRoomTypeAmenity(request, response);
+                break;
+
+            case "deleteRoomTypeAmenity":
+                handleDeleteRoomTypeAmenity(request, response);
+                break;
+
+            case "updateAllRoomTypeAmenities":
+                handleUpdateAllRoomTypeAmenities(request, response);
+                break;
+
+            case "saveAllRoomTypeAmenities":
+                handleSaveAllRoomTypeAmenities(request, response);
+                break;
+
             default:
                 doGet(request, response);
         }
@@ -304,18 +325,17 @@ public class OwnerController extends HttpServlet {
     /**
      * Hiển thị phân công ca làm theo ngày
      */
+    /**
+     * Hiển thị danh sách phân công "trực" (Permanent Shifts)
+     */
     private void showAssignments(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         try {
-            LocalDate date = LocalDate.now();
+            // Get all current assignments (permanent roster)
+            request.setAttribute("assignments", DAOOwner.INSTANCE.getAllCurrentAssignments());
 
-            if (request.getParameter("date") != null) {
-                date = LocalDate.parse(request.getParameter("date"));
-            }
-
-            request.setAttribute("date", date);
-            request.setAttribute("assignments", DAOOwner.INSTANCE.getAssignments(date));
+            // Get list of active employees to populate the "Assign Shift" modal
             request.setAttribute("employees",
                     DAOOwner.INSTANCE.getEmployees(null, null, "true", "username", "ASC", 0, 0));
 
@@ -379,6 +399,19 @@ public class OwnerController extends HttpServlet {
                 request.setAttribute("sortOrder", request.getParameter("sortOrder"));
             }
 
+            // Load all amenities for the amenities management modal
+            if ("types".equals(tab)) {
+                AmenityDAO amenityDAO = new AmenityDAO();
+                request.setAttribute("allAmenities", amenityDAO.getAllAmenities());
+
+                // Load amenities for each room type
+                java.util.Map<Integer, List<RoomTypeAmenity>> roomTypeAmenitiesMap = new java.util.HashMap<>();
+                for (RoomType rt : types) {
+                    roomTypeAmenitiesMap.put(rt.getRoomTypeId(), amenityDAO.getAmenitiesByRoomType(rt.getRoomTypeId()));
+                }
+                request.setAttribute("roomTypeAmenitiesMap", roomTypeAmenitiesMap);
+            }
+
         } catch (Exception e) {
             request.setAttribute("type", "error");
             request.setAttribute("mess", "Cannot load room management data");
@@ -399,11 +432,10 @@ public class OwnerController extends HttpServlet {
             rt.setMaxOccupancy(Integer.parseInt(request.getParameter("maxOccupancy")));
 
             DAOOwner.INSTANCE.createRoomType(rt);
-            request.setAttribute("type", "success");
-            request.setAttribute("mess", "Created room type successfully");
+            request.getSession().setAttribute("notification",
+                    "success|Created room type '" + rt.getTypeName() + "' successfully!");
         } catch (Exception e) {
-            request.setAttribute("type", "error");
-            request.setAttribute("mess", "Failed to create room type: " + e.getMessage());
+            request.getSession().setAttribute("notification", "error|Failed to create room type: " + e.getMessage());
         }
 
         // Redirect back to type tab
@@ -421,11 +453,10 @@ public class OwnerController extends HttpServlet {
             rt.setMaxOccupancy(Integer.parseInt(request.getParameter("maxOccupancy")));
 
             DAOOwner.INSTANCE.updateRoomType(rt);
-            request.setAttribute("type", "success");
-            request.setAttribute("mess", "Updated room type successfully");
+            request.getSession().setAttribute("notification",
+                    "success|Updated room type '" + rt.getTypeName() + "' successfully!");
         } catch (Exception e) {
-            request.setAttribute("type", "error");
-            request.setAttribute("mess", "Failed to update room type: " + e.getMessage());
+            request.getSession().setAttribute("notification", "error|Failed to update room type: " + e.getMessage());
         }
 
         // Use redirect to avoid re-submit issues
@@ -441,11 +472,184 @@ public class OwnerController extends HttpServlet {
         try {
             int id = Integer.parseInt(request.getParameter("id"));
             DAOOwner.INSTANCE.deleteRoomType(id);
-            request.setAttribute("type", "success");
-            request.setAttribute("mess", "Deleted room type successfully");
+            request.getSession().setAttribute("notification", "success|Deleted room type successfully!");
         } catch (Exception e) {
-            request.setAttribute("type", "error");
-            request.setAttribute("mess", "Failed to delete room type");
+            request.getSession().setAttribute("notification", "error|Failed to delete room type: " + e.getMessage());
+        }
+        response.sendRedirect(request.getContextPath() + "/owner/rooms?tab=types");
+    }
+
+    // --- Room Type Amenity Handlers ---
+    private void handleAddRoomTypeAmenity(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, ServletException {
+        try {
+            int roomTypeId = Integer.parseInt(request.getParameter("roomTypeId"));
+            int amenityId = Integer.parseInt(request.getParameter("amenityId"));
+            int quantity = Integer.parseInt(request.getParameter("quantity"));
+
+            AmenityDAO amenityDAO = new AmenityDAO();
+            boolean success = amenityDAO.addAmenityToRoomType(roomTypeId, amenityId, quantity);
+
+            if (success) {
+                request.getSession().setAttribute("notification", "success|Added amenity successfully!");
+            } else {
+                request.getSession().setAttribute("notification", "error|Failed to add amenity (may already exist).");
+            }
+        } catch (Exception e) {
+            request.getSession().setAttribute("notification", "error|Failed to add amenity: " + e.getMessage());
+        }
+        response.sendRedirect(request.getContextPath() + "/owner/rooms?tab=types");
+    }
+
+    private void handleUpdateRoomTypeAmenity(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, ServletException {
+        try {
+            int id = Integer.parseInt(request.getParameter("roomTypeAmenityId"));
+            int quantity = Integer.parseInt(request.getParameter("quantity"));
+
+            AmenityDAO amenityDAO = new AmenityDAO();
+            boolean success = amenityDAO.updateRoomTypeAmenity(id, quantity);
+
+            if (success) {
+                request.getSession().setAttribute("notification", "success|Updated amenity quantity!");
+            } else {
+                request.getSession().setAttribute("notification", "error|Failed to update amenity.");
+            }
+        } catch (Exception e) {
+            request.getSession().setAttribute("notification", "error|Failed to update: " + e.getMessage());
+        }
+        response.sendRedirect(request.getContextPath() + "/owner/rooms?tab=types");
+    }
+
+    private void handleDeleteRoomTypeAmenity(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, ServletException {
+        try {
+            int id = Integer.parseInt(request.getParameter("roomTypeAmenityId"));
+
+            AmenityDAO amenityDAO = new AmenityDAO();
+            boolean success = amenityDAO.deleteRoomTypeAmenity(id);
+
+            if (success) {
+                request.getSession().setAttribute("notification", "success|Removed amenity!");
+            } else {
+                request.getSession().setAttribute("notification", "error|Failed to remove amenity.");
+            }
+        } catch (Exception e) {
+            request.getSession().setAttribute("notification", "error|Failed to remove: " + e.getMessage());
+        }
+        response.sendRedirect(request.getContextPath() + "/owner/rooms?tab=types");
+    }
+
+    private void handleUpdateAllRoomTypeAmenities(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, ServletException {
+        try {
+            AmenityDAO amenityDAO = new AmenityDAO();
+            int roomTypeId = Integer.parseInt(request.getParameter("roomTypeId"));
+
+            // Get all amenities for this room type to iterate over
+            List<RoomTypeAmenity> currentAmenities = amenityDAO.getAmenitiesByRoomType(roomTypeId);
+
+            int updatedCount = 0;
+            int deletedCount = 0;
+
+            for (RoomTypeAmenity rta : currentAmenities) {
+                String deleteParam = request.getParameter("delete_" + rta.getId());
+                String qtyParam = request.getParameter("qty_" + rta.getId());
+
+                if (deleteParam != null) {
+                    // Delete this amenity
+                    amenityDAO.deleteRoomTypeAmenity(rta.getId());
+                    deletedCount++;
+                } else if (qtyParam != null) {
+                    // Update quantity
+                    int newQty = Integer.parseInt(qtyParam);
+                    if (newQty != rta.getDefaultQuantity()) {
+                        amenityDAO.updateRoomTypeAmenity(rta.getId(), newQty);
+                        updatedCount++;
+                    }
+                }
+            }
+
+            String message = "";
+            if (updatedCount > 0)
+                message += "Updated " + updatedCount + " amenities. ";
+            if (deletedCount > 0)
+                message += "Removed " + deletedCount + " amenities.";
+            if (message.isEmpty())
+                message = "No changes made.";
+
+            request.getSession().setAttribute("notification", "success|" + message);
+        } catch (Exception e) {
+            request.getSession().setAttribute("notification", "error|Failed to update: " + e.getMessage());
+        }
+        response.sendRedirect(request.getContextPath() + "/owner/rooms?tab=types");
+    }
+
+    private void handleSaveAllRoomTypeAmenities(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, ServletException {
+        try {
+            AmenityDAO amenityDAO = new AmenityDAO();
+            int roomTypeId = Integer.parseInt(request.getParameter("roomTypeId"));
+            int itemCount = Integer.parseInt(request.getParameter("itemCount"));
+
+            // Get current amenities to compare
+            List<RoomTypeAmenity> currentAmenities = amenityDAO.getAmenitiesByRoomType(roomTypeId);
+            java.util.Set<Integer> submittedExistingIds = new java.util.HashSet<>();
+
+            int addedCount = 0;
+            int updatedCount = 0;
+            int deletedCount = 0;
+
+            // Process submitted items
+            for (int i = 0; i < itemCount; i++) {
+                String idStr = request.getParameter("item_" + i + "_id");
+                int amenityId = Integer.parseInt(request.getParameter("item_" + i + "_amenityId"));
+                int qty = Integer.parseInt(request.getParameter("item_" + i + "_qty"));
+                boolean isNew = "true".equals(request.getParameter("item_" + i + "_isNew"));
+
+                if (isNew) {
+                    // Add new amenity
+                    if (amenityDAO.addAmenityToRoomType(roomTypeId, amenityId, qty)) {
+                        addedCount++;
+                    }
+                } else {
+                    // Existing amenity - update quantity
+                    int existingId = Integer.parseInt(idStr);
+                    submittedExistingIds.add(existingId);
+
+                    // Find current qty
+                    for (RoomTypeAmenity rta : currentAmenities) {
+                        if (rta.getId() == existingId && rta.getDefaultQuantity() != qty) {
+                            amenityDAO.updateRoomTypeAmenity(existingId, qty);
+                            updatedCount++;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Delete items that were removed from list
+            for (RoomTypeAmenity rta : currentAmenities) {
+                if (!submittedExistingIds.contains(rta.getId())) {
+                    amenityDAO.deleteRoomTypeAmenity(rta.getId());
+                    deletedCount++;
+                }
+            }
+
+            String message = "";
+            if (addedCount > 0)
+                message += "Added " + addedCount + ". ";
+            if (updatedCount > 0)
+                message += "Updated " + updatedCount + ". ";
+            if (deletedCount > 0)
+                message += "Removed " + deletedCount + ".";
+            if (message.isEmpty())
+                message = "No changes made.";
+
+            request.getSession().setAttribute("notification", "success|" + message);
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.getSession().setAttribute("notification", "error|Failed to save: " + e.getMessage());
         }
         response.sendRedirect(request.getContextPath() + "/owner/rooms?tab=types");
     }
@@ -670,9 +874,16 @@ public class OwnerController extends HttpServlet {
                 return;
             }
 
-            DAOOwner.INSTANCE.createEmployee(u, request.getParameter("password"));
-            request.setAttribute("type", "success");
-            request.setAttribute("mess", "Create employee successfully!");
+            boolean success = DAOOwner.INSTANCE.createEmployee(u, request.getParameter("password"));
+
+            if (success) {
+                request.setAttribute("type", "success");
+                request.setAttribute("mess", "Create employee successfully!");
+                request.setAttribute("href", "employees");
+            } else {
+                request.setAttribute("type", "error");
+                request.setAttribute("mess", "Failed to create employee. Please try again.");
+            }
             request.setAttribute("href", "employees");
 
         } catch (Exception e) {
@@ -731,11 +942,19 @@ public class OwnerController extends HttpServlet {
                 return;
             }
 
-            DAOOwner.INSTANCE.updateEmployee(u);
+            boolean success = DAOOwner.INSTANCE.updateEmployee(u);
 
-            request.setAttribute("type", "success");
-            request.setAttribute("mess", "Update employee successfully!");
-            request.setAttribute("href", "employees");
+            if (success) {
+                request.setAttribute("type", "success");
+                request.setAttribute("mess", "Update employee successfully!");
+                request.setAttribute("href", "employees");
+            } else {
+                request.setAttribute("type", "error");
+                request.setAttribute("mess", "Failed to update employee.");
+                request.setAttribute("employee", u);
+                request.getRequestDispatcher("/Views/Owner/EmployeeDetail.jsp").forward(request, response);
+                return;
+            }
 
         } catch (Exception e) {
             request.setAttribute("type", "error");
@@ -774,23 +993,28 @@ public class OwnerController extends HttpServlet {
     }
 
     /**
-     * Tạo phân công ca làm
+     * Handle creating/updating a permanent assignment (Upsert)
      */
     private void handleCreateAssignment(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         try {
-            DAOOwner.INSTANCE.createAssignment(
-                    Integer.parseInt(request.getParameter("employeeId")),
-                    LocalDate.parse(request.getParameter("date")),
-                    request.getParameter("shift"));
+            int employeeId = Integer.parseInt(request.getParameter("employeeId"));
+            String shiftType = request.getParameter("shiftType");
 
-            request.setAttribute("type", "success");
-            request.setAttribute("mess", "Assignment created successfully");
+            // No date needed for permanent shift update
+            boolean success = DAOOwner.INSTANCE.saveAssignment(employeeId, shiftType);
+
+            if (success) {
+                request.setAttribute("type", "success");
+                request.setAttribute("mess", "Shift updated successfully!");
+            } else {
+                request.setAttribute("type", "error");
+                request.setAttribute("mess", "Failed to update shift.");
+            }
 
         } catch (Exception e) {
             request.setAttribute("type", "error");
-            request.setAttribute("mess", e.getMessage());
+            request.setAttribute("mess", "Error: " + e.getMessage());
         }
 
         showAssignments(request, response);
@@ -869,15 +1093,46 @@ public class OwnerController extends HttpServlet {
             throws ServletException, IOException {
 
         try {
-            // Revenue last 7 days from DAOOwner
-            request.setAttribute("revenueData", DAOOwner.INSTANCE.getRecentRevenue(7));
+            // Date Range Handling
+            LocalDate endDate = LocalDate.now();
+            LocalDate startDate = endDate.minusDays(30); // Default last 30 days
 
-            // Room status distribution
+            String startStr = request.getParameter("startDate");
+            String endStr = request.getParameter("endDate");
+
+            if (startStr != null && !startStr.isBlank()) {
+                try {
+                    startDate = LocalDate.parse(startStr);
+                } catch (Exception e) {
+                }
+            }
+            if (endStr != null && !endStr.isBlank()) {
+                try {
+                    endDate = LocalDate.parse(endStr);
+                } catch (Exception e) {
+                }
+            }
+
+            // Pass dates back to view
+            request.setAttribute("startDate", startDate);
+            request.setAttribute("endDate", endDate);
+
+            // 1. Revenue over time
+            request.setAttribute("revenueData", DAOOwner.INSTANCE.getRevenue(startDate, endDate));
+
+            // 2. Revenue by Room Type
+            request.setAttribute("roomTypeRevenueData", DAOOwner.INSTANCE.getRevenueByRoomType(startDate, endDate));
+
+            // 3. Booking Statistics
+            request.setAttribute("bookingStats", DAOOwner.INSTANCE.getBookingStats(startDate, endDate));
+
+            // Room status distribution (Real-time, no date range)
             request.setAttribute("roomStatusData", DAOOwner.INSTANCE.getRoomStatusDistribution());
 
         } catch (Exception e) {
             request.setAttribute("type", "error");
-            request.setAttribute("mess", "Cannot load reports");
+            request.setAttribute("mess", "Cannot load reports: " + e.getMessage());
+            e.printStackTrace();
         }
 
         request.getRequestDispatcher("/Views/Owner/Reports.jsp")

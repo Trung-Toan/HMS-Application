@@ -27,15 +27,15 @@
                                 <a href="${pageContext.request.contextPath}/customer/profile">Profile</a>
                             </li>
                             <li class="nav-auth-item mobile-only-auth">
-                                <a href="${pageContext.request.contextPath}/logout" class="login-button">Logout</a>
+                                <a href="javascript:void(0)" onclick="confirmLogout()" class="login-button">Logout</a>
                             </li>
                         </c:if>
-                    <c:if test="${empty sessionScope.currentUser}">
-                        <!-- Mobile Login Button -->
-                        <li class="nav-auth-item mobile-only-auth">
-                            <a href="login" class="login-button">Login</a>
-                        </li>
-                    </c:if>
+                        <c:if test="${empty sessionScope.currentUser}">
+                            <!-- Mobile Login Button -->
+                            <li class="nav-auth-item mobile-only-auth">
+                                <a href="login" class="login-button">Login</a>
+                            </li>
+                        </c:if>
                     </ul>
 
                     <div class="header-right desktop-only-auth">
@@ -54,14 +54,14 @@
                                     <ul class="dropdown-menu" id="user-dropdown">
                                         <li><a href="${pageContext.request.contextPath}/customer/profile">Profile</a>
                                         </li>
-                                        <li><a href="${pageContext.request.contextPath}/logout">Logout</a></li>
+                                        <li><a href="javascript:void(0)" onclick="confirmLogout()">Logout</a></li>
                                     </ul>
                                 </div>
                             </c:when>
                             <c:otherwise>
                                 <!-- Desktop Login Button -->
                                 <a href="login" class="login-button">Login</a>
-                                        </c:otherwise>
+                            </c:otherwise>
                         </c:choose>
                     </div>
                 </div>
@@ -108,4 +108,22 @@
                         });
                     }
                 });
+
+                function confirmLogout() {
+                    Swal.fire({
+                        title: 'Confirm Logout',
+                        text: 'Are you sure you want to logout?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc3545',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Yes, Logout',
+                        cancelButtonText: 'Cancel'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = '${pageContext.request.contextPath}/logout';
+                        }
+                    });
+                }
             </script>
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

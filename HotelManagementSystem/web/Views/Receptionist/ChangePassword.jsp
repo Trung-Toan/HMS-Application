@@ -41,11 +41,7 @@
                         <h1 class="page-title">🔒 Change Password</h1>
 
                         <!-- Messages -->
-                        <c:if test="${not empty type}">
-                            <div class="alert alert-${type}">
-                                ${type == 'success' ? '✓' : '✗'} ${mess}
-                            </div>
-                        </c:if>
+                        <jsp:include page="../public/notify.jsp" />
 
                         <!-- Password Change Card -->
                         <div class="password-card">
