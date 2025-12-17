@@ -403,12 +403,12 @@ public class DAOReceptionist extends DAO {
     // ======================================================
     public boolean markNoShow(int bookingId, int receptionistId) {
         String sql = """
-        UPDATE bookings
-        SET status = 'NO_SHOW',
-            updated_at = NOW()
-        WHERE booking_id = ?
-          AND status = 'CONFIRMED'
-    """;
+                    UPDATE bookings
+                    SET status = 'NO_SHOW',
+                        updated_at = NOW()
+                    WHERE booking_id = ?
+                      AND status = 'CONFIRMED'
+                """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, bookingId);
@@ -498,7 +498,7 @@ public class DAOReceptionist extends DAO {
     public boolean checkOutBooking(int bookingId, int receptionistId) {
         String checkBookingSql = "SELECT status, room_id FROM bookings WHERE booking_id = ?";
         String updateBookingSql = "UPDATE bookings SET status = 'COMPLETED', updated_at = NOW() WHERE booking_id = ?";
-        String updateRoomSql = "UPDATE rooms SET status = 'AVAILABLE' WHERE room_id = ?";
+        String updateRoomSql = "UPDATE rooms SET status = 'DIRTY' WHERE room_id = ?";
 
         try {
             connection.setAutoCommit(false);
@@ -774,8 +774,16 @@ public class DAOReceptionist extends DAO {
                 + "u.full_name as occupant_name "
                 + "FROM rooms r "
                 + "JOIN room_types rt ON r.room_type_id = rt.room_type_id "
-                + "LEFT JOIN bookings b ON r.room_id = b.room_id "
-                + "  AND b.status = 'CHECKED_IN' "
+                + "LEFT JOIN ( "
+                + "    SELECT b1.* "
+                + "    FROM bookings b1 "
+                + "    JOIN ( "
+                + "        SELECT room_id, MAX(booking_id) as max_id "
+                + "        FROM bookings "
+                + "        WHERE status = 'CHECKED_IN' "
+                + "        GROUP BY room_id "
+                + "    ) b2 ON b1.booking_id = b2.max_id "
+                + ") b ON r.room_id = b.room_id "
                 + "LEFT JOIN users u ON b.customer_id = u.user_id "
                 + "ORDER BY r.floor ASC, r.room_number ASC";
 
@@ -846,7 +854,16 @@ public class DAOReceptionist extends DAO {
                 + "b.booking_id, u.full_name as occupant_name "
                 + "FROM rooms r "
                 + "JOIN room_types rt ON r.room_type_id = rt.room_type_id "
-                + "LEFT JOIN bookings b ON r.room_id = b.room_id AND b.status = 'CHECKED_IN' "
+                + "LEFT JOIN ( "
+                + "    SELECT b1.* "
+                + "    FROM bookings b1 "
+                + "    JOIN ( "
+                + "        SELECT room_id, MAX(booking_id) as max_id "
+                + "        FROM bookings "
+                + "        WHERE status = 'CHECKED_IN' "
+                + "        GROUP BY room_id "
+                + "    ) b2 ON b1.booking_id = b2.max_id "
+                + ") b ON r.room_id = b.room_id "
                 + "LEFT JOIN users u ON b.customer_id = u.user_id "
                 + "WHERE r.floor = ? "
                 + "ORDER BY r.room_number ASC";

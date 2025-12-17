@@ -275,13 +275,19 @@ public class DAOBooking extends DAO {
     // Get all bookings for a specific customer (newest first)
     public List<Booking> getBookingsByCustomerId(int customerId) {
         List<Booking> list = new ArrayList<>();
-        String sql = "SELECT * FROM bookings WHERE customer_id = ? ORDER BY created_at DESC";
+        String sql = "SELECT b.*, c.full_name as customer_name, c.email as customer_email, " +
+                "r.room_number, rt.type_name " +
+                "FROM bookings b " +
+                "JOIN users c ON b.customer_id = c.user_id " +
+                "JOIN rooms r ON b.room_id = r.room_id " +
+                "JOIN room_types rt ON r.room_type_id = rt.room_type_id " +
+                "WHERE customer_id = ? ORDER BY created_at DESC";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, customerId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    list.add(mapBooking(rs));
+                    list.add(mapBookingWithDetails(rs));
                 }
             }
         } catch (SQLException e) {
