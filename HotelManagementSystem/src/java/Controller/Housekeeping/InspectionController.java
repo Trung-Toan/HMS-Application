@@ -166,6 +166,57 @@ public class InspectionController extends HttpServlet {
             note = "[Cleanliness/Condition]: " + cleanlinessNote + "\n" + note;
         }
 
+        // Validate Task Date if taskId is present
+        String taskIdParam = request.getParameter("taskId");
+        if (taskIdParam != null && !taskIdParam.isBlank()) {
+            try {
+                int taskId = Integer.parseInt(taskIdParam);
+                Model.HousekeepingTask task = DAOHousekeeping.INSTANCE.getTaskById(taskId);
+                if (task != null) {
+                    java.time.LocalDate taskDate = task.getTaskDate();
+                    java.time.LocalDate today = java.time.LocalDate.now();
+                    java.time.LocalDate yesterday = today.minusDays(1);
+
+                    if (!taskDate.equals(today) && !taskDate.equals(yesterday)) {
+                        request.setAttribute("error", "Cannot submit inspection for tasks older than yesterday.");
+                        // Re-load form data to show page again
+                        // We need to call showInspectionForm-like logic or redirect with error param
+                        // But strictly, we should forward to show attributes?
+                        // showInspectionForm expects GET params.
+                        // Let's redirect with error param which showInspectionForm should handle (or we
+                        // add validaton there).
+                        // Inspecting showInspectionForm: it accepts request params.
+                        // So calling do-GET/showInspectionForm with attributes set might work if we
+                        // forward?
+
+                        // We are in doPost.
+                        // Let's rely on showInspectionForm to populate data.
+                        // But showInspectionForm reads from request.getParameter.
+                        // We can set attributes that override/supplement?
+                        // Actually, showInspectionForm reads "roomId", "bookingId", "type". These are
+                        // likely in the POST request too.
+                        // So we can just call showInspectionForm(request, response) after setting an
+                        // error attribute?
+                        // But we need to ensure the JSP displays the error.
+                        // Let's assume InspectionForm.jsp displays 'error' or 'mess' attribute or
+                        // parameter.
+                        // Code below: response.sendRedirect("inspection?roomId=" + roomId +
+                        // "&error=failed");
+                        // implies it reads 'error' param.
+                        // So I can redirect or forward. Forward is better to keep POST data if needed,
+                        // but Redirect is safer for refresh.
+                        // Let's Redirect with specific error message.
+                        response.sendRedirect("inspection?roomId=" + roomId + "&bookingId="
+                                + (bookingIdStr != null ? bookingIdStr : "") + "&type="
+                                + (typeStr != null ? typeStr : "") + "&taskId=" + taskId + "&error=date_invalid");
+                        return;
+                    }
+                }
+            } catch (NumberFormatException e) {
+                // ignore invalid task id
+            }
+        }
+
         RoomInspection ri = new RoomInspection();
         ri.setRoomId(roomId);
         if (bookingIdStr != null && !bookingIdStr.isBlank()) {

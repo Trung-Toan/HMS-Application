@@ -417,7 +417,7 @@ public class DAOHousekeeping extends DAO {
     // Cập nhật task + đồng bộ trạng thái phòng
     // ======================================================
     public boolean updateTaskStatusAndNote(int taskId, TaskStatus newStatus, String note) {
-        String selectSql = "SELECT room_id FROM housekeeping_tasks WHERE task_id = ?";
+        String selectSql = "SELECT room_id, task_type FROM housekeeping_tasks WHERE task_id = ?";
         String updateTaskSql = "UPDATE housekeeping_tasks "
                 + "SET status = ?, note = ?, updated_at = NOW() "
                 + "WHERE task_id = ?";
@@ -427,11 +427,13 @@ public class DAOHousekeeping extends DAO {
             connection.setAutoCommit(false);
 
             int roomId = -1;
+            String taskTypeStr = "";
             try (PreparedStatement ps = connection.prepareStatement(selectSql)) {
                 ps.setInt(1, taskId);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         roomId = rs.getInt("room_id");
+                        taskTypeStr = rs.getString("task_type");
                     } else {
                         connection.rollback();
                         return false;
@@ -446,20 +448,23 @@ public class DAOHousekeeping extends DAO {
                 ps.executeUpdate();
             }
 
-            // Map trạng thái task -> trạng thái phòng
-            Room.Status roomStatus = null;
-            if (newStatus == TaskStatus.IN_PROGRESS) {
-                roomStatus = Room.Status.CLEANING;
-            } else if (newStatus == TaskStatus.DONE) {
-                // Sau khi dọn xong, coi là AVAILABLE (Clean & Ready)
-                roomStatus = Room.Status.AVAILABLE;
-            }
+            // Only update room status if this is a CLEANING task
+            if ("CLEANING".equalsIgnoreCase(taskTypeStr)) {
+                // Map trạng thái task -> trạng thái phòng
+                Room.Status roomStatus = null;
+                if (newStatus == TaskStatus.IN_PROGRESS) {
+                    roomStatus = Room.Status.CLEANING;
+                } else if (newStatus == TaskStatus.DONE) {
+                    // Sau khi dọn xong, coi là AVAILABLE (Clean & Ready)
+                    roomStatus = Room.Status.AVAILABLE;
+                }
 
-            if (roomStatus != null) {
-                try (PreparedStatement ps = connection.prepareStatement(updateRoomSql)) {
-                    ps.setString(1, roomStatus.name());
-                    ps.setInt(2, roomId);
-                    ps.executeUpdate();
+                if (roomStatus != null) {
+                    try (PreparedStatement ps = connection.prepareStatement(updateRoomSql)) {
+                        ps.setString(1, roomStatus.name());
+                        ps.setInt(2, roomId);
+                        ps.executeUpdate();
+                    }
                 }
             }
 

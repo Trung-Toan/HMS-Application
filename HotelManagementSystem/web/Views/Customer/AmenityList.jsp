@@ -347,13 +347,14 @@
 
                                                     <div class="amenity-check-section"
                                                         style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
-                                                    <input type="hidden" name="name_${detail.amenity.amenityId}" value="${detail.amenity.name}">
+                                                        <input type="hidden" name="name_${detail.amenity.amenityId}"
+                                                            value="${detail.amenity.name}">
                                                         <div style="display: flex; gap: 15px; justify-content: center;">
                                                             <label
                                                                 style="cursor: pointer; display: flex; align-items: center; gap: 5px; color: #27ae60;">
                                                                 <input type="radio"
                                                                     name="status_${detail.amenity.amenityId}" value="OK"
-                                                                    required>
+                                                                    checked required>
                                                                 <i class="fas fa-check"></i> Sufficient
                                                             </label>
                                                             <label

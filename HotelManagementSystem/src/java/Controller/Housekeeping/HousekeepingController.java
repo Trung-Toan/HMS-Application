@@ -403,6 +403,76 @@ public class HousekeepingController extends HttpServlet {
         }
 
         int taskId = Integer.parseInt(idStr);
+        HousekeepingTask task = DAOHousekeeping.INSTANCE.getTaskById(taskId);
+
+        if (task == null) {
+            request.setAttribute("type", "error");
+            request.setAttribute("mess", "Task not found!");
+            request.getRequestDispatcher("/Views/Housekeeping/TaskDetail.jsp").forward(request, response);
+            return;
+        }
+
+        LocalDate taskDate = task.getTaskDate();
+        LocalDate today = LocalDate.now();
+        LocalDate yesterday = today.minusDays(1);
+
+        if (!taskDate.equals(today) && !taskDate.equals(yesterday)) {
+            request.setAttribute("type", "error");
+            request.setAttribute("mess", "Only tasks for today or yesterday can be updated.");
+            request.setAttribute("task", task); // Ensure task is set for the view
+
+            // Re-fetch room for the view if needed, though TaskDetail usually fetches it
+            // via another GET or if we forward
+            // But we are forwarding to TaskDetail.jsp which might expect 'task' and 'room'
+            // attributes.
+            // showTaskDetail sets both. Here we are inside doPost.
+            // Ideally we should redirect or set attributes.
+            // The original code just set message and forwarded.
+            // BUT the view might need 'task' and 'room' to render the form again?
+            // The original code at the end forwards to
+            // "/Views/Housekeeping/TaskDetail.jsp".
+            // If validation fails, we should probably ensure the view can render.
+            // Existing code doesn't re-fetch data on success/fail fall-through?
+            // Wait, looking at original code:
+            // It calls
+            // `request.getRequestDispatcher("/Views/Housekeeping/TaskDetail.jsp").forward(request,
+            // response);` at the end.
+            // But it doesn't seem to set `task` or `room` attributes again?
+            // If the JSP uses `${task}`, it will be null if not set!
+            // Let's check `showTaskDetail` to see what it sets. It sets `task` and `room`.
+            // The POST method `handleUpdateTask` seems to rely on the forward?
+            // BUT if we forward to JSP, we must provide the model.
+            // The existing code might be buggy or I missed where it sets the attributes.
+            // Let's look at lines 426-427 of original file.
+            // On success/fail, it sets `href` to `tasks` or `task-detail?id=...`.
+            // Maybe the JSP uses `href` to show a "Back" button, but checking
+            // `TaskDetail.jsp` (not open, but standard pattern)
+            // usually you want to see the form again.
+            // IF the existing code relies on the JSP just showing a message and likely
+            // redirecting or a link?
+            // "href" attribute suggests a client-side redirect or link.
+            // But let's look at the failure case in original code:
+            // request.setAttribute("href", "task-detail?id=" + taskId);
+            // It seems it relies on the JSP to show the error and a link to go back/reload?
+            // I will follow the existing pattern: set "type", "mess", "href" and forward.
+            // But since I found the task, I might as well set it.
+
+            // Actually, if I just set the error and forward, and the JSP expects `task`
+            // object to display the *form*,
+            // then the form will be empty/error if I don't set it.
+            // To be safe, I will fetch room and set task/room, OR just rely on the 'href'
+            // which implies the user might navigate away.
+            // However, better UX is to show the error ON the form.
+            // I'll add task/room to request attributes just in case.
+            Room room = DAOHousekeeping.INSTANCE.getRoomById(task.getRoomId());
+            request.setAttribute("task", task);
+            request.setAttribute("room", room);
+            request.setAttribute("href", "tasks"); // Or "task-detail?id=" + taskId
+
+            request.getRequestDispatcher("/Views/Housekeeping/TaskDetail.jsp").forward(request, response);
+            return;
+        }
+
         try {
             HousekeepingTask.TaskStatus newStatus = HousekeepingTask.TaskStatus.valueOf(statusStr);
 

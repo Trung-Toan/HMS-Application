@@ -498,7 +498,7 @@ public class DAOReceptionist extends DAO {
     public boolean checkOutBooking(int bookingId, int receptionistId) {
         String checkBookingSql = "SELECT status, room_id FROM bookings WHERE booking_id = ?";
         String updateBookingSql = "UPDATE bookings SET status = 'COMPLETED', updated_at = NOW() WHERE booking_id = ?";
-        String updateRoomSql = "UPDATE rooms SET status = 'AVAILABLE' WHERE room_id = ?";
+        String updateRoomSql = "UPDATE rooms SET status = 'DIRTY' WHERE room_id = ?";
 
         try {
             connection.setAutoCommit(false);

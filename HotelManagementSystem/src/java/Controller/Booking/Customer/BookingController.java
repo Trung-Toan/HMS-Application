@@ -159,6 +159,23 @@ public class BookingController extends HttpServlet {
                 return;
             }
 
+            // Check availability
+            boolean isAvailable = DAOBooking.INSTANCE.isRoomAvailable(roomId, checkinDate, checkoutDate);
+            if (!isAvailable) {
+                request.setAttribute("type", "error");
+                request.setAttribute("mess", "Room is not available for the selected dates!");
+
+                // Re-fetch room info to render page correctly
+                Map.Entry<Room, RoomType> entry = DAOGuest.INSTANCE.getRoomDetailWithType(roomId);
+                if (entry != null) {
+                    request.setAttribute("room", entry.getKey());
+                    request.setAttribute("roomType", entry.getValue());
+                }
+
+                request.getRequestDispatcher("Views/Booking/Customer/Booking.jsp").forward(request, response);
+                return;
+            }
+
             // Get room details to calculate total amount
             Map.Entry<Room, RoomType> entry = DAOGuest.INSTANCE.getRoomDetailWithType(roomId);
             if (entry == null) {

@@ -69,7 +69,7 @@ public class DAOBooking extends DAO {
     public List<Booking> getAllBookings() {
         List<Booking> list = new ArrayList<>();
         String sql = "SELECT b.*, c.full_name as customer_name, c.email as customer_email, " +
-                "r.room_number, rt.type_name " +
+                "r.room_number, rt.type_name, r.room_type_id " +
                 "FROM bookings b " +
                 "JOIN users c ON b.customer_id = c.user_id " +
                 "JOIN rooms r ON b.room_id = r.room_id " +
@@ -87,12 +87,47 @@ public class DAOBooking extends DAO {
     }
 
     // ======================================================
+    // Check Availability
+    // ======================================================
+    public boolean isRoomAvailable(int roomId, LocalDate checkIn, LocalDate checkOut) {
+        System.out.println("DEBUG: Checking availability for Room " + roomId + " from " + checkIn + " to " + checkOut);
+
+        // Validation: New Booking (checkIn, checkOut)
+        // Overlap if: Not (ExistingCheckOut <= NewCheckIn OR ExistingCheckIn >=
+        // NewCheckOut)
+        // <=> ExistingCheckOut > NewCheckIn AND ExistingCheckIn < NewCheckOut
+
+        String sql = "SELECT COUNT(*) FROM bookings "
+                + "WHERE room_id = ? "
+                + "AND status != 'CANCELLED' "
+                + "AND DATE(checkin_date) < DATE(?) "
+                + "AND DATE(checkout_date) > DATE(?)";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, roomId);
+            ps.setDate(2, Date.valueOf(checkOut)); // New CheckOut
+            ps.setDate(3, Date.valueOf(checkIn)); // New CheckIn
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    int count = rs.getInt(1);
+                    System.out.println("DEBUG: Found " + count + " overlapping bookings.");
+                    return count == 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // ======================================================
     // Get Bookings by Status
     // ======================================================
     public List<Booking> getBookingsByStatus(Status status) {
         List<Booking> list = new ArrayList<>();
         String sql = "SELECT b.*, c.full_name as customer_name, c.email as customer_email, " +
-                "r.room_number, rt.type_name " +
+                "r.room_number, rt.type_name, r.room_type_id " +
                 "FROM bookings b " +
                 "JOIN users c ON b.customer_id = c.user_id " +
                 "JOIN rooms r ON b.room_id = r.room_id " +
@@ -448,6 +483,7 @@ public class DAOBooking extends DAO {
         Model.RoomType roomType = new Model.RoomType();
         roomType.setTypeName(rs.getString("type_name"));
         room.setRoomType(roomType);
+        room.setRoomTypeId(rs.getInt("room_type_id"));
         b.setRoom(room);
 
         return b;
@@ -460,7 +496,7 @@ public class DAOBooking extends DAO {
         List<Booking> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
                 "SELECT b.*, c.full_name as customer_name, c.email as customer_email, " +
-                        "r.room_number, rt.type_name " +
+                        "r.room_number, rt.type_name, r.room_type_id " +
                         "FROM bookings b " +
                         "JOIN users c ON b.customer_id = c.user_id " +
                         "JOIN rooms r ON b.room_id = r.room_id " +
