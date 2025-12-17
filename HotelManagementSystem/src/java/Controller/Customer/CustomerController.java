@@ -76,6 +76,14 @@ public class CustomerController extends HttpServlet {
                             request.setAttribute("isDefaultList", true);
                         }
                     }
+
+                    // Get latest issue report
+                    java.util.List<Model.IssueReport> reports = DAL.IssueReportDAO.INSTANCE
+                            .getIssuesByBookingId(booking.getBookingId());
+                    if (reports != null && !reports.isEmpty()) {
+                        request.setAttribute("latestIssueReport", reports.get(0));
+                    }
+
                     request.setAttribute("booking", booking);
                 }
 

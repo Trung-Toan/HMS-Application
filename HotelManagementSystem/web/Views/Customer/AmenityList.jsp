@@ -328,7 +328,7 @@
                                 </div>
                             </div>
 
-                            <c:choose>
+                                    <c:choose>
                                 <c:when test="${not empty amenityList}">
                                     <form action="${pageContext.request.contextPath}/customer/amenities" method="POST"
                                         id="amenityForm">
@@ -383,25 +383,25 @@
                                             </button>
                                         </div>
                                     </form>
-                                </c:when>
-                                <c:otherwise>
+                                        </c:when>
+                                        <c:otherwise>
                                     <div class="empty-state">
                                         <i class="fas fa-box-open"></i>
                                         <h3>No Amenities Listed</h3>
                                         <p>There are no amenity records for this room inspection.</p>
-                                    </div>
+                                </div>
                                 </c:otherwise>
-                            </c:choose>
-                        </c:when>
-                        <c:otherwise>
-                            <div class="empty-state">
-                                <i class="fas fa-door-closed"></i>
-                                <h3>No Active Room Found</h3>
-                                <p>You need to be checked into a room to view amenities.</p>
-                                <a href="${pageContext.request.contextPath}/" class="report-btn"
-                                    style="background: #3498db;">Back to Home</a>
-                            </div>
-                        </c:otherwise>
+                    </c:choose>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="empty-state">
+                            <i class="fas fa-door-closed"></i>
+                            <h3>No Active Room Found</h3>
+                            <p>You need to be checked into a room to view amenities.</p>
+                            <a href="${pageContext.request.contextPath}/" class="report-btn"
+                                style="background: #3498db;">Back to Home</a>
+                        </div>
+                    </c:otherwise>
                     </c:choose>
                 </div>
                 </div>
