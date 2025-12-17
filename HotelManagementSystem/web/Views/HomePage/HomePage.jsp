@@ -127,66 +127,27 @@
                             <p>Choose the perfect room for your needs</p>
                         </div>
                         <div class="rooms-grid">
-                            <!-- Deluxe Room -->
-                            <div class="room-card">
-                                <div class="room-image">
-                                    <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=600&h=400&fit=crop"
+                                <c:forEach items="${roomTypes}" var="type" varStatus="status">
+                                    <div class="room-card">
+                                        <div class="room-image">
+                                            <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=600&h=400&fit=crop"
                                         alt="Deluxe Room">
-                                    <div class="room-price">$85/night</div>
-                                </div>
-                                <div class="room-content">
-                                    <h3>Deluxe Room</h3>
-                                    <p>Spacious 35m² room with city view, king-size bed, and modern bathroom.</p>
-                                    <div class="room-features">
-                                        <span>👥 2 guests</span>
-                                        <span>📏 35m²</span>
-                                        <span>🛏️ King Bed</span>
-                                        <span>📺 Smart TV</span>
+                                            <div class="room-price">$${type.basePrice}/night</div>
+                                        </div>
+                                        <div class="room-content">
+                                            <h3>${type.typeName}</h3>
+                                            <p>${type.description}</p>
+                                            <div class="room-features">
+                                                <span>👥 ${type.maxOccupancy} guests</span>
+                                                <span>🛏️ Premium Bedding</span>
+                                                <span>📺 Smart TV</span>
+                                                <span>📶 Free Wi-Fi</span>
+                                            </div>
+                                            <a href="${pageContext.request.contextPath}/rooms" class="btn-book">View
+                                                Details</a>
+                                        </div>
                                     </div>
-                                    <a href="${pageContext.request.contextPath}/rooms" class="btn-book">View Details</a>
-                                </div>
-                            </div>
-
-                            <!-- Suite Room -->
-                            <div class="room-card">
-                                <div class="room-image">
-                                    <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop"
-                                        alt="Suite Room">
-                                    <div class="room-price">$150/night</div>
-                                </div>
-                                <div class="room-content">
-                                    <h3>Executive Suite</h3>
-                                    <p>Luxurious 60m² suite with separate living room, large balcony, and premium
-                                        amenities.</p>
-                                    <div class="room-features">
-                                        <span>👥 3 guests</span>
-                                        <span>📏 60m²</span>
-                                        <span>🛋️ Living Room</span>
-                                        <span>🌆 City View</span>
-                                    </div>
-                                    <a href="${pageContext.request.contextPath}/rooms" class="btn-book">View Details</a>
-                                </div>
-                            </div>
-
-                            <!-- Family Room -->
-                            <div class="room-card">
-                                <div class="room-image">
-                                    <img src="https://images.unsplash.com/photo-1590490360182-c33d57733427?w=600&h=400&fit=crop"
-                                        alt="Family Room">
-                                    <div class="room-price">$120/night</div>
-                                </div>
-                                <div class="room-content">
-                                    <h3>Family Room</h3>
-                                    <p>Comfortable 45m² room with 2 large beds, perfect for families of 4.</p>
-                                    <div class="room-features">
-                                        <span>👥 4 guests</span>
-                                        <span>📏 45m²</span>
-                                        <span>🛏️ 2 Queen Beds</span>
-                                        <span>🎮 Kid Amenities</span>
-                                    </div>
-                                    <a href="${pageContext.request.contextPath}/rooms" class="btn-book">View Details</a>
-                                </div>
-                            </div>
+                                </c:forEach>
                         </div>
                     </div>
                 </section>

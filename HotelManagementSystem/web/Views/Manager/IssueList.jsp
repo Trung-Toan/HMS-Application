@@ -40,7 +40,17 @@
                                                 <tr>
                                                     <td>#${i.issueId}</td>
                                                     <td>${i.roomNumber}</td>
-                                                    <td>${i.issueType}</td>
+                                                    <td>
+                                                        <c:choose>
+                                                            <c:when test="${i.issueType == 'CONFIRMATION'}">
+                                                                <span
+                                                                    class="badge text-bg-info text-white">CONFIRMATION</span>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                ${i.issueType}
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                    </td>
                                                     <td>${i.description}</td>
                                                     <td>
                                                         <span

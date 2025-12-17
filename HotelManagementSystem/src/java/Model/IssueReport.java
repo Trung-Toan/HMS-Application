@@ -14,7 +14,8 @@ public class IssueReport {
     public enum IssueType {
         SUPPLY,
         EQUIPMENT,
-        OTHER
+        OTHER,
+        CONFIRMATION
     }
 
     private Integer issueId;

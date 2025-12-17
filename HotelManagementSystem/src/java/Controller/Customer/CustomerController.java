@@ -111,6 +111,7 @@ public class CustomerController extends HttpServlet {
             case "update_profile" -> handleUpdateProfile(request, response, currentUser, session);
             case "change_password" -> handleChangePassword(request, response, currentUser, session);
             case "report_issue" -> handleReportIssue(request, response, currentUser, session);
+            case "confirm_amenities" -> handleConfirmAmenities(request, response, currentUser, session);
             default -> {
                 request.setAttribute("type", "error");
                 request.setAttribute("mess", "Unknown action!");
@@ -302,5 +303,81 @@ public class CustomerController extends HttpServlet {
         }
 
         request.getRequestDispatcher("/Views/Customer/Profile.jsp").forward(request, response);
+    }
+
+    private void handleConfirmAmenities(HttpServletRequest request, HttpServletResponse response,
+            User currentUser, HttpSession session)
+            throws ServletException, IOException {
+        try {
+            String bookingIdStr = request.getParameter("bookingId");
+            String roomIdStr = request.getParameter("roomId");
+
+            // Collect amenity statuses
+            java.util.List<String> missingItems = new java.util.ArrayList<>();
+            java.util.Enumeration<String> parameterNames = request.getParameterNames();
+            while (parameterNames.hasMoreElements()) {
+                String paramName = parameterNames.nextElement();
+                if (paramName.startsWith("status_")) {
+                    String amenityId = paramName.substring(7); // "status_".length()
+                    String status = request.getParameter(paramName);
+                    if ("MISSING".equals(status)) {
+                        String name = request.getParameter("name_" + amenityId);
+                        if (name == null || name.isEmpty()) {
+                            name = "Amenity ID " + amenityId;
+                        }
+                        missingItems.add(name);
+                    }
+                }
+            }
+
+            Model.IssueReport report = new Model.IssueReport();
+            report.setReportedBy(currentUser.getUserId());
+
+            if (missingItems.isEmpty()) {
+                report.setDescription("Customer confirmed all amenities are sufficient.");
+                report.setIssueType(Model.IssueReport.IssueType.CONFIRMATION);
+            } else {
+                report.setDescription("Customer reported missing/issues with: " + String.join(", ", missingItems));
+                report.setIssueType(Model.IssueReport.IssueType.CONFIRMATION);
+            }
+
+            report.setStatus(Model.IssueReport.IssueStatus.NEW);
+
+            if (bookingIdStr != null && !bookingIdStr.isEmpty()) {
+                report.setBookingId(Integer.parseInt(bookingIdStr));
+            }
+
+            if (roomIdStr != null && !roomIdStr.isEmpty()) {
+                report.setRoomId(Integer.parseInt(roomIdStr));
+            } else {
+                // Try to get room from active booking if not provided
+                DAL.Booking.DAOBooking daoBooking = DAL.Booking.DAOBooking.INSTANCE;
+                Model.Booking booking = daoBooking.getActiveBookingByCustomerId(currentUser.getUserId());
+                if (booking != null) {
+                    report.setRoomId(booking.getRoomId());
+                    report.setBookingId(booking.getBookingId());
+                } else {
+                    throw new IllegalArgumentException("No active room found to confirm amenities for.");
+                }
+            }
+
+            boolean success = DAL.IssueReportDAO.INSTANCE.createIssueReport(report);
+
+            if (success) {
+                request.setAttribute("type", "success");
+                request.setAttribute("mess", "Thank you for your inspection report!");
+            } else {
+                request.setAttribute("type", "error");
+                request.setAttribute("mess", "Failed to submit report. Please try again.");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("type", "error");
+            request.setAttribute("mess", "Error: " + e.getMessage());
+        }
+
+        // Reload amenities page
+        doGet(request, response);
     }
 }
