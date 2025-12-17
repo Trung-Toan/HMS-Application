@@ -128,7 +128,7 @@
                                 <p>Choose the perfect room for your needs</p>
                             </div>
                             <div class="rooms-grid">
-                                <c:forEach items="${roomTypes}" var="type" varStatus="status">
+                                <c:forEach items="${roomTypes}" var="type" varStatus="status" end="2">
                                     <div class="room-card">
                                         <div class="room-image">
                                             <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=600&h=400&fit=crop"
