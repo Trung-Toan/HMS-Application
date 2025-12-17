@@ -19,7 +19,7 @@ public class DAOAuthen extends DAO {
     private DAOAuthen() {
     }
 
-    //create new customer
+    // create new customer
     public int registerCustomer(User u) {
         int n = 0;
         String sql = "INSERT INTO users (username, password_hash, full_name, email, phone, role_id, is_active) "
@@ -46,8 +46,8 @@ public class DAOAuthen extends DAO {
         }
         return n;
     }
-    
-    //login
+
+    // login
     public User login(String identifier, String password) {
         String sql = "SELECT * FROM users WHERE email = ? OR phone = ? LIMIT 1";
 
@@ -67,6 +67,16 @@ public class DAOAuthen extends DAO {
                 u.setRoleId(rs.getInt("role_id"));
                 u.setActive(rs.getBoolean("is_active"));
 
+                // Load timestamps
+                Timestamp createdAt = rs.getTimestamp("created_at");
+                if (createdAt != null) {
+                    u.setCreatedAt(createdAt.toLocalDateTime());
+                }
+                Timestamp updatedAt = rs.getTimestamp("updated_at");
+                if (updatedAt != null) {
+                    u.setUpdatedAt(updatedAt.toLocalDateTime());
+                }
+
                 if (u.checkPasswordRaw(password)) {
                     return u;
                 }
@@ -76,5 +86,43 @@ public class DAOAuthen extends DAO {
             e.printStackTrace();
         }
         return null;
+    }
+
+    // Update user profile (fullName, email, phone)
+    public boolean updateUserProfile(User user) {
+        String sql = "UPDATE users SET full_name = ?, email = ?, phone = ?, updated_at = CURRENT_TIMESTAMP "
+                + "WHERE user_id = ?";
+
+        try (PreparedStatement ps = this.connection.prepareStatement(sql)) {
+            ps.setString(1, user.getFullName());
+            ps.setString(2, user.getEmail());
+            ps.setString(3, user.getPhone());
+            ps.setInt(4, user.getUserId());
+
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Update user password
+    public boolean updateUserPassword(User user) {
+        String sql = "UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP "
+                + "WHERE user_id = ?";
+
+        try (PreparedStatement ps = this.connection.prepareStatement(sql)) {
+            ps.setString(1, user.getPasswordHash());
+            ps.setInt(2, user.getUserId());
+
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

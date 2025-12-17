@@ -42,7 +42,7 @@
                                             <c:forEach items="${rooms}" var="r">
                                                 <tr>
                                                     <td class="fw-bold">${r.roomNumber}</td>
-                                                    <td>${r.roomTypeId}</td> <!-- Ideally map to name -->
+                                                    <td>${r.roomTypeName}</td>
                                                     <td>${r.floor}</td>
                                                     <td>
                                                         <span
@@ -53,6 +53,10 @@
                                                         </span>
                                                     </td>
                                                     <td>
+                                                        <a href="<c:url value='/manager/room-detail'><c:param name='id' value='${r.roomId}'/></c:url>"
+                                                            class="btn btn-sm btn-outline-primary" title="View Detail">
+                                                            <i class="bi bi-eye"></i>
+                                                        </a>
                                                         <a href="<c:url value='/housekeeping/inspection-history'><c:param name='roomId' value='${r.roomId}'/></c:url>"
                                                             class="btn btn-sm btn-outline-info" title="View History">
                                                             <i class="bi bi-clock-history"></i>

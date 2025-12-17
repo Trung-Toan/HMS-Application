@@ -9,7 +9,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet(name = "AuthenController", urlPatterns = {"/login", "/register", "/forgotPassword", "/resetPassword"})
+@WebServlet(name = "AuthenController", urlPatterns = {"/login", "/register", "/forgotPassword", "/resetPassword",
+    "/logout"})
 public class AuthenController extends HttpServlet {
 
     @Override
@@ -18,8 +19,13 @@ public class AuthenController extends HttpServlet {
         String path = request.getServletPath();
 
         switch (path) {
-            case "/login" ->
+            case "/login" -> {
+                String redirect = request.getParameter("redirect");
+                if (redirect != null) {
+                    request.setAttribute("redirect", redirect);
+                }
                 request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
+            }
 
             case "/register" ->
                 request.getRequestDispatcher("Views/Authen/Register.jsp").forward(request, response);
@@ -29,6 +35,12 @@ public class AuthenController extends HttpServlet {
 
             case "/resetPassword" ->
                 request.getRequestDispatcher("Views/Authen/ResetPassword.jsp").forward(request, response);
+
+            case "/logout" -> {
+                // Invalidate session and redirect to home
+                request.getSession().invalidate();
+                response.sendRedirect(request.getContextPath() + "/home");
+            }
 
             default ->
                 response.sendError(404);
@@ -112,42 +124,76 @@ public class AuthenController extends HttpServlet {
                 request.getRequestDispatcher("Views/Authen/Register.jsp").forward(request, response);
             }
         } catch (Exception e) {
+            System.err.println("--------------------------------- error register ----------------------------------");
+            System.err.println(e.getMessage());
+            System.err.println("-----------------------------------------------------------------------------------");
+            request.setAttribute("type", "error");
+            request.setAttribute("mess", e.getMessage());
+            request.getRequestDispatcher("Views/Authen/Register.jsp").forward(request, response);
         }
     }
 
     private void handleLogin(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String identifier = request.getParameter("identifier");
-        String password = request.getParameter("password");
-        
-        request.setAttribute("identifier", identifier);
+        try {
+            String identifier = request.getParameter("identifier");
+            String password = request.getParameter("password");
+            String redirect = request.getParameter("redirect");
 
-        if (identifier == null || identifier.isBlank() || password == null || password.isBlank()) {
-            request.setAttribute("type", "error");
-            request.setAttribute("mess", "Email/Phone and password not blank!");
-            request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
-            return;
-        }
+            request.setAttribute("identifier", identifier);
 
-        User user = DAOAuthen.INSTANCE.login(identifier, password);
-
-        if (user != null) {
-            // Đăng nhập thành công
-            request.getSession().setAttribute("currentUser", user);
-            request.setAttribute("type", "success");
-            request.setAttribute("mess", "Login successful!");
-            if (null == user.getRoleId()) {
-                request.setAttribute("href", "home");
-            } else switch (user.getRoleId()) {
-                case 3 -> request.setAttribute("href", "housekeeping/dashboard");
-                case 4 -> request.setAttribute("href", "owner/dashboard");
-                case 5 -> request.setAttribute("href", "admin/dashboard");
-                case 6 -> request.setAttribute("href", "manager/dashboard");
-                default -> request.setAttribute("href", "home");
+            if (identifier == null || identifier.isBlank() || password == null || password.isBlank()) {
+                request.setAttribute("type", "error");
+                request.setAttribute("mess", "Email/Phone and password not blank!");
+                if (redirect != null) {
+                    request.setAttribute("redirect", redirect);
+                }
+                request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
+                return;
             }
-        } else {
+
+            User user = DAOAuthen.INSTANCE.login(identifier, password);
+
+            if (user != null) {
+                // Đăng nhập thành công
+                request.getSession().setAttribute("currentUser", user);
+                request.setAttribute("type", "success");
+                request.setAttribute("mess", "Login successful!");
+                if (null == user.getRoleId()) {
+                    request.setAttribute("href", "home");
+                } else {
+                    switch (user.getRoleId()) {
+                        case 2 ->
+                            request.setAttribute("href", "receptionist/dashboard");
+                        case 3 ->
+                            request.setAttribute("href", "housekeeping/dashboard");
+                        case 4 ->
+                            request.setAttribute("href", "owner/dashboard");
+                        case 5 ->
+                            request.setAttribute("href", "admin/dashboard");
+                        case 6 ->
+                            request.setAttribute("href", "manager/dashboard");
+                        default ->
+                            request.setAttribute("href", "home");
+                    }
+                }
+
+                if (redirect != null && !redirect.isBlank()) {
+                    request.setAttribute("href", redirect);
+                }
+            } else {
+                request.setAttribute("type", "error");
+                request.setAttribute("mess", "Email/Phone or password incorrect!");
+                if (redirect != null) {
+                    request.setAttribute("redirect", redirect);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("--------------------------------- error login ----------------------------------");
+            System.err.println(e.getMessage());
+            System.err.println("-----------------------------------------------------------------------------------");
             request.setAttribute("type", "error");
-            request.setAttribute("mess", "Email/Phone or password incorrect!");
+            request.setAttribute("mess", e.getMessage());
         }
         request.getRequestDispatcher("Views/Authen/Login.jsp").forward(request, response);
     }

@@ -1,271 +1,254 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
-<!DOCTYPE html>
-<html lang="vi">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Hồ Sơ Khách Hàng - Quản Lí Khách Sạn</title>
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/CSS/Customer/profile.css">
-    </head>
-    <body>
-        <!-- Header -->
-        <%@ include file="../Components/Header.jsp" %>
+<%@page contentType="text/html" pageEncoding="UTF-8" %>
+    <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+        <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+            <!DOCTYPE html>
+            <html lang="vi">
 
-        <!-- Main Content -->
-        <div class="container">
-            <!-- Profile Header -->
-            <div class="profile-header">
-                <!-- Back Button -->
-                <div class="back-home">
-                    <a href="${pageContext.request.contextPath}/home" class="btn btn-secondary">
-                        ← Quay về trang chủ
-                    </a>
-                </div>
-                <div class="profile-avatar">👤</div>
-                <div class="profile-info">
-                    <h1>Nguyễn Văn A</h1>
-                    <span class="member-level">⭐ VIP Member</span>
-                    <p><strong>Email:</strong> nguyenvana@email.com</p>
-                    <p><strong>Số Điện Thoại:</strong> +84 98 765 4321</p>
-                    <p><strong>Thành Viên Từ:</strong> Tháng 1, 2023</p>
-                    <p><strong>Tổng Đặt Phòng:</strong> 12 lần</p>
-                    <div class="profile-actions">
-                        <button class="btn btn-primary" onclick="openEditModal()">Chỉnh Sửa Thông Tin</button>
-                        <button class="btn btn-secondary">Đổi Mật Khẩu</button>
-                    </div>
-                </div>
-            </div>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Hồ Sơ Khách Hàng - Quản Lí Khách Sạn</title>
+                <link rel="stylesheet" href="${pageContext.request.contextPath}/CSS/Customer/profile.css">
+            </head>
 
-            <!-- Tabs -->
-            <div class="tabs">
-                <button class="tab active" onclick="switchTab(event, 'personal-info')">Thông Tin Cá Nhân</button>
-                <button class="tab" onclick="switchTab(event, 'booking-history')">Lịch Sử Đặt Phòng</button>
-                <button class="tab" onclick="switchTab(event, 'preferences')">Sở Thích & Cài Đặt</button>
-            </div>
+            <body>
+                <!-- Header -->
+                <%@ include file="../Components/Header.jsp" %>
+                    <%@ include file="../public/notify.jsp" %>
 
-            <!-- Personal Information Tab -->
-            <div id="personal-info" class="tab-content active">
-                <div class="info-section">
-                    <div class="section-title">
-                        Thông Tin Cơ Bản
-                        <button class="edit-btn" onclick="openEditModal()">Chỉnh Sửa</button>
-                    </div>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <div class="info-label">Họ & Tên</div>
-                            <div class="info-value">Nguyễn Văn A</div>
+                        <!-- Main Content -->
+                        <div class="container">
+                            <!-- Profile Header -->
+                            <div class="profile-header">
+                                <!-- Back Button -->
+                                <div class="back-home">
+                                    <a href="${pageContext.request.contextPath}/home" class="btn btn-secondary">
+                                        ← Quay về trang chủ
+                                    </a>
+                                </div>
+                                <div class="profile-avatar">
+                                    ${sessionScope.currentUser.fullName.substring(0, 1).toUpperCase()}
+                                </div>
+                                <div class="profile-info">
+                                    <h1>${sessionScope.currentUser.fullName}</h1>
+                                    <span class="member-level">⭐ Khách Hàng</span>
+                                    <p><strong>Email:</strong> ${sessionScope.currentUser.email != null ?
+                                        sessionScope.currentUser.email : 'Chưa cập nhật'}</p>
+                                    <p><strong>Số Điện Thoại:</strong> ${sessionScope.currentUser.phone != null ?
+                                        sessionScope.currentUser.phone : 'Chưa cập nhật'}</p>
+                                    <p><strong>Username:</strong> ${sessionScope.currentUser.username}</p>
+                                    <c:if test="${sessionScope.currentUser.createdAt != null}">
+                                        <p><strong>Thành Viên Từ:</strong>
+                                            ${sessionScope.currentUser.createdAt.toLocalDate()}</p>
+                                    </c:if>
+                                    <div class="profile-actions">
+                                        <button class="btn btn-primary" onclick="openEditModal()">Chỉnh Sửa Thông
+                                            Tin</button>
+                                        <button class="btn btn-secondary" onclick="openPasswordModal()">Đổi Mật
+                                            Khẩu</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tabs -->
+                            <div class="tabs">
+                                <button class="tab active" onclick="switchTab(event, 'personal-info')">Thông Tin Cá
+                                    Nhân</button>
+                                <button class="tab" onclick="switchTab(event, 'booking-history')">Lịch Sử Đặt
+                                    Phòng</button>
+                            </div>
+
+                            <!-- Personal Information Tab -->
+                            <div id="personal-info" class="tab-content active">
+                                <div class="info-section">
+                                    <div class="section-title">
+                                        Thông Tin Cơ Bản
+                                    </div>
+                                    <div class="info-grid">
+                                        <div class="info-item">
+                                            <div class="info-label">Username</div>
+                                            <div class="info-value">${sessionScope.currentUser.username}</div>
+                                        </div>
+                                        <div class="info-item">
+                                            <div class="info-label">Họ & Tên</div>
+                                            <div class="info-value">${sessionScope.currentUser.fullName}</div>
+                                        </div>
+                                        <div class="info-item">
+                                            <div class="info-label">Email</div>
+                                            <div class="info-value">
+                                                ${sessionScope.currentUser.email != null ?
+                                                sessionScope.currentUser.email : 'Chưa cập nhật'}
+                                            </div>
+                                        </div>
+                                        <div class="info-item">
+                                            <div class="info-label">Số Điện Thoại</div>
+                                            <div class="info-value">
+                                                ${sessionScope.currentUser.phone != null ?
+                                                sessionScope.currentUser.phone : 'Chưa cập nhật'}
+                                            </div>
+                                        </div>
+                                        <div class="info-item">
+                                            <div class="info-label">Trạng Thái Tài Khoản</div>
+                                            <div class="info-value">
+                                                <c:choose>
+                                                    <c:when test="${sessionScope.currentUser.active}">
+                                                        <span style="color: green; font-weight: 600;">✓ Đang hoạt
+                                                            động</span>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span style="color: red; font-weight: 600;">✗ Bị khóa</span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Booking History Tab -->
+                            <div id="booking-history" class="tab-content">
+                                <div class="info-section">
+                                    <div class="section-title">Lịch Sử Đặt Phòng</div>
+                                    <p style="text-align: center; padding: 40px 20px; color: #64748b; font-size: 16px;">
+                                        📅 Xem lịch sử đặt phòng chi tiết tại trang
+                                        <a href="${pageContext.request.contextPath}/my_booking"
+                                            style="color: #2980b9; font-weight: 600; text-decoration: none;">My
+                                            Booking</a>
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="info-item">
-                            <div class="info-label">Email</div>
-                            <div class="info-value">nguyenvana@email.com</div>
+
+                        <!-- Edit Profile Modal -->
+                        <div id="editModal" class="modal">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h2>Chỉnh Sửa Thông Tin</h2>
+                                    <button class="close-btn" onclick="closeEditModal()">×</button>
+                                </div>
+                                <form method="post" action="${pageContext.request.contextPath}/customer/profile">
+                                    <input type="hidden" name="action" value="update_profile">
+
+                                    <div class="form-group">
+                                        <label>Họ & Tên <span style="color: red;">*</span></label>
+                                        <input type="text" name="fullName" value="${sessionScope.currentUser.fullName}"
+                                            required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Email <span style="color: red;">*</span></label>
+                                        <input type="email" name="email" value="${sessionScope.currentUser.email}">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Số Điện Thoại <span style="color: red;">*</span></label>
+                                        <input type="tel" name="phone" value="${sessionScope.currentUser.phone}"
+                                            placeholder="0912345678">
+                                    </div>
+
+                                    <div class="modal-actions">
+                                        <button type="button" class="btn btn-secondary"
+                                            onclick="closeEditModal()">Hủy</button>
+                                        <button type="submit" class="btn btn-primary">Lưu Thay Đổi</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-                        <div class="info-item">
-                            <div class="info-label">Số Điện Thoại</div>
-                            <div class="info-value">+84 98 765 4321</div>
+
+                        <!-- Change Password Modal -->
+                        <div id="passwordModal" class="modal">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h2>Đổi Mật Khẩu</h2>
+                                    <button class="close-btn" onclick="closePasswordModal()">×</button>
+                                </div>
+                                <form method="post" action="${pageContext.request.contextPath}/customer/profile">
+                                    <input type="hidden" name="action" value="change_password">
+
+                                    <div class="form-group">
+                                        <label>Mật Khẩu Hiện Tại <span style="color: red;">*</span></label>
+                                        <input type="password" name="currentPassword" required minlength="6">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Mật Khẩu Mới <span style="color: red;">*</span></label>
+                                        <input type="password" name="newPassword" id="newPassword" required
+                                            minlength="6">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Xác Nhận Mật Khẩu Mới <span style="color: red;">*</span></label>
+                                        <input type="password" name="confirmPassword" id="confirmPassword" required
+                                            minlength="6">
+                                    </div>
+
+                                    <div class="modal-actions">
+                                        <button type="button" class="btn btn-secondary"
+                                            onclick="closePasswordModal()">Hủy</button>
+                                        <button type="submit" class="btn btn-primary">Đổi Mật Khẩu</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-                        <div class="info-item">
-                            <div class="info-label">Ngày Sinh</div>
-                            <div class="info-value">15/03/1990</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Giới Tính</div>
-                            <div class="info-value">Nam</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Quốc Tịch</div>
-                            <div class="info-value">Việt Nam</div>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="info-section">
-                    <div class="section-title">Địa Chỉ</div>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <div class="info-label">Địa Chỉ Nhà</div>
-                            <div class="info-value">123 Đường ABC, Hà Nội</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Thành Phố</div>
-                            <div class="info-value">Hà Nội</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Mã Bưu Chính</div>
-                            <div class="info-value">100000</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Quốc Gia</div>
-                            <div class="info-value">Việt Nam</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                        <!-- Footer -->
+                        <%@ include file="../Components/Footer.jsp" %>
 
-            <!-- Booking History Tab -->
-            <div id="booking-history" class="tab-content">
-                <div class="info-section">
-                    <div class="section-title">Lịch Sử Đặt Phòng</div>
-                    <table class="bookings-table">
-                        <thead>
-                            <tr>
-                                <th>Mã Đặt</th>
-                                <th>Phòng</th>
-                                <th>Ngày Nhập/Trả</th>
-                                <th>Giá</th>
-                                <th>Trạng Thái</th>
-                                <th>Hành Động</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>#BK001</td>
-                                <td>Phòng Đôi Cao Cấp</td>
-                                <td>15/12 - 17/12/2024</td>
-                                <td>2,000,000 ₫</td>
-                                <td><span class="status-badge status-completed">Đã Hoàn Tất</span></td>
-                                <td><button class="btn btn-primary">Chi Tiết</button></td>
-                            </tr>
-                            <tr>
-                                <td>#BK002</td>
-                                <td>Suite Premium</td>
-                                <td>20/12 - 22/12/2024</td>
-                                <td>3,500,000 ₫</td>
-                                <td><span class="status-badge status-confirmed">Đã Duyệt</span></td>
-                                <td><button class="btn btn-primary">Chi Tiết</button></td>
-                            </tr>
-                            <tr>
-                                <td>#BK003</td>
-                                <td>Phòng Gia Đình</td>
-                                <td>25/12 - 27/12/2024</td>
-                                <td>2,800,000 ₫</td>
-                                <td><span class="status-badge status-pending">Chờ Duyệt</span></td>
-                                <td><button class="btn btn-primary">Chi Tiết</button></td>
-                            </tr>
-                            <tr>
-                                <td>#BK004</td>
-                                <td>Phòng Đơn</td>
-                                <td>10/01 - 11/01/2025</td>
-                                <td>800,000 ₫</td>
-                                <td><span class="status-badge status-cancelled">Đã Hủy</span></td>
-                                <td><button class="btn btn-primary">Chi Tiết</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                            <script>
+                                // Tab functionality
+                                function switchTab(event, tabName) {
+                                    const tabs = document.querySelectorAll('.tab');
+                                    const contents = document.querySelectorAll('.tab-content');
 
-            <!-- Preferences Tab -->
-            <div id="preferences" class="tab-content">
-                <div class="info-section">
-                    <div class="section-title">Sở Thích & Thông Báo</div>
+                                    tabs.forEach(tab => tab.classList.remove('active'));
+                                    contents.forEach(content => content.classList.remove('active'));
 
-                    <div class="preference-item">
-                        <span class="preference-label">📧 Nhận Email Về Khuyến Mãi</span>
-                        <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
-                    </div>
+                                    event.target.classList.add('active');
+                                    document.getElementById(tabName).classList.add('active');
+                                }
 
-                    <div class="preference-item">
-                        <span class="preference-label">📱 Nhận Thông Báo SMS</span>
-                        <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
-                    </div>
+                                // Edit Profile Modal
+                                function openEditModal() {
+                                    document.getElementById('editModal').classList.add('show');
+                                }
 
-                    <div class="preference-item">
-                        <span class="preference-label">🔔 Nhận Thông Báo Trên Điện Thoại</span>
-                        <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
-                    </div>
+                                function closeEditModal() {
+                                    document.getElementById('editModal').classList.remove('show');
+                                }
 
-                    <div class="preference-item">
-                        <span class="preference-label">🎯 Chia Sẻ Dữ Liệu Cho Đối Tác</span>
-                        <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
-                    </div>
-                </div>
+                                // Change Password Modal
+                                function openPasswordModal() {
+                                    document.getElementById('passwordModal').classList.add('show');
+                                }
 
-                <div class="info-section">
-                    <div class="section-title">Sở Thích Phòng</div>
+                                function closePasswordModal() {
+                                    document.getElementById('passwordModal').classList.remove('show');
+                                }
 
-                    <div class="preference-item">
-                        <span class="preference-label">🛏️ Loại Giường Yêu Thích: King Size</span>
-                    </div>
+                                // Close modal when clicking outside
+                                window.onclick = function (event) {
+                                    const editModal = document.getElementById('editModal');
+                                    const passwordModal = document.getElementById('passwordModal');
 
-                    <div class="preference-item">
-                        <span class="preference-label">🌍 Vị Trí Yêu Thích: Tầng Cao</span>
-                    </div>
+                                    if (event.target == editModal) {
+                                        closeEditModal();
+                                    }
+                                    if (event.target == passwordModal) {
+                                        closePasswordModal();
+                                    }
+                                }
 
-                    <div class="preference-item">
-                        <span class="preference-label">🚭 Phòng Không Hút Thuốc</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+                                // Validate password confirmation
+                                document.querySelector('#passwordModal form').addEventListener('submit', function (e) {
+                                    const newPass = document.getElementById('newPassword').value;
+                                    const confirmPass = document.getElementById('confirmPassword').value;
 
-        <!-- Edit Modal -->
-        <div id="editModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Chỉnh Sửa Thông Tin</h2>
-                    <button class="close-btn" onclick="closeEditModal()">×</button>
-                </div>
-                <form>
-                    <div class="form-group">
-                        <label>Họ & Tên</label>
-                        <input type="text" value="Nguyễn Văn A" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" value="nguyenvana@email.com" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Số Điện Thoại</label>
-                        <input type="tel" value="+84 98 765 4321" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Địa Chỉ</label>
-                        <textarea rows="3">123 Đường ABC, Hà Nội</textarea>
-                    </div>
-                    <div class="modal-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Hủy</button>
-                        <button type="submit" class="btn btn-primary">Lưu Thay Đổi</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                                    if (newPass !== confirmPass) {
+                                        e.preventDefault();
+                                        alert('Mật khẩu mới và xác nhận mật khẩu không khớp!');
+                                    }
+                                });
+                            </script>
+            </body>
 
-        <!-- Footer -->
-        <%@ include file="../Components/Footer.jsp" %>
-
-        <script>
-            // Tab functionality
-            function switchTab(event, tabName) {
-                const tabs = document.querySelectorAll('.tab');
-                const contents = document.querySelectorAll('.tab-content');
-
-                tabs.forEach(tab => tab.classList.remove('active'));
-                contents.forEach(content => content.classList.remove('active'));
-
-                event.target.classList.add('active');
-                document.getElementById(tabName).classList.add('active');
-            }
-
-            // Modal functionality
-            function openEditModal() {
-                document.getElementById('editModal').classList.add('show');
-            }
-
-            function closeEditModal() {
-                document.getElementById('editModal').classList.remove('show');
-            }
-
-            window.onclick = function (event) {
-                const modal = document.getElementById('editModal');
-                if (event.target == modal) {
-                    modal.classList.remove('show');
-                }
-            }
-
-            // Toggle switch functionality
-            function toggleSwitch(element) {
-                element.classList.toggle('active');
-            }
-        </script>
-    </body>
-</html>
+            </html>

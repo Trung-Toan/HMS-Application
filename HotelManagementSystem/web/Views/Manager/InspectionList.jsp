@@ -20,6 +20,12 @@
                     <div class="container-fluid p-4">
                         <h2 class="mb-4">Recent Inspections</h2>
 
+                        <c:if test="${param.msg == 'success'}">
+                            <c:set var="type" value="success" scope="request" />
+                            <c:set var="mess" value="Inspection has been submitted successfully!" scope="request" />
+                        </c:if>
+                        <jsp:include page="../public/notify.jsp" />
+
                         <!-- Search and Filter Row -->
                         <div class="row g-3 mb-4">
                             <div class="col-md-6">
@@ -46,7 +52,7 @@
                                     <a href="?search=${searchQuery}&type=CHECKOUT"
                                         class="btn btn-sm ${typeFilter == 'CHECKOUT' ? 'btn-primary' : 'btn-outline-primary'}">Check-out</a>
                                     <a href="?search=${searchQuery}&type=ROUTINE"
-                                        class="btn btn-sm ${typeFilter == 'ROUTINE' ? 'btn-secondary' : 'btn-outline-secondary'}">Routine</a>
+                                        class="btn btn-sm ${typeFilter == 'ROUTINE' ? 'btn-info' : 'btn-outline-info'}">Routine</a>
                                 </div>
                             </div>
                         </div>
@@ -70,19 +76,33 @@
                                             <c:forEach items="${inspections}" var="i">
                                                 <tr>
                                                     <td>#${i.inspectionId}</td>
-                                                    <td class="fw-bold">Room ${i.roomId}</td>
+                                                    <td class="fw-bold">
+                                                        <c:choose>
+                                                            <c:when test="${not empty i.roomNumber}">Room
+                                                                ${i.roomNumber}</c:when>
+                                                            <c:otherwise>Room ${i.roomId}</c:otherwise>
+                                                        </c:choose>
+                                                    </td>
                                                     <td>
                                                         <span
                                                             class="badge ${i.type == 'CHECKIN' ? 'bg-success' : 
-                                                                   i.type == 'CHECKOUT' ? 'bg-primary' : 'bg-secondary'}">
+                                                                   i.type == 'CHECKOUT' ? 'bg-primary' : 
+                                                                   i.type == 'ROUTINE' ? 'bg-info' :
+                                                                   i.type == 'SUPPLY' ? 'bg-warning' : 'bg-secondary'}">
                                                             ${i.type}
                                                         </span>
                                                     </td>
                                                     <td>${i.inspectionDate}</td>
-                                                    <td>User #${i.inspectorId}</td>
+                                                    <td>
+                                                        <c:choose>
+                                                            <c:when test="${not empty i.inspectorName}">
+                                                                ${i.inspectorName}</c:when>
+                                                            <c:otherwise>User #${i.inspectorId}</c:otherwise>
+                                                        </c:choose>
+                                                    </td>
                                                     <td class="text-truncate" style="max-width: 200px;">${i.note}</td>
                                                     <td>
-                                                        <a href="<c:url value='/housekeeping/inspection-history'><c:param name='roomId' value='${i.roomId}'/></c:url>"
+                                                        <a href="<c:url value='/manager/inspection-detail'><c:param name='id' value='${i.inspectionId}'/></c:url>"
                                                             class="btn btn-sm btn-outline-primary">
                                                             View Details
                                                         </a>

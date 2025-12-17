@@ -16,8 +16,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @WebServlet(name = "ManagerController", urlPatterns = { "/manager/dashboard", "/manager/create-task",
-        "/manager/issues", "/manager/rooms", "/manager/staff", "/manager/inspections",
-        "/manager/create-inspection", "/manager/replenishment-requests", "/manager/bookings" })
+        "/manager/issues", "/manager/rooms", "/manager/room-detail", "/manager/staff", "/manager/inspections",
+        "/manager/create-inspection", "/manager/replenishment-requests", "/manager/bookings",
+        "/manager/reports", "/manager/inspection-detail", "/manager/all-tasks",
+        "/manager/add-room-amenity", "/manager/delete-room-amenity", "/manager/edit-room-amenity",
+        "/manager/schedule" })
 public class ManagerController extends HttpServlet {
 
     @Override
@@ -36,12 +39,44 @@ public class ManagerController extends HttpServlet {
             case "/manager/create-task" -> showCreateTaskForm(request, response);
             case "/manager/issues" -> showIssues(request, response);
             case "/manager/rooms" -> showRooms(request, response);
+            case "/manager/room-detail" -> showRoomDetail(request, response);
             case "/manager/staff" -> showStaff(request, response);
             case "/manager/inspections" -> showInspections(request, response);
+            case "/manager/inspection-detail" -> showInspectionDetail(request, response);
             case "/manager/create-inspection" -> showCreateInspectionForm(request, response);
             case "/manager/replenishment-requests" -> showReplenishmentRequests(request, response);
             case "/manager/bookings" -> showBookings(request, response);
+            case "/manager/all-tasks" -> showAllTasks(request, response);
+            case "/manager/schedule" -> showSchedule(request, response);
+
+            case "/manager/reports" -> showReports(request, response);
             default -> response.sendError(404);
+        }
+    }
+
+    private void showInspectionDetail(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String idStr = request.getParameter("id");
+        if (idStr == null) {
+            response.sendError(400, "Missing inspection id");
+            return;
+        }
+
+        try {
+            int id = Integer.parseInt(idStr);
+            DAL.RoomInspectionDAO inspectionDAO = new DAL.RoomInspectionDAO();
+            Model.RoomInspection inspection = inspectionDAO.getInspectionById(id);
+
+            if (inspection == null) {
+                response.sendError(404, "Inspection not found");
+                return;
+            }
+
+            request.setAttribute("inspection", inspection);
+            request.getRequestDispatcher("/Views/Manager/InspectionDetail.jsp").forward(request, response);
+
+        } catch (NumberFormatException e) {
+            response.sendError(400, "Invalid inspection id");
         }
     }
 
@@ -56,8 +91,83 @@ public class ManagerController extends HttpServlet {
             case "/manager/create-inspection" -> handleCreateInspection(request, response);
             case "/manager/replenishment-requests" -> handleReplenishmentRequest(request, response);
             case "/manager/bookings" -> handleAssignInspection(request, response);
+            case "/manager/add-room-amenity" -> handleAddRoomAmenity(request, response);
+            case "/manager/edit-room-amenity" -> handleEditRoomAmenity(request, response);
+            case "/manager/delete-room-amenity" -> handleDeleteRoomAmenity(request, response);
             default -> response.sendError(404);
         }
+    }
+
+    private void handleAddRoomAmenity(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String roomIdStr = request.getParameter("roomId");
+        String amenityIdStr = request.getParameter("amenityId");
+        String quantityStr = request.getParameter("quantity");
+
+        try {
+            int roomId = Integer.parseInt(roomIdStr);
+            int amenityId = Integer.parseInt(amenityIdStr);
+            int quantity = Integer.parseInt(quantityStr);
+
+            Room room = DAOHousekeeping.INSTANCE.getRoomById(roomId);
+            if (room != null) {
+                DAL.AmenityDAO dao = new DAL.AmenityDAO();
+                dao.addAmenityToRoomType(room.getRoomTypeId(), amenityId, quantity);
+                response.sendRedirect(request.getContextPath() + "/manager/room-detail?id=" + roomId + "&msg=Added");
+            } else {
+                response.sendError(404, "Room not found");
+            }
+        } catch (NumberFormatException e) {
+            response.sendError(400, "Invalid input");
+        }
+    }
+
+    private void handleEditRoomAmenity(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String roomIdStr = request.getParameter("roomId");
+        String rtaIdStr = request.getParameter("id");
+        String quantityStr = request.getParameter("quantity");
+
+        try {
+            int rtaId = Integer.parseInt(rtaIdStr);
+            int quantity = Integer.parseInt(quantityStr);
+            int roomId = Integer.parseInt(roomIdStr);
+
+            DAL.AmenityDAO dao = new DAL.AmenityDAO();
+            dao.updateRoomTypeAmenity(rtaId, quantity);
+            response.sendRedirect(request.getContextPath() + "/manager/room-detail?id=" + roomId + "&msg=Updated");
+        } catch (NumberFormatException e) {
+            response.sendError(400, "Invalid input");
+        }
+    }
+
+    private void handleDeleteRoomAmenity(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String roomIdStr = request.getParameter("roomId");
+        String rtaIdStr = request.getParameter("id");
+
+        try {
+            int rtaId = Integer.parseInt(rtaIdStr);
+            int roomId = Integer.parseInt(roomIdStr);
+
+            DAL.AmenityDAO dao = new DAL.AmenityDAO();
+            dao.deleteRoomTypeAmenity(rtaId);
+            response.sendRedirect(request.getContextPath() + "/manager/room-detail?id=" + roomId + "&msg=Deleted");
+        } catch (NumberFormatException e) {
+            response.sendError(400, "Invalid input");
+        }
+    }
+
+    private void showSchedule(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        // Permanent Schedule View
+        List<Model.StaffAssignment> assignments = DAL.Owner.DAOOwner.INSTANCE.getAllCurrentAssignments();
+
+        request.setAttribute("assignments", assignments);
+        // Date is no longer central, but we can pass today for display if needed
+        request.setAttribute("date", LocalDate.now());
+        request.getRequestDispatcher("/Views/Shared/ViewSchedule.jsp").forward(request, response);
     }
 
     private void showDashboard(HttpServletRequest request, HttpServletResponse response)
@@ -199,6 +309,42 @@ public class ManagerController extends HttpServlet {
         request.getRequestDispatcher("/Views/Manager/RoomList.jsp").forward(request, response);
     }
 
+    private void showRoomDetail(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String idStr = request.getParameter("id");
+        if (idStr == null) {
+            response.sendError(400, "Missing room id");
+            return;
+        }
+
+        try {
+            int roomId = Integer.parseInt(idStr);
+            Room room = DAOHousekeeping.INSTANCE.getRoomById(roomId);
+            if (room == null) {
+                response.sendError(404, "Room not found");
+                return;
+            }
+
+            // Get standard amenities for this room type
+            DAL.AmenityDAO amenityDAO = new DAL.AmenityDAO();
+            List<Model.RoomTypeAmenity> standardAmenities = amenityDAO.getAmenitiesByRoomType(room.getRoomTypeId());
+
+            // Get items needing replenishment (Pending Requests for this room?)
+            // We can find requests linked to inspections of this room?
+            // For now, just show the standard list which allows creating new requests.
+
+            List<Model.Amenity> allAmenities = amenityDAO.getAllAmenities();
+
+            request.setAttribute("room", room);
+            request.setAttribute("amenities", standardAmenities);
+            request.setAttribute("allAmenities", allAmenities);
+            request.getRequestDispatcher("/Views/Manager/RoomDetail.jsp").forward(request, response);
+
+        } catch (NumberFormatException e) {
+            response.sendError(400, "Invalid room id");
+        }
+    }
+
     private void showStaff(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String dateStr = request.getParameter("date");
@@ -240,15 +386,16 @@ public class ManagerController extends HttpServlet {
                     .filter(i -> filterType.equalsIgnoreCase(String.valueOf(i.getType())))
                     .collect(java.util.stream.Collectors.toList());
         }
+        // If typeFilter is null, empty, or "ALL", show all types (no filtering)
 
         // Apply search filter
         if (searchQuery != null && !searchQuery.isBlank()) {
             String query = searchQuery.toLowerCase().trim();
             allInspections = allInspections.stream()
                     .filter(i -> String.valueOf(i.getInspectionId()).contains(query) ||
-                            String.valueOf(i.getRoomId()).contains(query) ||
+                            (i.getRoomNumber() != null && i.getRoomNumber().toLowerCase().contains(query)) ||
                             (i.getNote() != null && i.getNote().toLowerCase().contains(query)) ||
-                            String.valueOf(i.getInspectorId()).contains(query))
+                            (i.getInspectorName() != null && i.getInspectorName().toLowerCase().contains(query)))
                     .collect(java.util.stream.Collectors.toList());
         }
 
@@ -293,27 +440,27 @@ public class ManagerController extends HttpServlet {
         User currentUser = (User) request.getSession().getAttribute("currentUser");
 
         String roomIdStr = request.getParameter("roomId");
-        String bookingIdStr = request.getParameter("bookingId");
+
         String inspectionType = request.getParameter("inspectionType");
         String assignedToStr = request.getParameter("assignedTo");
+        String taskDateStr = request.getParameter("taskDate");
         String note = request.getParameter("note");
 
         try {
             int roomId = Integer.parseInt(roomIdStr);
             int assignedTo = Integer.parseInt(assignedToStr);
+            LocalDate taskDate = (taskDateStr != null && !taskDateStr.isBlank())
+                    ? LocalDate.parse(taskDateStr)
+                    : LocalDate.now();
 
             // Create a housekeeping task for the inspection
             HousekeepingTask.TaskType taskType = HousekeepingTask.TaskType.INSPECTION;
             String taskNote = "[" + inspectionType + "] " + (note != null ? note : "");
 
-            if (bookingIdStr != null && !bookingIdStr.isBlank()) {
-                taskNote += " (Booking #" + bookingIdStr + ")";
-            }
-
             boolean ok = DAOHousekeeping.INSTANCE.createTask(
                     roomId,
                     assignedTo,
-                    LocalDate.now(),
+                    taskDate,
                     taskType,
                     taskNote,
                     currentUser.getUserId());
@@ -330,7 +477,7 @@ public class ManagerController extends HttpServlet {
             request.setAttribute("mess", "Invalid data: " + e.getMessage());
         }
 
-        showCreateInspectionForm(request, response);
+        showCreateTaskForm(request, response);
     }
 
     private void showReplenishmentRequests(HttpServletRequest request, HttpServletResponse response)
@@ -603,5 +750,196 @@ public class ManagerController extends HttpServlet {
         }
 
         response.sendRedirect(request.getContextPath() + "/manager/bookings?error=true");
+    }
+
+    private void showReports(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        DAL.Housekeeping.DAOHousekeeping hkDao = DAL.Housekeeping.DAOHousekeeping.INSTANCE;
+        DAL.Manager.DAOManager mgrDao = DAL.Manager.DAOManager.INSTANCE;
+
+        // Task Statistics
+        // Task Statistics
+        int totalTasks = DAOHousekeeping.INSTANCE.countTasks(0, null, null, null, null, null, null);
+        int newTasks = DAOHousekeeping.INSTANCE.countTasks(0, null, null, "NEW", null, null, null);
+        int inProgressTasks = DAOHousekeeping.INSTANCE.countTasks(0, null, null, "IN_PROGRESS", null, null, null);
+        int completedTasks = DAOHousekeeping.INSTANCE.countTasks(0, null, null, "DONE", null, null, null);
+
+        // Task by Type
+        int cleaningTasks = DAOHousekeeping.INSTANCE.countTasks(0, null, null, null, null, "CLEANING", null);
+        int inspectionTasks = DAOHousekeeping.INSTANCE.countTasks(0, null, null, null, null, "INSPECTION_ALL", null);
+
+        // Map these to request attributes expected by Reports.jsp
+        request.setAttribute("countAll", totalTasks);
+        request.setAttribute("countNew", newTasks);
+        request.setAttribute("countInProgress", inProgressTasks);
+        request.setAttribute("countDone", completedTasks);
+        request.setAttribute("countCleaning", cleaningTasks);
+        request.setAttribute("countInspection", inspectionTasks);
+
+        // Room Statistics
+        List<Model.Room> allRooms = hkDao.getAllRooms();
+        int totalRooms = allRooms.size();
+        int availableRooms = 0;
+        int occupiedRooms = 0;
+        int dirtyRooms = 0;
+        int maintenanceRooms = 0;
+
+        for (Model.Room r : allRooms) {
+            switch (r.getStatus()) {
+                case AVAILABLE -> availableRooms++;
+                case OCCUPIED, BOOKED -> occupiedRooms++;
+                case DIRTY, CLEANING -> dirtyRooms++;
+                case MAINTENANCE -> maintenanceRooms++;
+                default -> {
+                }
+            }
+        }
+
+        // Issue Statistics
+        List<Model.IssueReport> allIssues = mgrDao.getAllIssues();
+        int totalIssues = allIssues.size();
+        int newIssues = 0;
+        int resolvedIssues = 0;
+
+        for (Model.IssueReport i : allIssues) {
+            if (i.getStatus() == Model.IssueReport.IssueStatus.NEW)
+                newIssues++;
+            if (i.getStatus() == Model.IssueReport.IssueStatus.RESOLVED)
+                resolvedIssues++;
+        }
+
+        // Staff Statistics
+        List<Model.User> staff = hkDao.getHousekeepingStaff();
+        int totalStaff = staff.size();
+
+        // Set attributes
+        request.setAttribute("totalTasks", totalTasks); // These attributes are no longer set directly from hkDao calls,
+                                                        // but the instruction doesn't remove them.
+        request.setAttribute("newTasks", newTasks); // Keeping them as per instruction to only make specified changes.
+        request.setAttribute("inProgressTasks", inProgressTasks);
+        request.setAttribute("completedTasks", completedTasks);
+        request.setAttribute("cleaningTasks", cleaningTasks);
+        request.setAttribute("inspectionTasks", inspectionTasks);
+
+        request.setAttribute("totalRooms", totalRooms);
+        request.setAttribute("availableRooms", availableRooms);
+        request.setAttribute("occupiedRooms", occupiedRooms);
+        request.setAttribute("dirtyRooms", dirtyRooms);
+        request.setAttribute("maintenanceRooms", maintenanceRooms);
+
+        request.setAttribute("totalIssues", totalIssues);
+        request.setAttribute("newIssues", newIssues);
+        request.setAttribute("resolvedIssues", resolvedIssues);
+
+        request.setAttribute("totalStaff", totalStaff);
+
+        // Completion rate
+        double completionRate = totalTasks > 0 ? (completedTasks * 100.0 / totalTasks) : 0;
+        request.setAttribute("completionRate", String.format("%.1f", completionRate));
+
+        // Occupancy rate
+        double occupancyRate = totalRooms > 0 ? (occupiedRooms * 100.0 / totalRooms) : 0;
+        request.setAttribute("occupancyRate", String.format("%.1f", occupancyRate));
+
+        request.getRequestDispatcher("/Views/Manager/Reports.jsp").forward(request, response);
+    }
+
+    private void showAllTasks(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        // Filter params
+        String staffIdStr = request.getParameter("staffId");
+        String dateFromStr = request.getParameter("dateFrom");
+        String dateToStr = request.getParameter("dateTo");
+        String statusStr = request.getParameter("status");
+        String taskTypeStr = request.getParameter("type");
+        String searchQuery = request.getParameter("search");
+        String pageStr = request.getParameter("page");
+        String sortBy = request.getParameter("sortBy");
+        String sortOrder = request.getParameter("sortOrder");
+
+        // Defaults
+        int staffId = 0;
+        if (staffIdStr != null && !staffIdStr.isBlank()) {
+            try {
+                staffId = Integer.parseInt(staffIdStr);
+            } catch (Exception e) {
+            }
+        }
+
+        LocalDate dateFrom = null;
+        if (dateFromStr != null && !dateFromStr.isBlank()) {
+            try {
+                dateFrom = LocalDate.parse(dateFromStr);
+            } catch (Exception e) {
+            }
+        }
+
+        LocalDate dateTo = null;
+        if (dateToStr != null && !dateToStr.isBlank()) {
+            try {
+                dateTo = LocalDate.parse(dateToStr);
+            } catch (Exception e) {
+            }
+        }
+
+        // Pagination
+        int page = 1;
+        int pageSize = 10;
+        try {
+            if (pageStr != null && !pageStr.isBlank()) {
+                page = Integer.parseInt(pageStr);
+                if (page < 1)
+                    page = 1;
+            }
+        } catch (NumberFormatException e) {
+            page = 1;
+        }
+
+        DAL.Housekeeping.DAOHousekeeping dao = DAL.Housekeeping.DAOHousekeeping.INSTANCE;
+
+        // Get Tasks
+        String search = searchQuery; // Renamed for clarity in the new method call
+        String dbTaskType = taskTypeStr; // Renamed for clarity in the new method call
+        List<HousekeepingTask> tasks = DAOHousekeeping.INSTANCE.getTasks(
+                staffId, dateFrom, dateTo, statusStr, search, dbTaskType, sortBy, sortOrder, page, pageSize, null);
+        int totalTasks = DAOHousekeeping.INSTANCE.countTasks(staffId, dateFrom, dateTo, statusStr, search, dbTaskType,
+                null); // Pass null instead of creatorRoleIdStr);
+        int totalPages = (int) Math.ceil((double) totalTasks / pageSize);
+
+        // Get auxiliary data for filters
+        List<User> staffList = dao.getHousekeepingStaff();
+        // We might want rooms too if we filter by room, but search covers it.
+
+        request.setAttribute("tasks", tasks);
+        request.setAttribute("staffList", staffList);
+
+        String selectedStaffName = "";
+        if (staffId > 0) {
+            for (User u : staffList) {
+                if (u.getUserId() == staffId) {
+                    selectedStaffName = u.getFullName();
+                    break;
+                }
+            }
+        }
+        request.setAttribute("selectedStaffName", selectedStaffName);
+
+        // Set attributes for form retention
+        request.setAttribute("staffId", staffId);
+        request.setAttribute("dateFrom", dateFrom);
+        request.setAttribute("dateTo", dateTo);
+        request.setAttribute("status", statusStr);
+        request.setAttribute("type", taskTypeStr);
+        request.setAttribute("search", searchQuery);
+        request.setAttribute("sortBy", sortBy);
+        request.setAttribute("sortOrder", sortOrder);
+
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalTasks", totalTasks);
+        request.setAttribute("pageSize", pageSize);
+
+        request.getRequestDispatcher("/Views/Manager/AllTasks.jsp").forward(request, response);
     }
 }
