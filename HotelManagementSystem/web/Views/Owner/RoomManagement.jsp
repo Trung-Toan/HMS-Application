@@ -250,20 +250,16 @@
                                                         <td>${rt.maxOccupancy}</td>
                                                         <td>
                                                             <button type="button" class="btn btn-sm btn-outline-info"
-                                                                onclick="openAmenitiesModal(${rt.roomTypeId}, '<c:out value="
-                                                                ${rt.typeName}" />')">
-                                                            <i class="bi bi-box2"></i> Manage
+                                                                onclick="openAmenitiesModal(${rt.roomTypeId}, '${rt.typeName}')">
+                                                                <i class="bi bi-box2"></i> Manage
                                                             </button>
                                                         </td>
                                                         <!-- Actions -->
                                                         <td>
                                                             <button type="button"
                                                                 class="btn btn-sm btn-outline-primary me-1"
-                                                                onclick="openEditTypeModal(${rt.roomTypeId}, '<c:out value="
-                                                                ${rt.typeName}" />', '
-                                                            <c:out value="${rt.description}" />', ${rt.basePrice},
-                                                            ${rt.maxOccupancy})">
-                                                            <i class="bi bi-pencil"></i>
+                                                                onclick="openEditTypeModal(${rt.roomTypeId}, '${rt.typeName}', '${rt.description}', ${rt.basePrice}, ${rt.maxOccupancy})">
+                                                                <i class="bi bi-pencil"></i>
                                                             </button>
                                                             <!-- Delete Button -->
                                                             <form action="<c:url value='/owner/rooms'/>" method="post"

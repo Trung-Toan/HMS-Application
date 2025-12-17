@@ -431,9 +431,14 @@ public class OwnerController extends HttpServlet {
             rt.setBasePrice(new java.math.BigDecimal(request.getParameter("basePrice")));
             rt.setMaxOccupancy(Integer.parseInt(request.getParameter("maxOccupancy")));
 
-            DAOOwner.INSTANCE.createRoomType(rt);
-            request.getSession().setAttribute("notification",
-                    "success|Created room type '" + rt.getTypeName() + "' successfully!");
+            boolean success = DAOOwner.INSTANCE.createRoomType(rt);
+            if (success) {
+                request.getSession().setAttribute("notification",
+                        "success|Created room type '" + rt.getTypeName() + "' successfully!");
+            } else {
+                request.getSession().setAttribute("notification",
+                        "error|Failed to create room type. Please try again.");
+            }
         } catch (Exception e) {
             request.getSession().setAttribute("notification", "error|Failed to create room type: " + e.getMessage());
         }
@@ -686,9 +691,14 @@ public class OwnerController extends HttpServlet {
                 room.setImageUrl(String.join(";", imagePaths));
             }
 
-            DAOOwner.INSTANCE.createRoom(room);
-            request.getSession().setAttribute("notification",
-                    "success|Created room " + room.getRoomNumber() + " successfully!");
+            boolean success = DAOOwner.INSTANCE.createRoom(room);
+            if (success) {
+                request.getSession().setAttribute("notification",
+                        "success|Created room " + room.getRoomNumber() + " successfully!");
+            } else {
+                request.getSession().setAttribute("notification",
+                        "error|Failed to create room. Please try again.");
+            }
         } catch (Exception e) {
             e.printStackTrace();
             request.getSession().setAttribute("notification", "error|Failed to create room: " + e.getMessage());

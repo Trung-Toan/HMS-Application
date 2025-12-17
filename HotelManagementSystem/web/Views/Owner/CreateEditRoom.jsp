@@ -343,42 +343,74 @@
             <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
             <script>
-                function submitForm() {
-                    const form = document.getElementById('roomForm');
-
-                    // Client-side validation
-                    const roomNumber = form.querySelector('[name="roomNumber"]').value;
-                    const floor = form.querySelector('[name="floor"]').value;
-                    const typeId = form.querySelector('[name="roomTypeId"]').value;
-
-                    if (!roomNumber.trim()) {
-                        Swal.fire('Error', 'Please enter a Room Number', 'error');
-                        return;
-                    }
-                    if (!floor.trim()) {
-                        Swal.fire('Error', 'Please enter a Floor number', 'error');
-                        return;
-                    }
-                    if (!typeId) {
-                        Swal.fire('Error', 'Please select a Room Type', 'error');
-                        return;
-                    }
-
-                    // Confirm before submit
+                // Display error message if any
+                <c:if test="${not empty error}">
                     Swal.fire({
-                        title: 'Are you sure?',
-                        text: "Do you want to save these changes?",
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Yes, save it!'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            form.submit();
-                        }
+                        icon: 'error',
+                        title: 'Error',
+                        text: '${error}',
+                        showConfirmButton: true
                     });
+                </c:if>
+                
+                // Display notification from session
+                <%
+                    String notification = (String) session.getAttribute("notification");
+                if (notification != null && !notification.isEmpty()) {
+                    String[] parts = notification.split("\\|");
+                        String type = parts[0];
+                        String msg = parts.length > 1 ? parts[1] : "";
+                %>
+                        Swal.fire({
+                            icon: '<%= type %>',
+                            title: '<%= type.substring(0, 1).toUpperCase() + type.substring(1) %>',
+                            text: '<%= msg %>',
+                            timer: 3000,
+                            showConfirmButton: false
+                        });
+                <%
+                        session.removeAttribute("notification");
                 }
+                %>
+            </script>
+
+            <script>
+                    function submitForm() {
+                        const form = document.getElementById('roomForm');
+
+                        // Client-side validation
+                        const roomNumber = form.querySelector('[name="roomNumber"]').value;
+                        const floor = form.querySelector('[name="floor"]').value;
+                        const typeId = form.querySelector('[name="roomTypeId"]').value;
+
+                        if (!roomNumber.trim()) {
+                            Swal.fire('Error', 'Please enter a Room Number', 'error');
+                            return;
+                        }
+                        if (!floor.trim()) {
+                            Swal.fire('Error', 'Please enter a Floor number', 'error');
+                            return;
+                        }
+                        if (!typeId) {
+                            Swal.fire('Error', 'Please select a Room Type', 'error');
+                            return;
+                        }
+
+                        // Confirm before submit
+                        Swal.fire({
+                            title: 'Are you sure?',
+                            text: "Do you want to save these changes?",
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Yes, save it!'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                form.submit();
+                            }
+                        });
+                    }
 
                 function handleFileSelect(input) {
                     const container = document.getElementById('previewContainer');
