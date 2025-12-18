@@ -29,7 +29,7 @@ public class DAOReceptionist extends DAO {
                 + "JOIN rooms r ON b.room_id = r.room_id "
                 + "JOIN room_types rt ON r.room_type_id = rt.room_type_id "
                 + "WHERE b.status = 'PENDING' "
-                + "ORDER BY b.created_at ASC";
+                + "ORDER BY b.created_at DESC";
 
         try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {

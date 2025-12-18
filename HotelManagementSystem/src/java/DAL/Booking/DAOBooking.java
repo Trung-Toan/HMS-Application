@@ -20,27 +20,50 @@ public class DAOBooking extends DAO {
     // Create Booking
     // ======================================================
     public boolean createBooking(Booking booking) {
-        String sql = "INSERT INTO bookings (customer_id, room_id, checkin_date, checkout_date, num_guests, status, total_amount, created_by, created_at) "
+        String insertSql = "INSERT INTO bookings (customer_id, room_id, checkin_date, checkout_date, num_guests, status, total_amount, created_by, created_at) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+        String updateRoomSql = "UPDATE rooms SET status = 'BOOKED' WHERE room_id = ?";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, booking.getCustomerId());
-            ps.setInt(2, booking.getRoomId());
-            ps.setDate(3, Date.valueOf(booking.getCheckinDate()));
-            ps.setDate(4, Date.valueOf(booking.getCheckoutDate()));
-            ps.setInt(5, booking.getNumGuests());
-            ps.setString(6, booking.getStatus().name());
-            ps.setBigDecimal(7, booking.getTotalAmount());
-            if (booking.getCreatedBy() != null) {
-                ps.setInt(8, booking.getCreatedBy());
-            } else {
-                ps.setNull(8, Types.INTEGER);
+        try {
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement ps = connection.prepareStatement(insertSql)) {
+                ps.setInt(1, booking.getCustomerId());
+                ps.setInt(2, booking.getRoomId());
+                ps.setDate(3, Date.valueOf(booking.getCheckinDate()));
+                ps.setDate(4, Date.valueOf(booking.getCheckoutDate()));
+                ps.setInt(5, booking.getNumGuests());
+                ps.setString(6, booking.getStatus().name());
+                ps.setBigDecimal(7, booking.getTotalAmount());
+                if (booking.getCreatedBy() != null) {
+                    ps.setInt(8, booking.getCreatedBy());
+                } else {
+                    ps.setNull(8, Types.INTEGER);
+                }
+                ps.executeUpdate();
             }
 
-            return ps.executeUpdate() > 0;
+            try (PreparedStatement ps = connection.prepareStatement(updateRoomSql)) {
+                ps.setInt(1, booking.getRoomId());
+                ps.executeUpdate();
+            }
+
+            connection.commit();
+            return true;
 
         } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
             e.printStackTrace();
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
         return false;
     }
@@ -310,13 +333,19 @@ public class DAOBooking extends DAO {
     // Get all bookings for a specific customer (newest first)
     public List<Booking> getBookingsByCustomerId(int customerId) {
         List<Booking> list = new ArrayList<>();
-        String sql = "SELECT * FROM bookings WHERE customer_id = ? ORDER BY created_at DESC";
+        String sql = "SELECT b.*, c.full_name as customer_name, c.email as customer_email, " +
+                "r.room_number, rt.type_name, r.room_type_id " +
+                "FROM bookings b " +
+                "JOIN users c ON b.customer_id = c.user_id " +
+                "JOIN rooms r ON b.room_id = r.room_id " +
+                "JOIN room_types rt ON r.room_type_id = rt.room_type_id " +
+                "WHERE b.customer_id = ? ORDER BY b.created_at DESC";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, customerId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    list.add(mapBooking(rs));
+                    list.add(mapBookingWithDetails(rs));
                 }
             }
         } catch (SQLException e) {
