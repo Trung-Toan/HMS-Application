@@ -20,27 +20,50 @@ public class DAOBooking extends DAO {
     // Create Booking
     // ======================================================
     public boolean createBooking(Booking booking) {
-        String sql = "INSERT INTO bookings (customer_id, room_id, checkin_date, checkout_date, num_guests, status, total_amount, created_by, created_at) "
+        String insertSql = "INSERT INTO bookings (customer_id, room_id, checkin_date, checkout_date, num_guests, status, total_amount, created_by, created_at) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+        String updateRoomSql = "UPDATE rooms SET status = 'BOOKED' WHERE room_id = ?";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, booking.getCustomerId());
-            ps.setInt(2, booking.getRoomId());
-            ps.setDate(3, Date.valueOf(booking.getCheckinDate()));
-            ps.setDate(4, Date.valueOf(booking.getCheckoutDate()));
-            ps.setInt(5, booking.getNumGuests());
-            ps.setString(6, booking.getStatus().name());
-            ps.setBigDecimal(7, booking.getTotalAmount());
-            if (booking.getCreatedBy() != null) {
-                ps.setInt(8, booking.getCreatedBy());
-            } else {
-                ps.setNull(8, Types.INTEGER);
+        try {
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement ps = connection.prepareStatement(insertSql)) {
+                ps.setInt(1, booking.getCustomerId());
+                ps.setInt(2, booking.getRoomId());
+                ps.setDate(3, Date.valueOf(booking.getCheckinDate()));
+                ps.setDate(4, Date.valueOf(booking.getCheckoutDate()));
+                ps.setInt(5, booking.getNumGuests());
+                ps.setString(6, booking.getStatus().name());
+                ps.setBigDecimal(7, booking.getTotalAmount());
+                if (booking.getCreatedBy() != null) {
+                    ps.setInt(8, booking.getCreatedBy());
+                } else {
+                    ps.setNull(8, Types.INTEGER);
+                }
+                ps.executeUpdate();
             }
 
-            return ps.executeUpdate() > 0;
+            try (PreparedStatement ps = connection.prepareStatement(updateRoomSql)) {
+                ps.setInt(1, booking.getRoomId());
+                ps.executeUpdate();
+            }
+
+            connection.commit();
+            return true;
 
         } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
             e.printStackTrace();
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
         return false;
     }
