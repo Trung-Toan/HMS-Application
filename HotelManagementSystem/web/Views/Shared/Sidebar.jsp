@@ -91,13 +91,13 @@
                                         <span>Inspections</span>
                                     </a>
                                 </li>
-                                <li class="nav-item">
+<!--                                <li class="nav-item">
                                     <a href="<c:url value='/manager/replenishment-requests'/>"
                                         class="nav-link ${pageContext.request.servletPath.endsWith('ReplenishmentRequests.jsp') ? 'active' : ''}">
                                         <i class="bi bi-box-seam"></i>
                                         <span>Replenishment</span>
                                     </a>
-                                </li>
+                                </li>-->
                                 <li class="nav-item">
                                     <a href="<c:url value='/manager/create-task'/>"
                                         class="nav-link ${pageContext.request.servletPath.endsWith('CreateTask.jsp') ? 'active' : ''}">
@@ -154,13 +154,13 @@
                                         </a>
                                     </li>
 
-                                    <li class="nav-item">
+<!--                                    <li class="nav-item">
                                         <a href="<c:url value='/housekeeping/supplies'/>"
                                             class="nav-link ${pageContext.request.servletPath.endsWith('Supplies.jsp') ? 'active' : ''}">
                                             <i class="bi bi-box-seam"></i>
                                             <span>Supplies</span>
                                         </a>
-                                    </li>
+                                    </li>-->
                                     <li class="nav-item">
                                         <a href="<c:url value='/housekeeping/history'/>"
                                             class="nav-link ${pageContext.request.servletPath.endsWith('TaskHistory.jsp') ? 'active' : ''}">
