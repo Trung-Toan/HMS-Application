@@ -185,10 +185,19 @@
                                                 href="?page=${currentPage - 1}&search=${search}&status=${status}&dateFrom=${dateFrom}&dateTo=${dateTo}&sortBy=${sortBy}&type=${param.type}">Previous</a>
                                         </li>
                                         <c:forEach begin="1" end="${totalPages}" var="p">
-                                            <li class="page-item ${currentPage == p ? 'active' : ''}">
-                                                <a class="page-link"
-                                                    href="?page=${p}&search=${search}&status=${status}&dateFrom=${dateFrom}&dateTo=${dateTo}&sortBy=${sortBy}&type=${param.type}">${p}</a>
-                                            </li>
+                                            <c:if
+                                                test="${p == 1 || p == totalPages || (p >= currentPage - 2 && p <= currentPage + 2)}">
+                                                <li class="page-item ${currentPage == p ? 'active' : ''}">
+                                                    <a class="page-link"
+                                                        href="?page=${p}&search=${search}&status=${status}&dateFrom=${dateFrom}&dateTo=${dateTo}&sortBy=${sortBy}&type=${param.type}">${p}</a>
+                                                </li>
+                                            </c:if>
+                                            <c:if test="${p == 2 && currentPage > 4}">
+                                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                                            </c:if>
+                                            <c:if test="${p == totalPages - 1 && currentPage < totalPages - 3}">
+                                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                                            </c:if>
                                         </c:forEach>
                                         <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
                                             <a class="page-link"

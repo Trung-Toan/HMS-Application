@@ -19,6 +19,9 @@
                     <ul class="header-nav" id="main-nav">
                         <li><a href="${pageContext.request.contextPath}/rooms">Rooms</a></li>
                         <li><a href="${pageContext.request.contextPath}/my_booking">My Booking</a></li>
+                        <c:if test="${not empty sessionScope.currentUser}">
+                            <li><a href="${pageContext.request.contextPath}/wallet">💎 Luxe Wallet</a></li>
+                        </c:if>
                         <li><a href="${pageContext.request.contextPath}/customer/amenities">Room Amenities</a></li>
 
                         <c:if test="${not empty sessionScope.currentUser}">
@@ -45,7 +48,7 @@
                                 <div class="header-user" id="user-menu-trigger">
                                     <div class="user-avatar">${sessionScope.currentUser.fullName.substring(0,
                                         1).toUpperCase()}</div>
-                                    <span class="user-name">Xin chào, ${sessionScope.currentUser.fullName}</span>
+                                    <span class="user-name">Hello, ${sessionScope.currentUser.fullName}</span>
                                     <svg class="dropdown-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
                                         xmlns="http://www.w3.org/2000/svg">
                                         <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2"
@@ -68,10 +71,10 @@
             </header>
 
             <script>
-                // Đợi DOM load xong
+                // Wait for DOM to load
                 document.addEventListener('DOMContentLoaded', function () {
 
-                    // Xử lý menu toggle cho mobile
+                    // Handle menu toggle for mobile
                     const menuToggle = document.querySelector('.menu-toggle');
                     const mainNav = document.getElementById('main-nav');
 
@@ -83,26 +86,26 @@
                         });
                     }
 
-                    // Xử lý dropdown menu cho user
+                    // Handle dropdown menu for user
                     const userMenuTrigger = document.getElementById('user-menu-trigger');
                     const userDropdown = document.getElementById('user-dropdown');
 
                     if (userMenuTrigger && userDropdown) {
-                        // Click vào user menu để toggle dropdown
+                        // Click on user menu to toggle dropdown
                         userMenuTrigger.addEventListener('click', function (e) {
                             e.preventDefault();
                             e.stopPropagation();
                             userDropdown.classList.toggle('show');
                         });
 
-                        // Click ra ngoài để đóng dropdown
+                        // Click outside to close dropdown
                         document.addEventListener('click', function (e) {
                             if (!userMenuTrigger.contains(e.target)) {
                                 userDropdown.classList.remove('show');
                             }
                         });
 
-                        // Ngăn dropdown đóng khi click vào nó
+                        // Prevent dropdown from closing when clicking inside it
                         userDropdown.addEventListener('click', function (e) {
                             e.stopPropagation();
                         });

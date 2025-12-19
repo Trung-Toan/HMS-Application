@@ -37,6 +37,50 @@
                         <jsp:include page="../public/notify.jsp" />
 
                         <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-white py-3">
+                                <form action="<c:url value='/admin/amenities'/>" method="get">
+                                    <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text bg-light border-end-0"><i
+                                                        class="bi bi-search"></i></span>
+                                                <input type="text" name="search" class="form-control border-start-0"
+                                                    placeholder="Search amenity..." value="${search}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select name="status" class="form-select form-select-sm">
+                                                <option value="">All Status</option>
+                                                <option value="true" ${status=='true' ? 'selected' : '' }>Active
+                                                </option>
+                                                <option value="false" ${status=='false' ? 'selected' : '' }>Inactive
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select name="sortBy" class="form-select form-select-sm">
+                                                <option value="amenity_id" ${sortBy=='amenity_id' ? 'selected' : '' }>
+                                                    Sort by ID</option>
+                                                <option value="name" ${sortBy=='name' ? 'selected' : '' }>Sort by Name
+                                                </option>
+                                                <option value="price" ${sortBy=='price' ? 'selected' : '' }>Sort by
+                                                    Price</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select name="sortOrder" class="form-select form-select-sm">
+                                                <option value="ASC" ${sortOrder=='ASC' ? 'selected' : '' }>Ascending
+                                                </option>
+                                                <option value="DESC" ${sortOrder=='DESC' ? 'selected' : '' }>Descending
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="submit" class="btn btn-sm btn-primary w-100">Filter</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
                                     <table class="table table-hover align-middle mb-0">
@@ -51,6 +95,14 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            <c:if test="${empty amenities}">
+                                                <tr>
+                                                    <td colspan="6" class="text-center py-5 text-muted">
+                                                        <i class="bi bi-box fs-1 d-block mb-2"></i>
+                                                        No amenities found.
+                                                    </td>
+                                                </tr>
+                                            </c:if>
                                             <c:forEach items="${amenities}" var="a">
                                                 <tr>
                                                     <td class="ps-4">#${a.amenityId}</td>
@@ -81,6 +133,30 @@
                                         </tbody>
                                     </table>
                                 </div>
+                            </div>
+                            <div class="card-footer bg-white py-3">
+                                <nav class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">Showing ${amenities.size()} of ${totalAmenities}
+                                        amenities</small>
+                                    <c:if test="${totalPages > 1}">
+                                        <ul class="pagination pagination-sm mb-0">
+                                            <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                                <a class="page-link"
+                                                    href="?page=${currentPage - 1}&search=${search}&status=${status}&sortBy=${sortBy}&sortOrder=${sortOrder}">Previous</a>
+                                            </li>
+                                            <c:forEach begin="1" end="${totalPages}" var="p">
+                                                <li class="page-item ${currentPage == p ? 'active' : ''}">
+                                                    <a class="page-link"
+                                                        href="?page=${p}&search=${search}&status=${status}&sortBy=${sortBy}&sortOrder=${sortOrder}">${p}</a>
+                                                </li>
+                                            </c:forEach>
+                                            <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                                <a class="page-link"
+                                                    href="?page=${currentPage + 1}&search=${search}&status=${status}&sortBy=${sortBy}&sortOrder=${sortOrder}">Next</a>
+                                            </li>
+                                        </ul>
+                                    </c:if>
+                                </nav>
                             </div>
                         </div>
                     </div>

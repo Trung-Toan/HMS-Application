@@ -18,7 +18,6 @@
                         <div class="header-right">
                             <div class="nav-links">
                                 <a href="${pageContext.request.contextPath}/receptionist/dashboard">Dashboard</a>
-                                <a href="${pageContext.request.contextPath}/reservation_approval">Approvals</a>
                                 <a href="${pageContext.request.contextPath}/receptionist/reservations">Reservations</a>
                                 <a href="${pageContext.request.contextPath}/receptionist/checkinout"
                                     class="active">Check-in/out</a>

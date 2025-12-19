@@ -20,7 +20,7 @@
                             <div class="nav-links">
                                 <a href="${pageContext.request.contextPath}/receptionist/dashboard"
                                     class="active">Dashboard</a>
-                                <a href="${pageContext.request.contextPath}/reservation_approval">Approvals</a>
+                                <!-- Removed Approvals link -->
                                 <a href="${pageContext.request.contextPath}/receptionist/reservations">Reservations</a>
                                 <a href="${pageContext.request.contextPath}/receptionist/checkinout">Check-in/out</a>
                                 <a href="${pageContext.request.contextPath}/receptionist/room-status">Rooms</a>
@@ -68,10 +68,8 @@
                             <h2>⚡ Quick Actions</h2>
                             <div
                                 style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
-                                <a href="${pageContext.request.contextPath}/reservation_approval"
-                                    class="btn btn-primary">
-                                    ✓ Approve Reservations
-                                </a>
+                                <!-- Removed Approvals link -->
+
                                 <a href="${pageContext.request.contextPath}/receptionist/reservations"
                                     class="btn btn-primary"
                                     style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">

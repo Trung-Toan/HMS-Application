@@ -30,8 +30,11 @@ public class DAOHousekeeping extends DAO {
     // ======================================================
     public List<Room> getAllRooms() {
         List<Room> list = new ArrayList<>();
-        String sql = "SELECT r.*, rt.type_name FROM rooms r " +
-                "JOIN room_types rt ON r.room_type_id = rt.room_type_id";
+        String sql = "SELECT r.*, rt.type_name, "
+                + "(SELECT status FROM room_status_periods rsp WHERE rsp.room_id = r.room_id AND CURRENT_DATE >= rsp.start_date AND CURRENT_DATE < rsp.end_date LIMIT 1) as period_status "
+                + "FROM rooms r "
+                + "JOIN room_types rt ON r.room_type_id = rt.room_type_id "
+                + "ORDER BY r.room_number";
 
         try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
@@ -42,7 +45,14 @@ public class DAOHousekeeping extends DAO {
                 r.setRoomTypeId(rs.getInt("room_type_id"));
                 r.setRoomTypeName(rs.getString("type_name"));
                 r.setFloor((Integer) rs.getInt("floor"));
-                r.setStatus(rs.getString("status"));
+
+                String periodStatus = rs.getString("period_status");
+                if (periodStatus != null && !periodStatus.isBlank()) {
+                    r.setStatus(periodStatus);
+                } else {
+                    r.setStatus(rs.getString("status"));
+                }
+
                 r.setImageUrl(rs.getString("image_url"));
                 r.setDescription(rs.getString("description"));
                 r.setActive(rs.getBoolean("is_active"));
@@ -581,6 +591,63 @@ public class DAOHousekeeping extends DAO {
     // ======================================================
     // Issue Report – SUPPLY / EQUIPMENT
     // ======================================================
+    // ======================================================
+    // Auto Assign Task Logic
+    // ======================================================
+    public int getLeastLoadedHousekeeperId() {
+        // Return staff with lowest count of ACTIVE tasks (NEW, IN_PROGRESS)
+        // Role ID 3 = Housekeeping (based on getHousekeepingStaff)
+        String sql = "SELECT u.user_id, COUNT(t.task_id) as task_count "
+                + "FROM users u "
+                + "LEFT JOIN housekeeping_tasks t ON u.user_id = t.assigned_to "
+                + "AND t.status IN ('NEW', 'IN_PROGRESS') "
+                + "WHERE u.role_id = 3 AND u.is_active = TRUE "
+                + "GROUP BY u.user_id "
+                + "ORDER BY task_count ASC, u.user_id ASC LIMIT 1";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt("user_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1; // No staff found
+    }
+
+    public boolean autoAssignTask(int bookingId, TaskType taskType, String stageStr, LocalDate scheduledDate) {
+        int staffId = getLeastLoadedHousekeeperId();
+        if (staffId == -1) {
+            System.out.println("Auto-assign failed: No housekeeping staff available.");
+            return false;
+        }
+
+        // Get Booking to find roomId
+        // Using DAOBooking might cause circular dependency?
+        // Querying roomId directly is safer here to avoid loop if DAOBooking calls
+        // this.
+        int roomId = -1;
+        String sqlRoom = "SELECT room_id FROM bookings WHERE booking_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sqlRoom)) {
+            ps.setInt(1, bookingId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    roomId = rs.getInt("room_id");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        if (roomId == -1)
+            return false;
+
+        String note = "[" + stageStr + "] " + taskType.name() + " for Booking #" + bookingId + " (Auto-assigned)";
+
+        return createTask(roomId, staffId, scheduledDate, taskType, note, 1);
+    }
+
     public boolean createIssueReport(int roomId,
             int reportedBy,
             IssueType issueType,
@@ -605,16 +672,53 @@ public class DAOHousekeeping extends DAO {
     // ======================================================
     // Create Task (New)
     // ======================================================
-    public List<Model.IssueReport> getIssuesByReporter(int staffId) {
+    public List<Model.IssueReport> getIssuesByReporter(int staffId, String search, String status, String type,
+            String sortBy, int page, int pageSize) {
         List<Model.IssueReport> list = new ArrayList<>();
-        String sql = "SELECT ir.*, r.room_number " +
-                "FROM issue_reports ir " +
-                "LEFT JOIN rooms r ON ir.room_id = r.room_id " +
-                "WHERE ir.reported_by = ? " +
-                "ORDER BY ir.created_at DESC";
+        StringBuilder sql = new StringBuilder(
+                "SELECT ir.*, r.room_number FROM issue_reports ir LEFT JOIN rooms r ON ir.room_id = r.room_id WHERE ir.reported_by = ? ");
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, staffId);
+        List<Object> params = new ArrayList<>();
+        params.add(staffId);
+
+        if (search != null && !search.isBlank()) {
+            sql.append("AND (ir.description LIKE ? OR r.room_number LIKE ?) ");
+            String query = "%" + search + "%";
+            params.add(query);
+            params.add(query);
+        }
+
+        if (status != null && !status.isBlank()) {
+            sql.append("AND ir.status = ? ");
+            params.add(status);
+        }
+
+        if (type != null && !type.isBlank()) {
+            sql.append("AND ir.issue_type = ? ");
+            params.add(type);
+        }
+
+        // Sorting
+        sql.append("ORDER BY ");
+        if (sortBy != null) {
+            switch (sortBy) {
+                case "room_id" -> sql.append("ir.room_id ASC, ir.created_at DESC ");
+                case "status" -> sql.append("ir.status ASC, ir.created_at DESC ");
+                default -> sql.append("ir.created_at DESC ");
+            }
+        } else {
+            sql.append("ir.created_at DESC ");
+        }
+
+        // Pagination
+        sql.append("LIMIT ? OFFSET ? ");
+        params.add(pageSize);
+        params.add((page - 1) * pageSize);
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Model.IssueReport i = new Model.IssueReport();
@@ -646,6 +750,48 @@ public class DAOHousekeeping extends DAO {
             e.printStackTrace();
         }
         return list;
+    }
+
+    public int countIssuesByReporter(int staffId, String search, String status, String type) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM issue_reports ir LEFT JOIN rooms r ON ir.room_id = r.room_id WHERE ir.reported_by = ? ");
+        List<Object> params = new ArrayList<>();
+        params.add(staffId);
+
+        if (search != null && !search.isBlank()) {
+            sql.append("AND (ir.description LIKE ? OR r.room_number LIKE ?) ");
+            String query = "%" + search + "%";
+            params.add(query);
+            params.add(query);
+        }
+
+        if (status != null && !status.isBlank()) {
+            sql.append("AND ir.status = ? ");
+            params.add(status);
+        }
+
+        if (type != null && !type.isBlank()) {
+            sql.append("AND ir.issue_type = ? ");
+            params.add(type);
+        }
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public List<Model.IssueReport> getIssuesByReporter(int staffId) {
+        return getIssuesByReporter(staffId, null, null, null, null, 1, 1000); // Backwards compatibility wrapper
     }
 
     public boolean createTask(int roomId,
@@ -1128,5 +1274,140 @@ public class DAOHousekeeping extends DAO {
             e.printStackTrace();
         }
         return list;
+    }
+
+    public List<HousekeepingTask> getStaffAssignments(int staffId, LocalDate dateFrom, LocalDate dateTo, String status,
+            String taskType,
+            String search, String sortBy, String sortOrder, int page, int pageSize) {
+        List<HousekeepingTask> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT t.*, r.room_number, u.full_name as assigned_to_name ");
+        sql.append("FROM housekeeping_tasks t ");
+        sql.append("JOIN rooms r ON t.room_id = r.room_id ");
+        sql.append("LEFT JOIN users u ON t.assigned_to = u.user_id ");
+        sql.append("WHERE t.assigned_to = ? ");
+
+        if (status != null && !status.isBlank()) {
+            sql.append("AND t.status = ? ");
+        } else {
+            sql.append("AND t.status != 'DONE' ");
+        }
+
+        if (taskType != null && !taskType.isBlank()) {
+            sql.append("AND t.task_type = ? ");
+        }
+
+        if (dateFrom != null)
+            sql.append("AND t.task_date >= ? ");
+        if (dateTo != null)
+            sql.append("AND t.task_date <= ? ");
+
+        if (search != null && !search.isBlank()) {
+            sql.append("AND (t.note LIKE ? OR r.room_number LIKE ?) ");
+        }
+
+        // Sorting
+        if (sortBy == null || sortBy.isBlank())
+            sortBy = "task_date";
+        if (sortOrder == null || sortOrder.isBlank())
+            sortOrder = "DESC";
+
+        String dbSort = switch (sortBy) {
+            case "roomId" -> "t.room_id";
+            case "status" -> "t.status";
+            default -> "t.task_date";
+        };
+
+        sql.append("ORDER BY ").append(dbSort).append(" ").append("DESC".equalsIgnoreCase(sortOrder) ? "DESC" : "ASC")
+                .append(", t.task_id DESC ");
+
+        if (page > 0 && pageSize > 0) {
+            sql.append("LIMIT ? OFFSET ?");
+        }
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            int idx = 1;
+            ps.setInt(idx++, staffId);
+
+            if (status != null && !status.isBlank()) {
+                ps.setString(idx++, status);
+            }
+            if (taskType != null && !taskType.isBlank()) {
+                ps.setString(idx++, taskType);
+            }
+            if (dateFrom != null)
+                ps.setDate(idx++, Date.valueOf(dateFrom));
+            if (dateTo != null)
+                ps.setDate(idx++, Date.valueOf(dateTo));
+            if (search != null && !search.isBlank()) {
+                ps.setString(idx++, "%" + search + "%");
+                ps.setString(idx++, "%" + search + "%");
+            }
+            if (page > 0 && pageSize > 0) {
+                ps.setInt(idx++, pageSize);
+                ps.setInt(idx++, (page - 1) * pageSize);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapTaskWithDetails(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public int countStaffAssignments(int staffId, LocalDate dateFrom, LocalDate dateTo, String status, String taskType,
+            String search) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM housekeeping_tasks t JOIN rooms r ON t.room_id = r.room_id WHERE t.assigned_to = ? ");
+
+        if (status != null && !status.isBlank()) {
+            sql.append("AND t.status = ? ");
+        } else {
+            sql.append("AND t.status != 'DONE' ");
+        }
+
+        if (taskType != null && !taskType.isBlank()) {
+            sql.append("AND t.task_type = ? ");
+        }
+
+        if (dateFrom != null)
+            sql.append("AND t.task_date >= ? ");
+        if (dateTo != null)
+            sql.append("AND t.task_date <= ? ");
+
+        if (search != null && !search.isBlank()) {
+            sql.append("AND (t.note LIKE ? OR r.room_number LIKE ?) ");
+        }
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            int idx = 1;
+            ps.setInt(idx++, staffId);
+
+            if (status != null && !status.isBlank()) {
+                ps.setString(idx++, status);
+            }
+            if (taskType != null && !taskType.isBlank()) {
+                ps.setString(idx++, taskType);
+            }
+            if (dateFrom != null)
+                ps.setDate(idx++, Date.valueOf(dateFrom));
+            if (dateTo != null)
+                ps.setDate(idx++, Date.valueOf(dateTo));
+            if (search != null && !search.isBlank()) {
+                ps.setString(idx++, "%" + search + "%");
+                ps.setString(idx++, "%" + search + "%");
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next())
+                    return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }

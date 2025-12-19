@@ -245,16 +245,12 @@ public class HousekeepingController extends HttpServlet {
         } catch (NumberFormatException e) {
         }
 
-        // Map UI type to DB type logic
-        String dbTaskType = type;
-        if ("INSPECTION".equals(type)) {
-            dbTaskType = "INSPECTION_ALL"; // Special flag for DAO to get INSPECTION, CHECKIN, CHECKOUT
-        }
-
-        List<HousekeepingTask> tasks = DAOHousekeeping.INSTANCE.getTasks(
-                staffId, dateFrom, dateTo, statusStr, search, dbTaskType, sortBy, sortOrder, page, pageSize, 6);
-        int totalTasks = DAOHousekeeping.INSTANCE.countTasks(staffId, dateFrom, dateTo, statusStr, search, dbTaskType,
-                6);
+        // Use dedicated methods for My Tasks (Assignments) to ensure consistent
+        // pagination/filtering
+        List<HousekeepingTask> tasks = DAOHousekeeping.INSTANCE.getStaffAssignments(
+                staffId, dateFrom, dateTo, statusStr, type, search, sortBy, sortOrder, page, pageSize);
+        int totalTasks = DAOHousekeeping.INSTANCE.countStaffAssignments(
+                staffId, dateFrom, dateTo, statusStr, type, search);
         int totalPages = (int) Math.ceil((double) totalTasks / pageSize);
 
         request.setAttribute("tasks", tasks);
@@ -576,9 +572,41 @@ public class HousekeepingController extends HttpServlet {
     private void showMyIssues(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         User currentUser = (User) request.getSession().getAttribute("currentUser");
-        List<Model.IssueReport> myIssues = DAOHousekeeping.INSTANCE.getIssuesByReporter(currentUser.getUserId());
+
+        String pageStr = request.getParameter("page");
+        String search = request.getParameter("search");
+        String status = request.getParameter("status");
+        String type = request.getParameter("type");
+        String sortBy = request.getParameter("sortBy");
+
+        int page = 1;
+        int pageSize = 10;
+        try {
+            if (pageStr != null && !pageStr.isBlank()) {
+                page = Integer.parseInt(pageStr);
+                if (page < 1)
+                    page = 1;
+            }
+        } catch (NumberFormatException e) {
+            page = 1;
+        }
+
+        List<Model.IssueReport> myIssues = DAOHousekeeping.INSTANCE.getIssuesByReporter(
+                currentUser.getUserId(), search, status, type, sortBy, page, pageSize);
+        int totalIssues = DAOHousekeeping.INSTANCE.countIssuesByReporter(
+                currentUser.getUserId(), search, status, type);
+        int totalPages = (int) Math.ceil((double) totalIssues / pageSize);
 
         request.setAttribute("issues", myIssues);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalIssues", totalIssues);
+
+        request.setAttribute("search", search);
+        request.setAttribute("status", status);
+        request.setAttribute("type", type);
+        request.setAttribute("sortBy", sortBy);
+
         request.getRequestDispatcher("/Views/Housekeeping/MyIssueList.jsp").forward(request, response);
     }
 

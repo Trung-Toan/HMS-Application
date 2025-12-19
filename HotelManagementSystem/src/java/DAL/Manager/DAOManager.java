@@ -53,6 +53,101 @@ public class DAOManager extends DAO {
         return list;
     }
 
+    public List<IssueReport> getIssues(String search, String status, String type, String sortBy, int page,
+            int pageSize) {
+        List<IssueReport> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(
+                "SELECT ir.*, r.room_number FROM issue_reports ir LEFT JOIN rooms r ON ir.room_id = r.room_id WHERE 1=1 ");
+
+        List<Object> params = new ArrayList<>();
+
+        if (search != null && !search.isBlank()) {
+            sql.append("AND (ir.description LIKE ? OR r.room_number LIKE ?) ");
+            String query = "%" + search + "%";
+            params.add(query);
+            params.add(query);
+        }
+
+        if (status != null && !status.isBlank()) {
+            sql.append("AND ir.status = ? ");
+            params.add(status);
+        }
+
+        if (type != null && !type.isBlank()) {
+            sql.append("AND ir.issue_type = ? ");
+            params.add(type);
+        }
+
+        // Sorting
+        if (sortBy != null) {
+            switch (sortBy) {
+                case "room_id" -> sql.append("ORDER BY ir.room_id ASC ");
+                case "priority" -> sql.append("ORDER BY ir.status ASC "); // Mapping priority to status for now
+                default -> sql.append("ORDER BY ir.created_at DESC ");
+            }
+        } else {
+            sql.append("ORDER BY ir.created_at DESC ");
+        }
+
+        // Pagination
+        sql.append("LIMIT ? OFFSET ? ");
+        params.add(pageSize);
+        params.add((page - 1) * pageSize);
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    IssueReport issue = mapIssue(rs);
+                    issue.setRoomNumber(rs.getString("room_number"));
+                    list.add(issue);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public int countIssues(String search, String status, String type) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM issue_reports ir LEFT JOIN rooms r ON ir.room_id = r.room_id WHERE 1=1 ");
+        List<Object> params = new ArrayList<>();
+
+        if (search != null && !search.isBlank()) {
+            sql.append("AND (ir.description LIKE ? OR r.room_number LIKE ?) ");
+            String query = "%" + search + "%";
+            params.add(query);
+            params.add(query);
+        }
+
+        if (status != null && !status.isBlank()) {
+            sql.append("AND ir.status = ? ");
+            params.add(status);
+        }
+
+        if (type != null && !type.isBlank()) {
+            sql.append("AND ir.issue_type = ? ");
+            params.add(type);
+        }
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     public boolean updateIssueStatus(int issueId, IssueStatus newStatus) {
         String sql = "UPDATE issue_reports SET status = ?, updated_at = NOW() WHERE issue_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

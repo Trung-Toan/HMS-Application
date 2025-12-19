@@ -102,13 +102,37 @@
                                                     <div class="detail-label">Payment</div>
                                                     <div class="detail-value">
                                                         <c:choose>
-                                                            <c:when test="${booking.status == 'PENDING'}">Unpaid
+                                                            <c:when test="${booking.status == 'PENDING'}">
+                                                                <span style="color: #dc3545;">⏳ Pending payment</span>
                                                             </c:when>
-                                                            <c:otherwise>Paid</c:otherwise>
+                                                            <c:when
+                                                                test="${booking.status == 'CONFIRMED' || booking.status == 'CHECKED_IN' || booking.status == 'CHECKED_OUT'}">
+                                                                <span style="color: #28a745;">✓ Paid</span>
+                                                            </c:when>
+                                                            <c:when test="${booking.status == 'CANCELLED'}">
+                                                                <span style="color: #6c757d;">Cancelled</span>
+                                                            </c:when>
+                                                            <c:otherwise>-</c:otherwise>
                                                         </c:choose>
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            <!-- Payment Warning for PENDING bookings -->
+                                            <c:if test="${booking.status == 'PENDING'}">
+                                                <div class="payment-warning"
+                                                    style="background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%); border-left: 4px solid #ffc107; padding: 12px 15px; margin-top: 15px; border-radius: 8px; display: flex; align-items: center; gap: 10px;">
+                                                    <span style="font-size: 24px;">⚠️</span>
+                                                    <div>
+                                                        <strong style="color: #856404;">Not paid yet!</strong>
+                                                        <div style="font-size: 13px; color: #856404;">
+                                                            Please pay within <strong class="countdown"
+                                                                data-created="${booking.createdAt}">12:00:00</strong> to
+                                                            confirm your booking.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </c:if>
                                         </div>
                                         <div class="booking-card-footer">
                                             <button class="btn btn-primary" onclick="viewDetails(this)"
@@ -123,21 +147,31 @@
                                                 Details
                                             </button>
 
-                                            <!-- Cancel button for PENDING -->
+                                            <!-- Pay Now button for PENDING -->
                                             <c:if test="${booking.status == 'PENDING'}">
+                                                <a href="${pageContext.request.contextPath}/payment?bookingId=${booking.bookingId}"
+                                                    class="btn btn-success"
+                                                    style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border: none; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+                                                    💳 Pay now
+                                                </a>
+                                            </c:if>
+
+                                            <!-- Cancel button for PENDING and CONFIRMED -->
+                                            <c:if
+                                                test="${booking.status == 'PENDING' || booking.status == 'CONFIRMED'}">
                                                 <button class="btn btn-danger"
                                                     onclick="openCancelModal(${booking.bookingId})">
-                                                    Cancel Booking
+                                                    Cancel booking
                                                 </button>
                                             </c:if>
 
-                                            <!-- Review/Feedback button for CONFIRMED, CHECKED_IN, CHECKED_OUT -->
+                                            <!-- Review/Feedback button for CHECKED_IN, CHECKED_OUT -->
                                             <c:if
-                                                test="${booking.status == 'CONFIRMED' || booking.status == 'CHECKED_IN' || booking.status == 'CHECKED_OUT'}">
+                                                test="${booking.status == 'CHECKED_IN' || booking.status == 'CHECKED_OUT'}">
                                                 <button class="btn btn-secondary" onclick="openReviewModal(this)"
                                                     data-id="${booking.bookingId}"
                                                     data-room="Room ${booking.room.roomNumber}">
-                                                    Leave Review
+                                                    Review
                                                 </button>
                                             </c:if>
                                         </div>
@@ -497,6 +531,57 @@
                                     if (event.target == detailModal)
                                         closeBookingDetail();
                                 }
+
+                                // 12-hour countdown timer for pending payments
+                                function updateCountdowns() {
+                                    const countdowns = document.querySelectorAll('.countdown');
+                                    const PAYMENT_WINDOW_HOURS = 12;
+
+                                    countdowns.forEach(countdown => {
+                                        const createdAtStr = countdown.dataset.created;
+                                        if (!createdAtStr) return;
+
+                                        // Parse the created timestamp
+                                        const createdAt = new Date(createdAtStr.replace(' ', 'T'));
+                                        const deadline = new Date(createdAt.getTime() + (PAYMENT_WINDOW_HOURS * 60 * 60 * 1000));
+                                        const now = new Date();
+
+                                        const diff = deadline - now;
+
+                                        if (diff <= 0) {
+                                            countdown.innerHTML = '<span style="color: #dc3545;">Expired!</span>';
+                                            countdown.style.color = '#dc3545';
+                                            // Optionally disable the pay button
+                                            const card = countdown.closest('.booking-card');
+                                            if (card) {
+                                                const payBtn = card.querySelector('.btn-success');
+                                                if (payBtn) {
+                                                    payBtn.style.display = 'none';
+                                                }
+                                            }
+                                        } else {
+                                            const hours = Math.floor(diff / (1000 * 60 * 60));
+                                            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                                            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                                            countdown.textContent =
+                                                String(hours).padStart(2, '0') + ':' +
+                                                String(minutes).padStart(2, '0') + ':' +
+                                                String(seconds).padStart(2, '0');
+
+                                            // Change color when less than 1 hour
+                                            if (hours < 1) {
+                                                countdown.style.color = '#dc3545';
+                                            } else if (hours < 3) {
+                                                countdown.style.color = '#fd7e14';
+                                            }
+                                        }
+                                    });
+                                }
+
+                                // Update countdowns every second
+                                setInterval(updateCountdowns, 1000);
+                                document.addEventListener('DOMContentLoaded', updateCountdowns);
                             </script>
             </body>
 

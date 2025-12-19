@@ -20,18 +20,52 @@
                     <div class="container-fluid p-4">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h2>Staff Management</h2>
-                            <div class="d-flex gap-2">
-                                <a href="<c:url value='/manager/all-tasks'/>" class="btn btn-outline-primary">
-                                    <i class="bi bi-list-check me-2"></i>View All Tasks
-                                </a>
-                                <form action="<c:url value='/manager/staff'/>" method="get" class="d-flex gap-2">
-                                    <input type="date" name="date" class="form-control" value="${date}">
-                                    <button type="submit" class="btn btn-secondary">Filter</button>
-                                </form>
-                            </div>
+                            <a href="<c:url value='/manager/all-tasks'/>" class="btn btn-outline-primary">
+                                <i class="bi bi-list-check me-2"></i>View All Tasks
+                            </a>
                         </div>
 
                         <div class="card shadow-sm">
+                            <div class="card-header bg-white py-3">
+                                <form action="<c:url value='/manager/staff'/>" method="get">
+                                    <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text bg-light border-end-0"><i
+                                                        class="bi bi-search"></i></span>
+                                                <input type="text" name="search" class="form-control border-start-0"
+                                                    placeholder="Search by name..." value="${search}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <input type="date" name="date" class="form-control form-control-sm"
+                                                value="${date}">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select name="shiftType" class="form-select form-select-sm">
+                                                <option value="">All Shifts</option>
+                                                <option value="MORNING" ${shiftType=='MORNING' ? 'selected' : '' }>
+                                                    Morning</option>
+                                                <option value="AFTERNOON" ${shiftType=='AFTERNOON' ? 'selected' : '' }>
+                                                    Afternoon</option>
+                                                <option value="NIGHT" ${shiftType=='NIGHT' ? 'selected' : '' }>Night
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select name="sortBy" class="form-select form-select-sm">
+                                                <option value="employee_name" ${sortBy=='employee_name' ? 'selected'
+                                                    : '' }>Sort by Name</option>
+                                                <option value="shift_type" ${sortBy=='shift_type' ? 'selected' : '' }>
+                                                    Sort by Shift</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="submit" class="btn btn-sm btn-primary w-100">Filter</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
                                     <table class="table table-hover mb-0 align-middle">
@@ -51,9 +85,8 @@
                                                         ${a.employeeName}
                                                     </td>
                                                     <td>
-                                                        <span
-                                                            class="badge ${a.shiftType == 'MORNING' ? 'bg-info' : 
-                                                                   a.shiftType == 'AFTERNOON' ? 'bg-warning' : 'bg-dark'}">
+                                                        <span class="badge ${a.shiftType == 'MORNING' ? 'bg-info' : 
+                                                               a.shiftType == 'AFTERNOON' ? 'bg-warning' : 'bg-dark'}">
                                                             ${a.shiftType}
                                                         </span>
                                                     </td>
@@ -73,7 +106,8 @@
                                             </c:forEach>
                                             <c:if test="${empty assignments}">
                                                 <tr>
-                                                    <td colspan="4" class="text-center py-4 text-muted">
+                                                    <td colspan="4" class="text-center py-5 text-muted">
+                                                        <i class="bi bi-people fs-1 d-block mb-2"></i>
                                                         No assignments found for this date.
                                                     </td>
                                                 </tr>
@@ -81,6 +115,30 @@
                                         </tbody>
                                     </table>
                                 </div>
+                            </div>
+                            <div class="card-footer bg-white py-3">
+                                <nav class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">Showing ${assignments.size()} of ${totalAssignments}
+                                        staff</small>
+                                    <c:if test="${totalPages > 1}">
+                                        <ul class="pagination pagination-sm mb-0">
+                                            <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                                <a class="page-link"
+                                                    href="?page=${currentPage - 1}&search=${search}&date=${date}&shiftType=${shiftType}&sortBy=${sortBy}">Previous</a>
+                                            </li>
+                                            <c:forEach begin="1" end="${totalPages}" var="p">
+                                                <li class="page-item ${currentPage == p ? 'active' : ''}">
+                                                    <a class="page-link"
+                                                        href="?page=${p}&search=${search}&date=${date}&shiftType=${shiftType}&sortBy=${sortBy}">${p}</a>
+                                                </li>
+                                            </c:forEach>
+                                            <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                                <a class="page-link"
+                                                    href="?page=${currentPage + 1}&search=${search}&date=${date}&shiftType=${shiftType}&sortBy=${sortBy}">Next</a>
+                                            </li>
+                                        </ul>
+                                    </c:if>
+                                </nav>
                             </div>
                         </div>
                     </div>

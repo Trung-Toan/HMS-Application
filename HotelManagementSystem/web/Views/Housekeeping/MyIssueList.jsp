@@ -39,6 +39,59 @@
                             </div>
 
                             <div class="card shadow-sm border-0">
+                                <div class="card-header bg-white py-3">
+                                    <form action="<c:url value='/housekeeping/my-issues'/>" method="get">
+                                        <div class="row g-3">
+                                            <div class="col-md-3">
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text bg-light border-end-0"><i
+                                                            class="bi bi-search"></i></span>
+                                                    <input type="text" name="search" class="form-control border-start-0"
+                                                        placeholder="Search issue..." value="${search}">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <select name="type" class="form-select form-select-sm">
+                                                    <option value="">All Types</option>
+                                                    <option value="SUPPLY" ${type=='SUPPLY' ? 'selected' : '' }>Supply
+                                                    </option>
+                                                    <option value="EQUIPMENT" ${type=='EQUIPMENT' ? 'selected' : '' }>
+                                                        Equipment</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <select name="status" class="form-select form-select-sm">
+                                                    <option value="">All Status</option>
+                                                    <option value="NEW" ${status=='NEW' ? 'selected' : '' }>New</option>
+                                                    <option value="IN_PROGRESS" ${status=='IN_PROGRESS' ? 'selected'
+                                                        : '' }>
+                                                        In Progress</option>
+                                                    <option value="RESOLVED" ${status=='RESOLVED' ? 'selected' : '' }>
+                                                        Resolved</option>
+                                                    <option value="CLOSED" ${status=='CLOSED' ? 'selected' : '' }>Closed
+                                                    </option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <select name="sortBy" class="form-select form-select-sm">
+                                                    <option value="created_at" ${sortBy=='created_at' ? 'selected' : ''
+                                                        }>
+                                                        Sort by Date</option>
+                                                    <option value="status" ${sortBy=='status' ? 'selected' : '' }>Sort
+                                                        by
+                                                        Status</option>
+                                                    <option value="roomId" ${sortBy=='roomId' ? 'selected' : '' }>Sort
+                                                        by
+                                                        Room</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button type="submit"
+                                                    class="btn btn-sm btn-primary w-100">Filter</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
                                 <div class="card-body p-0">
                                     <div class="table-responsive">
                                         <table class="table table-hover align-middle mb-0">
@@ -88,6 +141,30 @@
                                             </tbody>
                                         </table>
                                     </div>
+                                </div>
+                                <div class="card-footer bg-white py-3">
+                                    <nav class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">Showing ${issues.size()} of ${totalIssues}
+                                            issues</small>
+                                        <c:if test="${totalPages > 1}">
+                                            <ul class="pagination pagination-sm mb-0">
+                                                <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                                    <a class="page-link"
+                                                        href="?page=${currentPage - 1}&search=${search}&status=${status}&type=${type}&sortBy=${sortBy}">Previous</a>
+                                                </li>
+                                                <c:forEach begin="1" end="${totalPages}" var="p">
+                                                    <li class="page-item ${currentPage == p ? 'active' : ''}">
+                                                        <a class="page-link"
+                                                            href="?page=${p}&search=${search}&status=${status}&type=${type}&sortBy=${sortBy}">${p}</a>
+                                                    </li>
+                                                </c:forEach>
+                                                <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                                    <a class="page-link"
+                                                        href="?page=${currentPage + 1}&search=${search}&status=${status}&type=${type}&sortBy=${sortBy}">Next</a>
+                                                </li>
+                                            </ul>
+                                        </c:if>
+                                    </nav>
                                 </div>
                             </div>
                         </div>

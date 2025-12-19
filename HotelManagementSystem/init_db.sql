@@ -194,6 +194,83 @@ CREATE TABLE inspection_details (
     FOREIGN KEY (amenity_id)    REFERENCES amenities(amenity_id)
 );
 
+/* ROOM STATUS PERIODS - Tracks room status over time */
+CREATE TABLE room_status_periods (
+    period_id     INT AUTO_INCREMENT PRIMARY KEY,
+    room_id       INT NOT NULL,
+    status        VARCHAR(20) NOT NULL,
+    start_date    DATE NOT NULL,
+    end_date      DATE NOT NULL,
+    booking_id    INT NULL,
+    note          VARCHAR(255) NULL,
+    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (room_id) REFERENCES rooms(room_id),
+    FOREIGN KEY (booking_id) REFERENCES bookings(booking_id),
+    INDEX idx_room_dates (room_id, start_date, end_date),
+    INDEX idx_status (status)
+);
+
+/* PAYMENTS TABLE - Tracks customer payments */
+CREATE TABLE payments (
+    payment_id      INT AUTO_INCREMENT PRIMARY KEY,
+    booking_id      INT NOT NULL,
+    amount          DECIMAL(15,2) NOT NULL,
+    payment_method  VARCHAR(50) NOT NULL,
+    payment_status  VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    transaction_id  VARCHAR(100) NULL,
+    refund_amount   DECIMAL(15,2) NULL,
+    refund_reason   VARCHAR(255) NULL,
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (booking_id) REFERENCES bookings(booking_id),
+    INDEX idx_payment_status (payment_status),
+    INDEX idx_booking (booking_id)
+);
+
+/* WALLETS TABLE - Virtual wallet for each user */
+CREATE TABLE wallets (
+    wallet_id       INT AUTO_INCREMENT PRIMARY KEY,
+    user_id         INT NOT NULL UNIQUE,
+    balance         DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    INDEX idx_user (user_id)
+);
+
+/* WALLET TRANSACTIONS TABLE - Transaction history */
+CREATE TABLE wallet_transactions (
+    transaction_id   INT AUTO_INCREMENT PRIMARY KEY,
+    wallet_id        INT NOT NULL,
+    amount           DECIMAL(15,2) NOT NULL,
+    transaction_type VARCHAR(20) NOT NULL,
+    description      VARCHAR(255),
+    reference_id     INT NULL,
+    balance_after    DECIMAL(15,2) NOT NULL,
+    created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (wallet_id) REFERENCES wallets(wallet_id),
+    INDEX idx_wallet (wallet_id),
+    INDEX idx_type (transaction_type)
+);
+
+-- Create table replenishment_requests
+CREATE TABLE IF NOT EXISTS replenishment_requests (
+    request_id INT AUTO_INCREMENT PRIMARY KEY,
+    inspection_id INT NOT NULL,
+    amenity_id INT NOT NULL,
+    quantity_requested INT NOT NULL,
+    reason TEXT,
+    status VARCHAR(20) DEFAULT 'PENDING',
+    requested_by INT NOT NULL,
+    approved_by INT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (inspection_id) REFERENCES room_inspections(inspection_id),
+    FOREIGN KEY (amenity_id) REFERENCES amenities(amenity_id),
+    FOREIGN KEY (requested_by) REFERENCES users(user_id),
+    FOREIGN KEY (approved_by) REFERENCES users(user_id)
+);
 
 
 /* ============================================
@@ -409,6 +486,23 @@ BEGIN
     SET p_id = LAST_INSERT_ID();
 END $$
 
+/* NEW — ROOM STATUS PERIOD */
+CREATE PROCEDURE sp_create_room_status_period(
+    IN p_room_id INT,
+    IN p_status VARCHAR(20),
+    IN p_start_date DATE,
+    IN p_end_date DATE,
+    IN p_booking_id INT,
+    IN p_note VARCHAR(255),
+    OUT p_id INT
+)
+BEGIN
+    INSERT INTO room_status_periods(room_id, status, start_date, end_date, booking_id, note)
+    VALUES(p_room_id, p_status, p_start_date, p_end_date, p_booking_id, p_note);
+
+    SET p_id = LAST_INSERT_ID();
+END $$
+
 DELIMITER ;
 
 
@@ -465,6 +559,29 @@ CALL sp_create_user('hk02', @pwd, 'Buồng phòng 02', 'hk02@example.com','09000
 
 CALL sp_create_user('owner01', @pwd, 'Chủ khách sạn', 'owner01@example.com','0900000031', @r_owner, 1, @u9);
 CALL sp_create_user('admin01', @pwd, 'Quản trị hệ thống', 'admin01@example.com','0900000041', @r_admin, 1, @u10);
+
+/* ============================================
+   SAMPLE DATA — WALLETS
+   ============================================ */
+-- Create wallets for customers with some initial balance for demo
+INSERT INTO wallets (user_id, balance) VALUES
+(@u1, 5000000),  -- cust01: 5 million VND
+(@u2, 2000000),  -- cust02: 2 million VND
+(@u3, 10000000), -- cust03: 10 million VND
+(@u4, 0);        -- cust04: 0 VND (empty wallet)
+
+-- Add sample transactions for cust01
+INSERT INTO wallet_transactions (wallet_id, amount, transaction_type, description, balance_after) VALUES
+(1, 5000000, 'DEPOSIT', 'Nạp tiền vào ví', 5000000);
+
+-- Add sample transactions for cust02
+INSERT INTO wallet_transactions (wallet_id, amount, transaction_type, description, balance_after) VALUES
+(2, 3000000, 'DEPOSIT', 'Nạp tiền vào ví', 3000000),
+(2, 1000000, 'PAYMENT', 'Thanh toán đặt phòng', 2000000);
+
+-- Add sample transactions for cust03
+INSERT INTO wallet_transactions (wallet_id, amount, transaction_type, description, balance_after) VALUES
+(3, 10000000, 'DEPOSIT', 'Nạp tiền vào ví', 10000000);
 
 
 
@@ -569,6 +686,27 @@ CALL sp_create_booking(@u4,@r202,'2025-01-25','2025-01-26',1,'NO_SHOW',600000,@u
 CALL sp_create_booking(@u4,@r203,'2025-02-10','2025-02-12',2,'CONFIRMED',1000000,@u6,@b8);
 CALL sp_create_booking(@u1,@r204,'2025-02-20','2025-02-22',2,'CHECKED_OUT',1600000,@u5,@b9);
 CALL sp_create_booking(@u2,@r205,'2025-03-05','2025-03-07',2,'PENDING',1000000,@u2,@b10);
+
+
+
+/* ============================================
+   SAMPLE DATA — ROOM STATUS PERIODS
+   ============================================ */
+-- PENDING/CONFIRMED bookings -> BOOKED status
+INSERT INTO room_status_periods (room_id, status, start_date, end_date, booking_id, note) VALUES
+(@r101, 'BOOKED', '2025-01-05', '2025-01-07', @b1, 'Booking #1 - PENDING'),
+(@r102, 'BOOKED', '2025-02-01', '2025-02-03', @b2, 'Booking #2 - CONFIRMED'),
+(@r201, 'BOOKED', '2025-03-01', '2025-03-04', @b6, 'Booking #6 - PENDING'),
+(@r203, 'BOOKED', '2025-02-10', '2025-02-12', @b8, 'Booking #8 - CONFIRMED'),
+(@r205, 'BOOKED', '2025-03-05', '2025-03-07', @b10, 'Booking #10 - PENDING');
+
+-- CHECKED_IN booking -> OCCUPIED status
+INSERT INTO room_status_periods (room_id, status, start_date, end_date, booking_id, note) VALUES
+(@r104, 'OCCUPIED', '2025-01-15', '2025-01-18', @b4, 'Booking #4 - CHECKED_IN');
+
+-- MAINTENANCE period example (no booking)
+INSERT INTO room_status_periods (room_id, status, start_date, end_date, booking_id, note) VALUES
+(@r203, 'MAINTENANCE', '2025-01-01', '2025-01-31', NULL, 'Scheduled maintenance');
 
 
 
@@ -900,23 +1038,6 @@ SET phone = CASE user_id
 END
 WHERE user_id BETWEEN 1 AND 10;
 
--- Create table replenishment_requests
-CREATE TABLE IF NOT EXISTS replenishment_requests (
-    request_id INT AUTO_INCREMENT PRIMARY KEY,
-    inspection_id INT NOT NULL,
-    amenity_id INT NOT NULL,
-    quantity_requested INT NOT NULL,
-    reason TEXT,
-    status VARCHAR(20) DEFAULT 'PENDING',
-    requested_by INT NOT NULL,
-    approved_by INT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (inspection_id) REFERENCES room_inspections(inspection_id),
-    FOREIGN KEY (amenity_id) REFERENCES amenities(amenity_id),
-    FOREIGN KEY (requested_by) REFERENCES users(user_id),
-    FOREIGN KEY (approved_by) REFERENCES users(user_id)
-);
 
 -- Create Stored Procedure sp_create_replenishment_request
 DELIMITER //
@@ -950,6 +1071,119 @@ BEGIN
         updated_at = NOW()
     WHERE request_id = p_request_id;
 END //
+DELIMITER ;
+
+
+/* ============================================
+   TRIGGERS — AUTOMATIC ROOM STATUS UPDATES
+   ============================================ */
+
+-- Drop existing triggers if they exist
+DROP TRIGGER IF EXISTS trg_booking_status_update;
+DROP TRIGGER IF EXISTS trg_housekeeping_task_update;
+DROP TRIGGER IF EXISTS trg_booking_insert;
+
+DELIMITER $$
+
+/* Trigger: When booking is created, create a BOOKED status period */
+CREATE TRIGGER trg_booking_insert
+AFTER INSERT ON bookings
+FOR EACH ROW
+BEGIN
+    -- Only create status period for active bookings (not cancelled)
+    IF NEW.status IN ('PENDING', 'CONFIRMED') THEN
+        INSERT INTO room_status_periods (room_id, status, start_date, end_date, booking_id, note)
+        VALUES (NEW.room_id, 'BOOKED', NEW.checkin_date, NEW.checkout_date, NEW.booking_id, 
+                CONCAT('Auto-created from booking #', NEW.booking_id));
+    END IF;
+END $$
+
+/* Trigger: When booking status changes */
+CREATE TRIGGER trg_booking_status_update
+AFTER UPDATE ON bookings
+FOR EACH ROW
+BEGIN
+    -- CHECKED_IN: Room becomes OCCUPIED
+    IF NEW.status = 'CHECKED_IN' AND OLD.status != 'CHECKED_IN' THEN
+        UPDATE rooms SET status = 'OCCUPIED' WHERE room_id = NEW.room_id;
+        UPDATE room_status_periods 
+        SET status = 'OCCUPIED', updated_at = NOW() 
+        WHERE booking_id = NEW.booking_id;
+    END IF;
+    
+    -- CHECKED_OUT: Room becomes DIRTY
+    IF NEW.status = 'CHECKED_OUT' AND OLD.status != 'CHECKED_OUT' THEN
+        UPDATE rooms SET status = 'DIRTY' WHERE room_id = NEW.room_id;
+        UPDATE room_status_periods 
+        SET end_date = CURDATE(), updated_at = NOW() 
+        WHERE booking_id = NEW.booking_id;
+    END IF;
+    
+    -- COMPLETED: Room becomes DIRTY (same as CHECKED_OUT)
+    IF NEW.status = 'COMPLETED' AND OLD.status != 'COMPLETED' THEN
+        UPDATE rooms SET status = 'DIRTY' WHERE room_id = NEW.room_id;
+        UPDATE room_status_periods 
+        SET end_date = CURDATE(), updated_at = NOW() 
+        WHERE booking_id = NEW.booking_id;
+    END IF;
+    
+    -- CANCELLED or NO_SHOW: Remove the status period and set room to AVAILABLE
+    IF NEW.status IN ('CANCELLED', 'NO_SHOW') AND OLD.status NOT IN ('CANCELLED', 'NO_SHOW') THEN
+        UPDATE rooms SET status = 'AVAILABLE' WHERE room_id = NEW.room_id;
+        DELETE FROM room_status_periods WHERE booking_id = NEW.booking_id;
+    END IF;
+    
+    -- CONFIRMED from PENDING: Update room to BOOKED
+    IF NEW.status = 'CONFIRMED' AND OLD.status = 'PENDING' THEN
+        UPDATE rooms SET status = 'BOOKED' WHERE room_id = NEW.room_id;
+    END IF;
+END $$
+
+/* Trigger: When housekeeping task status changes */
+CREATE TRIGGER trg_housekeeping_task_update
+AFTER UPDATE ON housekeeping_tasks
+FOR EACH ROW
+BEGIN
+    -- IN_PROGRESS: Room becomes CLEANING
+    IF NEW.status = 'IN_PROGRESS' AND OLD.status != 'IN_PROGRESS' THEN
+        UPDATE rooms SET status = 'CLEANING' WHERE room_id = NEW.room_id;
+    END IF;
+    
+    -- DONE: Room becomes AVAILABLE
+    IF NEW.status = 'DONE' AND OLD.status != 'DONE' THEN
+        UPDATE rooms SET status = 'AVAILABLE' WHERE room_id = NEW.room_id;
+    END IF;
+END $$
+
+DELIMITER ;
+
+
+/* ============================================
+   TRIGGER — AUTO CONFIRM BOOKING ON PAYMENT
+   ============================================ */
+
+DROP TRIGGER IF EXISTS trg_payment_completed;
+
+DELIMITER $$
+
+/* Trigger: When payment status changes to COMPLETED, confirm the booking */
+CREATE TRIGGER trg_payment_completed
+AFTER UPDATE ON payments
+FOR EACH ROW
+BEGIN
+    -- COMPLETED: Booking becomes CONFIRMED
+    IF NEW.payment_status = 'COMPLETED' AND OLD.payment_status != 'COMPLETED' THEN
+        UPDATE bookings SET status = 'CONFIRMED', updated_at = NOW() 
+        WHERE booking_id = NEW.booking_id AND status = 'PENDING';
+    END IF;
+    
+    -- REFUNDED: If booking is not yet checked in, set to CANCELLED
+    IF NEW.payment_status = 'REFUNDED' AND OLD.payment_status != 'REFUNDED' THEN
+        UPDATE bookings SET status = 'CANCELLED', updated_at = NOW() 
+        WHERE booking_id = NEW.booking_id AND status IN ('PENDING', 'CONFIRMED');
+    END IF;
+END $$
+
 DELIMITER ;
 
 

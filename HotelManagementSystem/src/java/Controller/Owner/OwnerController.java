@@ -795,28 +795,26 @@ public class OwnerController extends HttpServlet {
 
     private void showBookings(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         try {
             int page = 1;
             int pageSize = 10;
             if (request.getParameter("page") != null) {
                 try {
                     page = Integer.parseInt(request.getParameter("page"));
+                    if (page < 1)
+                        page = 1;
                 } catch (NumberFormatException e) {
                     page = 1;
                 }
             }
 
-            String statusFilter = request.getParameter("status");
-            if (statusFilter == null) {
-                statusFilter = "ALL";
-            }
+            String status = request.getParameter("status");
+            String search = request.getParameter("search");
+            String sortBy = request.getParameter("sortBy");
 
-            String searchQuery = request.getParameter("search");
-
-            List<Model.Booking> bookings = DAOBooking.INSTANCE.searchBookings(statusFilter, searchQuery, page,
+            List<Model.Booking> bookings = DAOBooking.INSTANCE.getBookings(search, status, sortBy, null, page,
                     pageSize);
-            int total = DAOBooking.INSTANCE.countBookings(statusFilter, searchQuery);
+            int total = DAOBooking.INSTANCE.countBookings(search, status);
 
             request.setAttribute("bookings", bookings);
             request.setAttribute("currentPage", page);
@@ -824,8 +822,9 @@ public class OwnerController extends HttpServlet {
             request.setAttribute("totalBookings", total);
 
             // Persist filter params
-            request.setAttribute("statusFilter", statusFilter);
-            request.setAttribute("searchQuery", searchQuery);
+            request.setAttribute("status", status); // Was statusFilter
+            request.setAttribute("search", search); // Was searchQuery
+            request.setAttribute("sortBy", sortBy);
 
         } catch (Exception e) {
             request.setAttribute("type", "error");

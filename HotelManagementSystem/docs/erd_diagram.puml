@@ -1,0 +1,246 @@
+@startuml Hotel_Management_ERD
+
+!define TABLE(name) entity name << (T,#FFAAAA) >>
+!define PK(x) <b><color:#b8860b><&key></color> x</b>
+!define FK(x) <color:#aaaaaa><&link-intact></color> x
+
+skinparam linetype ortho
+skinparam ranksep 60
+skinparam nodesep 50
+
+' ============ ROW 1: Core Entities ============
+
+TABLE(roles) {
+  PK(role_id) : INT
+  --
+  role_name : VARCHAR(50)
+  description : VARCHAR(255)
+}
+
+TABLE(users) {
+  PK(user_id) : INT
+  --
+  username : VARCHAR(50)
+  password_hash : VARCHAR(255)
+  full_name : VARCHAR(100)
+  email : VARCHAR(100)
+  phone : VARCHAR(20)
+  FK(role_id) : INT
+  is_active : TINYINT
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+TABLE(room_types) {
+  PK(room_type_id) : INT
+  --
+  type_name : VARCHAR(50)
+  description : VARCHAR(255)
+  base_price : DECIMAL(10,2)
+  max_occupancy : INT
+}
+
+TABLE(amenities) {
+  PK(amenity_id) : INT
+  --
+  name : VARCHAR(100)
+  description : VARCHAR(255)
+  price : DECIMAL(10,2)
+  is_active : TINYINT
+}
+
+' ============ ROW 2: Rooms & Assignments ============
+
+TABLE(rooms) {
+  PK(room_id) : INT
+  --
+  room_number : VARCHAR(20)
+  FK(room_type_id) : INT
+  floor : INT
+  status : VARCHAR(20)
+  image_url : VARCHAR(255)
+  description : VARCHAR(255)
+  is_active : TINYINT
+}
+
+TABLE(room_type_amenities) {
+  PK(id) : INT
+  --
+  FK(room_type_id) : INT
+  FK(amenity_id) : INT
+  default_quantity : INT
+}
+
+TABLE(staff_assignments) {
+  PK(assignment_id) : INT
+  --
+  FK(employee_id) : INT
+  work_date : DATE
+  shift_type : VARCHAR(20)
+  status : VARCHAR(20)
+  created_at : DATETIME
+}
+
+' ============ ROW 3: Bookings & Payments ============
+
+TABLE(bookings) {
+  PK(booking_id) : INT
+  --
+  FK(customer_id) : INT
+  FK(room_id) : INT
+  checkin_date : DATE
+  checkout_date : DATE
+  num_guests : INT
+  status : VARCHAR(20)
+  total_amount : DECIMAL(10,2)
+  FK(created_by) : INT
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+TABLE(payments) {
+  PK(payment_id) : INT
+  --
+  FK(booking_id) : INT
+  amount : DECIMAL(15,2)
+  payment_method : VARCHAR(50)
+  payment_status : VARCHAR(20)
+  transaction_id : VARCHAR(100)
+  refund_amount : DECIMAL(15,2)
+  refund_reason : VARCHAR(255)
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+TABLE(room_status_periods) {
+  PK(period_id) : INT
+  --
+  FK(room_id) : INT
+  status : VARCHAR(20)
+  start_date : DATE
+  end_date : DATE
+  FK(booking_id) : INT
+  note : VARCHAR(255)
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+TABLE(feedbacks) {
+  PK(feedback_id) : INT
+  --
+  FK(booking_id) : INT
+  FK(customer_id) : INT
+  rating : INT
+  comment : TEXT
+  created_at : DATETIME
+}
+
+' ============ ROW 4: Operations ============
+
+TABLE(housekeeping_tasks) {
+  PK(task_id) : INT
+  --
+  FK(room_id) : INT
+  FK(assigned_to) : INT
+  task_date : DATE
+  task_type : VARCHAR(20)
+  status : VARCHAR(20)
+  note : VARCHAR(255)
+  FK(created_by) : INT
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+TABLE(issue_reports) {
+  PK(issue_id) : INT
+  --
+  FK(room_id) : INT
+  FK(booking_id) : INT
+  FK(reported_by) : INT
+  issue_type : VARCHAR(20)
+  description : TEXT
+  status : VARCHAR(20)
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+TABLE(room_inspections) {
+  PK(inspection_id) : INT
+  --
+  FK(booking_id) : INT
+  FK(room_id) : INT
+  FK(inspector_id) : INT
+  inspection_date : DATETIME
+  type : VARCHAR(20)
+  note : TEXT
+}
+
+TABLE(inspection_details) {
+  PK(detail_id) : INT
+  --
+  FK(inspection_id) : INT
+  FK(amenity_id) : INT
+  quantity_actual : INT
+  condition_status : VARCHAR(20)
+  comment : TEXT
+}
+
+TABLE(replenishment_requests) {
+  PK(request_id) : INT
+  --
+  FK(inspection_id) : INT
+  FK(amenity_id) : INT
+  quantity_requested : INT
+  reason : TEXT
+  status : VARCHAR(20)
+  FK(requested_by) : INT
+  FK(approved_by) : INT
+  created_at : DATETIME
+  updated_at : DATETIME
+}
+
+' ============ RELATIONSHIPS ============
+
+' Core relationships
+roles ||--o{ users
+
+' Users relationships
+users ||--o{ bookings : "customer"
+users ||--o{ bookings : "created_by"
+users ||--o{ feedbacks
+users ||--o{ housekeeping_tasks : "assigned"
+users ||--o{ housekeeping_tasks : "created"
+users ||--o{ issue_reports
+users ||--o{ staff_assignments
+users ||--o{ room_inspections
+users ||--o{ replenishment_requests : "requested"
+users ||--o{ replenishment_requests : "approved"
+
+' Room types
+room_types ||--o{ rooms
+room_types ||--o{ room_type_amenities
+
+' Amenities
+amenities ||--o{ room_type_amenities
+amenities ||--o{ inspection_details
+amenities ||--o{ replenishment_requests
+
+' Rooms
+rooms ||--o{ bookings
+rooms ||--o{ housekeeping_tasks
+rooms ||--o{ issue_reports
+rooms ||--o{ room_inspections
+rooms ||--o{ room_status_periods
+
+' Bookings
+bookings ||--o| payments
+bookings ||--o{ feedbacks
+bookings ||--o{ issue_reports
+bookings ||--o{ room_inspections
+bookings ||--o{ room_status_periods
+
+' Inspections
+room_inspections ||--o{ inspection_details
+room_inspections ||--o{ replenishment_requests
+
+@enduml
