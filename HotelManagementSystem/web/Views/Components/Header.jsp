@@ -22,7 +22,7 @@
                         <c:if test="${not empty sessionScope.currentUser}">
                             <li><a href="${pageContext.request.contextPath}/wallet">💎 Luxe Wallet</a></li>
                         </c:if>
-                        <li><a href="${pageContext.request.contextPath}/customer/amenities">Room Amenities</a></li>
+                        <li><a href="${pageContext.request.contextPath}/customer/my-rooms">My Rooms</a></li>
 
                         <c:if test="${not empty sessionScope.currentUser}">
                             <!-- Mobile User Menu -->

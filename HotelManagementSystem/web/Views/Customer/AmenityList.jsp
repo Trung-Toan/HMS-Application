@@ -324,66 +324,111 @@
                                     </div>
                                 </div>
                                 <div class="action-buttons" style="display: flex; gap: 10px; align-items: center;">
-                                    <!-- Actions are now handled per-item in the list below -->
+                                    <a href="${pageContext.request.contextPath}/customer/my-rooms" class="report-btn"
+                                        style="background: #6c757d;">
+                                        <i class="fas fa-arrow-left"></i> Back
+                                    </a>
                                 </div>
                             </div>
 
                             <c:choose>
                                 <c:when test="${not empty amenityList}">
-                                    <form action="${pageContext.request.contextPath}/customer/amenities" method="POST"
-                                        id="amenityForm">
-                                        <input type="hidden" name="action" value="confirm_amenities">
-                                        <input type="hidden" name="bookingId" value="${booking.bookingId}">
-                                        <input type="hidden" name="roomId" value="${booking.roomId}">
-
-                                        <div class="amenity-grid">
-                                            <c:forEach items="${amenityList}" var="detail">
-                                                <div class="amenity-card">
-                                                    <div class="amenity-icon">
-                                                        <i class="fas fa-concierge-bell"></i>
-                                                    </div>
-                                                    <div class="amenity-name">${detail.amenity.name}</div>
-                                                    <div class="amenity-desc">${detail.amenity.description}</div>
-
-                                                    <div class="amenity-check-section"
-                                                        style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
-                                                        <input type="hidden" name="name_${detail.amenity.amenityId}"
-                                                            value="${detail.amenity.name}">
-                                                        <div style="display: flex; gap: 15px; justify-content: center;">
-                                                            <label
-                                                                style="cursor: pointer; display: flex; align-items: center; gap: 5px; color: #27ae60;">
-                                                                <input type="radio"
-                                                                    name="status_${detail.amenity.amenityId}" value="OK"
-                                                                    checked required>
-                                                                <i class="fas fa-check"></i> Sufficient
-                                                            </label>
-                                                            <label
-                                                                style="cursor: pointer; display: flex; align-items: center; gap: 5px; color: #e74c3c;">
-                                                                <input type="radio"
-                                                                    name="status_${detail.amenity.amenityId}"
-                                                                    value="MISSING">
-                                                                <i class="fas fa-times"></i> Missing
-                                                            </label>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="amenity-footer" style="margin-top: 15px;">
-                                                        <div class="amenity-qty">
-                                                            Qty: ${detail.quantityActual}
-                                                        </div>
-                                                        <!-- Removed previous status display as we are now asking for confirmation -->
+                                    <c:choose>
+                                        <%-- VIEW-ONLY MODE: Already confirmed --%>
+                                            <c:when test="${hasConfirmed}">
+                                                <div class="alert alert-success"
+                                                    style="display: flex; align-items: center; gap: 10px; padding: 15px; border-radius: 10px; margin-bottom: 20px; background: #d4edda; color: #155724;">
+                                                    <i class="fas fa-check-circle" style="font-size: 24px;"></i>
+                                                    <div>
+                                                        <strong>Amenities Confirmed</strong>
+                                                        <p style="margin: 0; font-size: 14px;">You have already
+                                                            confirmed the room amenities. Thank you!</p>
                                                     </div>
                                                 </div>
-                                            </c:forEach>
-                                        </div>
+                                                <div class="amenity-grid">
+                                                    <c:forEach items="${amenityList}" var="detail">
+                                                        <div class="amenity-card">
+                                                            <div class="amenity-icon">
+                                                                <i class="fas fa-concierge-bell"></i>
+                                                            </div>
+                                                            <div class="amenity-name">${detail.amenity.name}</div>
+                                                            <div class="amenity-desc">${detail.amenity.description}
+                                                            </div>
+                                                            <div class="amenity-footer" style="margin-top: 15px;">
+                                                                <div class="amenity-qty">
+                                                                    Qty: ${detail.quantityActual}
+                                                                </div>
+                                                                <div class="amenity-status" style="color: #27ae60;">
+                                                                    <i class="fas fa-check-circle"></i> Confirmed
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </c:forEach>
+                                                </div>
+                                            </c:when>
+                                            <%-- CONFIRMATION MODE: Not yet confirmed --%>
+                                                <c:otherwise>
+                                                    <form action="${pageContext.request.contextPath}/customer/amenities"
+                                                        method="POST" id="amenityForm">
+                                                        <input type="hidden" name="action" value="confirm_amenities">
+                                                        <input type="hidden" name="bookingId"
+                                                            value="${booking.bookingId}">
+                                                        <input type="hidden" name="roomId" value="${booking.roomId}">
 
-                                        <div style="text-align: center; margin-top: 30px;">
-                                            <button type="submit" class="submit-btn"
-                                                style="max-width: 300px; font-size: 18px;">
-                                                <i class="fas fa-paper-plane"></i> Submit Inspection
-                                            </button>
-                                        </div>
-                                    </form>
+                                                        <div class="amenity-grid">
+                                                            <c:forEach items="${amenityList}" var="detail">
+                                                                <div class="amenity-card">
+                                                                    <div class="amenity-icon">
+                                                                        <i class="fas fa-concierge-bell"></i>
+                                                                    </div>
+                                                                    <div class="amenity-name">${detail.amenity.name}
+                                                                    </div>
+                                                                    <div class="amenity-desc">
+                                                                        ${detail.amenity.description}</div>
+
+                                                                    <div class="amenity-check-section"
+                                                                        style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                                                                        <input type="hidden"
+                                                                            name="name_${detail.amenity.amenityId}"
+                                                                            value="${detail.amenity.name}">
+                                                                        <div
+                                                                            style="display: flex; gap: 15px; justify-content: center;">
+                                                                            <label
+                                                                                style="cursor: pointer; display: flex; align-items: center; gap: 5px; color: #27ae60;">
+                                                                                <input type="radio"
+                                                                                    name="status_${detail.amenity.amenityId}"
+                                                                                    value="OK" checked required>
+                                                                                <i class="fas fa-check"></i> Sufficient
+                                                                            </label>
+                                                                            <label
+                                                                                style="cursor: pointer; display: flex; align-items: center; gap: 5px; color: #e74c3c;">
+                                                                                <input type="radio"
+                                                                                    name="status_${detail.amenity.amenityId}"
+                                                                                    value="MISSING">
+                                                                                <i class="fas fa-times"></i> Missing
+                                                                            </label>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div class="amenity-footer"
+                                                                        style="margin-top: 15px;">
+                                                                        <div class="amenity-qty">
+                                                                            Qty: ${detail.quantityActual}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </c:forEach>
+                                                        </div>
+
+                                                        <div style="text-align: center; margin-top: 30px;">
+                                                            <button type="submit" class="submit-btn"
+                                                                style="max-width: 300px; font-size: 18px;">
+                                                                <i class="fas fa-paper-plane"></i> Confirm Amenities
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </c:otherwise>
+                                    </c:choose>
                                 </c:when>
                                 <c:otherwise>
                                     <div class="empty-state">

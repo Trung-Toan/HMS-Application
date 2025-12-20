@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpSession;
 /**
  * Controller for Check-in and Check-out operations
  */
-@WebServlet(name = "CheckInOutController", urlPatterns = {"/receptionist/checkinout"})
+@WebServlet(name = "CheckInOutController", urlPatterns = { "/receptionist/checkinout" })
 public class CheckInOutController extends HttpServlet {
 
     private final DAOReceptionist daoReceptionist = DAOReceptionist.INSTANCE;
@@ -58,6 +58,7 @@ public class CheckInOutController extends HttpServlet {
         // Set attributes
         request.setAttribute("readyForCheckIn", readyForCheckIn);
         request.setAttribute("checkedIn", checkedIn);
+        request.setAttribute("today", java.time.LocalDate.now());
 
         // Forward to JSP
         request.getRequestDispatcher("/Views/Receptionist/CheckInOut.jsp").forward(request, response);
@@ -122,7 +123,7 @@ public class CheckInOutController extends HttpServlet {
             } else {
                 session.setAttribute("error", errorMessage);
             }
-            
+
             response.sendRedirect(request.getContextPath() + "/receptionist/checkinout");
         } catch (NumberFormatException e) {
             request.setAttribute("type", "error");

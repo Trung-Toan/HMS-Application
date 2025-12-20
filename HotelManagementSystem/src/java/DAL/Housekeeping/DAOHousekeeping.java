@@ -622,6 +622,10 @@ public class DAOHousekeeping extends DAO {
             return false;
         }
 
+        // Ensure scheduled date is not in the past - use today if it is
+        LocalDate today = LocalDate.now();
+        LocalDate taskDate = scheduledDate.isBefore(today) ? today : scheduledDate;
+
         // Get Booking to find roomId
         // Using DAOBooking might cause circular dependency?
         // Querying roomId directly is safer here to avoid loop if DAOBooking calls
@@ -645,7 +649,7 @@ public class DAOHousekeeping extends DAO {
 
         String note = "[" + stageStr + "] " + taskType.name() + " for Booking #" + bookingId + " (Auto-assigned)";
 
-        return createTask(roomId, staffId, scheduledDate, taskType, note, 1);
+        return createTask(roomId, staffId, taskDate, taskType, note, 1);
     }
 
     public boolean createIssueReport(int roomId,

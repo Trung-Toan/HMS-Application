@@ -88,4 +88,22 @@ public class IssueReportDAO extends DAO {
 
         return report;
     }
+
+    /**
+     * Check if a booking has already submitted an amenity confirmation
+     */
+    public boolean hasConfirmation(int bookingId) {
+        String sql = "SELECT COUNT(*) FROM issue_reports WHERE booking_id = ? AND issue_type = 'CONFIRMATION'";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, bookingId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

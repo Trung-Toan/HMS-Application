@@ -503,7 +503,21 @@ public class DAOReceptionist extends DAO {
             // 2. Update booking status (trigger handles the rest)
             try (PreparedStatement ps = connection.prepareStatement(updateBookingSql)) {
                 ps.setInt(1, bookingId);
-                return ps.executeUpdate() > 0;
+                boolean success = ps.executeUpdate() > 0;
+
+                if (success) {
+                    // Auto-assign CHECKOUT Cleaning task
+                    DAL.Housekeeping.DAOHousekeeping.INSTANCE.autoAssignTask(bookingId,
+                            Model.HousekeepingTask.TaskType.CLEANING, "CHECKOUT",
+                            java.time.LocalDate.now());
+
+                    // Auto-assign CHECKOUT Inspection task
+                    DAL.Housekeeping.DAOHousekeeping.INSTANCE.autoAssignTask(bookingId,
+                            Model.HousekeepingTask.TaskType.INSPECTION, "CHECKOUT",
+                            java.time.LocalDate.now());
+                }
+
+                return success;
             }
 
         } catch (SQLException e) {
@@ -526,7 +540,7 @@ public class DAOReceptionist extends DAO {
                 + "JOIN rooms r ON b.room_id = r.room_id "
                 + "JOIN room_types rt ON r.room_type_id = rt.room_type_id "
                 + "WHERE b.status = 'CONFIRMED' "
-                + "AND b.checkin_date <= CURDATE() "
+                + "AND CURDATE() <= b.checkout_date "
                 + "ORDER BY b.checkin_date ASC, r.room_number ASC";
 
         try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {

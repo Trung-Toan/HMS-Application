@@ -58,15 +58,21 @@ public class DAOBooking extends DAO {
     }
 
     // ======================================================
-    // Get Booking by ID
+    // Get Booking by ID (with room details)
     // ======================================================
     public Booking getBookingById(int bookingId) {
-        String sql = "SELECT * FROM bookings WHERE booking_id = ?";
+        String sql = "SELECT b.*, c.full_name as customer_name, c.email as customer_email, "
+                + "r.room_number, rt.type_name, rt.room_type_id "
+                + "FROM bookings b "
+                + "JOIN users c ON b.customer_id = c.user_id "
+                + "JOIN rooms r ON b.room_id = r.room_id "
+                + "JOIN room_types rt ON r.room_type_id = rt.room_type_id "
+                + "WHERE b.booking_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, bookingId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapBooking(rs);
+                    return mapBookingWithDetails(rs);
                 }
             }
         } catch (SQLException e) {
@@ -443,6 +449,31 @@ public class DAOBooking extends DAO {
         return null;
     }
 
+    // Get ALL active bookings (CHECKED_IN) for a customer - supports multiple rooms
+    public java.util.List<Booking> getAllActiveBookingsByCustomerId(int customerId) {
+        java.util.List<Booking> list = new java.util.ArrayList<>();
+        String sql = "SELECT b.*, c.full_name as customer_name, c.email as customer_email, "
+                + "r.room_number, rt.type_name, rt.room_type_id "
+                + "FROM bookings b "
+                + "JOIN users c ON b.customer_id = c.user_id "
+                + "JOIN rooms r ON b.room_id = r.room_id "
+                + "JOIN room_types rt ON r.room_type_id = rt.room_type_id "
+                + "WHERE b.customer_id = ? AND b.status = 'CHECKED_IN' "
+                + "ORDER BY r.room_number";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, customerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapBookingWithDetails(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     // Cancel booking (only if status is PENDING or CONFIRMED)
     public boolean cancelBooking(int bookingId) {
         String checkSql = "SELECT status FROM bookings WHERE booking_id = ?";
@@ -488,6 +519,21 @@ public class DAOBooking extends DAO {
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, minutesArg);
+            return ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    // Mark NO_SHOW for CONFIRMED bookings that have passed their checkout date
+    // without check-in
+    public int markNoShowExpiredBookings() {
+        String sql = "UPDATE bookings SET status = 'NO_SHOW', updated_at = NOW() "
+                + "WHERE status = 'CONFIRMED' "
+                + "AND checkout_date < CURDATE()";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
             return ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

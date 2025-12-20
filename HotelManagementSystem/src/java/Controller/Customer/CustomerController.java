@@ -12,7 +12,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-@WebServlet(name = "CustomerController", urlPatterns = { "/customer/profile", "/customer/amenities" })
+@WebServlet(name = "CustomerController", urlPatterns = { "/customer/profile", "/customer/amenities",
+        "/customer/my-rooms" })
 public class CustomerController extends HttpServlet {
 
     @Override
@@ -35,6 +36,32 @@ public class CustomerController extends HttpServlet {
                 request.getRequestDispatcher("/Views/Customer/Profile.jsp").forward(request, response);
             }
 
+            case "/customer/my-rooms" -> {
+                HttpSession session = request.getSession();
+                User currentUser = (User) session.getAttribute("currentUser");
+
+                if (currentUser == null) {
+                    response.sendRedirect(request.getContextPath() + "/login");
+                    return;
+                }
+
+                // Get ALL active bookings (CHECKED_IN) for this customer
+                DAL.Booking.DAOBooking daoBooking = DAL.Booking.DAOBooking.INSTANCE;
+                java.util.List<Booking> activeBookings = daoBooking
+                        .getAllActiveBookingsByCustomerId(currentUser.getUserId());
+
+                // Check confirmation status for each booking
+                java.util.Map<Integer, Boolean> confirmationStatus = new java.util.HashMap<>();
+                for (Booking b : activeBookings) {
+                    confirmationStatus.put(b.getBookingId(),
+                            DAL.IssueReportDAO.INSTANCE.hasConfirmation(b.getBookingId()));
+                }
+
+                request.setAttribute("activeBookings", activeBookings);
+                request.setAttribute("confirmationStatus", confirmationStatus);
+                request.getRequestDispatcher("/Views/Customer/MyRooms.jsp").forward(request, response);
+            }
+
             case "/customer/amenities" -> {
                 HttpSession session = request.getSession();
                 User currentUser = (User) session.getAttribute("currentUser");
@@ -44,11 +71,33 @@ public class CustomerController extends HttpServlet {
                     return;
                 }
 
-                // Get active booking (CHECKED_IN)
+                // Get booking by ID from param, or fallback to first active booking
                 DAL.Booking.DAOBooking daoBooking = DAL.Booking.DAOBooking.INSTANCE;
-                Model.Booking booking = daoBooking.getActiveBookingByCustomerId(currentUser.getUserId());
+                Model.Booking booking = null;
+
+                String bookingIdParam = request.getParameter("bookingId");
+                if (bookingIdParam != null && !bookingIdParam.isEmpty()) {
+                    try {
+                        int bookingId = Integer.parseInt(bookingIdParam);
+                        booking = daoBooking.getBookingById(bookingId);
+                        // Verify this booking belongs to current user
+                        if (booking != null && booking.getCustomerId() != currentUser.getUserId()) {
+                            booking = null; // Not authorized
+                        }
+                    } catch (NumberFormatException e) {
+                        // Ignore, fallback below
+                    }
+                }
+
+                if (booking == null) {
+                    booking = daoBooking.getActiveBookingByCustomerId(currentUser.getUserId());
+                }
 
                 if (booking != null) {
+                    // Check if customer already confirmed amenities for this booking
+                    boolean hasConfirmed = DAL.IssueReportDAO.INSTANCE.hasConfirmation(booking.getBookingId());
+                    request.setAttribute("hasConfirmed", hasConfirmed);
+
                     // Get inspection details for this booking (CHECKIN type)
                     DAL.RoomInspectionDAO daoInspection = new DAL.RoomInspectionDAO();
                     Model.RoomInspection inspection = daoInspection

@@ -106,15 +106,28 @@
                                                                             pattern="#,###" /> VND
                                                                     </td>
                                                                     <td>
-                                                                        <button class="btn btn-success btn-sm"
-                                                                            onclick="confirmCheckIn(${booking.bookingId}, '${booking.customerName}', '${booking.roomNumber}')">
-                                                                            <i class="bi bi-box-arrow-in-right"></i>
-                                                                            Check In
-                                                                        </button>
-                                                                        <button class="btn btn-danger btn-sm ms-1"
-                                                                            onclick="confirmNoShow(${booking.bookingId}, '${booking.customerName}')">
-                                                                            No Show
-                                                                        </button>
+                                                                        <c:choose>
+                                                                            <c:when
+                                                                                test="${not booking.checkinDate.isAfter(today)}">
+                                                                                <button class="btn btn-success btn-sm"
+                                                                                    onclick="confirmCheckIn(${booking.bookingId}, '${booking.customerName}', '${booking.roomNumber}')">
+                                                                                    <i
+                                                                                        class="bi bi-box-arrow-in-right"></i>
+                                                                                    Check In
+                                                                                </button>
+                                                                                <button
+                                                                                    class="btn btn-danger btn-sm ms-1"
+                                                                                    onclick="confirmNoShow(${booking.bookingId}, '${booking.customerName}')">
+                                                                                    No Show
+                                                                                </button>
+                                                                            </c:when>
+                                                                            <c:otherwise>
+                                                                                <span class="badge bg-info">
+                                                                                    <i class="bi bi-calendar-event"></i>
+                                                                                    Upcoming
+                                                                                </span>
+                                                                            </c:otherwise>
+                                                                        </c:choose>
                                                                     </td>
                                                                 </tr>
                                                             </c:forEach>

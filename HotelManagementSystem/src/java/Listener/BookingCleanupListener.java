@@ -22,13 +22,20 @@ public class BookingCleanupListener implements ServletContextListener {
         scheduler.scheduleAtFixedRate(() -> {
             try {
                 System.out.println("DEBUG: Running automated booking cleanup task...");
-                int minutes = 5; // Cancel unpaid bookings older than 5 minutes
+
+                // 1. Cancel unpaid bookings older than 5 minutes
+                int minutes = 5;
                 int cancelledCount = DAOBooking.INSTANCE.cancelUnpaidBookings(minutes);
                 if (cancelledCount > 0) {
                     System.out.println("DEBUG: Automatically cancelled " + cancelledCount + " unpaid bookings.");
-                } else {
-                    System.out.println("DEBUG: No unpaid bookings to cancel.");
                 }
+
+                // 2. Mark NO_SHOW for expired CONFIRMED bookings (past checkout date)
+                int noShowCount = DAOBooking.INSTANCE.markNoShowExpiredBookings();
+                if (noShowCount > 0) {
+                    System.out.println("DEBUG: Automatically marked " + noShowCount + " bookings as NO_SHOW.");
+                }
+
             } catch (Exception e) {
                 System.err.println("ERROR: automated booking cleanup task failed: " + e.getMessage());
                 e.printStackTrace();

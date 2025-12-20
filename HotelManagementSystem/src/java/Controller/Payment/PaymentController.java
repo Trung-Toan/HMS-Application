@@ -202,6 +202,11 @@ public class PaymentController extends HttpServlet {
                             Model.HousekeepingTask.TaskType.INSPECTION, "CHECKIN",
                             booking.getCheckinDate().minusDays(1));
 
+                    // Auto-assign CHECKIN cleaning task (1 day before check-in)
+                    DAL.Housekeeping.DAOHousekeeping.INSTANCE.autoAssignTask(bookingId,
+                            Model.HousekeepingTask.TaskType.CLEANING, "CHECKIN",
+                            booking.getCheckinDate().minusDays(1));
+
                     // Send confirmation email
                     sendBookingConfirmationEmail(currentUser, booking, transactionId, "Luxe Wallet");
 
@@ -235,6 +240,11 @@ public class PaymentController extends HttpServlet {
                 // Auto-assign CHECKIN inspection (1 day before check-in)
                 DAL.Housekeeping.DAOHousekeeping.INSTANCE.autoAssignTask(bookingId,
                         Model.HousekeepingTask.TaskType.INSPECTION, "CHECKIN",
+                        booking.getCheckinDate().minusDays(1));
+
+                // Auto-assign CHECKIN cleaning task (1 day before check-in)
+                DAL.Housekeeping.DAOHousekeeping.INSTANCE.autoAssignTask(bookingId,
+                        Model.HousekeepingTask.TaskType.CLEANING, "CHECKIN",
                         booking.getCheckinDate().minusDays(1));
 
                 // Send confirmation email
@@ -283,8 +293,14 @@ public class PaymentController extends HttpServlet {
                         // Fetch booking to get check-in date
                         Booking b = DAOBooking.INSTANCE.getBookingById(bookingId);
                         if (b != null) {
+                            // Auto-assign CHECKIN inspection
                             DAL.Housekeeping.DAOHousekeeping.INSTANCE.autoAssignTask(bookingId,
                                     Model.HousekeepingTask.TaskType.INSPECTION, "CHECKIN",
+                                    b.getCheckinDate().minusDays(1));
+
+                            // Auto-assign CHECKIN cleaning task
+                            DAL.Housekeeping.DAOHousekeeping.INSTANCE.autoAssignTask(bookingId,
+                                    Model.HousekeepingTask.TaskType.CLEANING, "CHECKIN",
                                     b.getCheckinDate().minusDays(1));
                         }
                     } else {

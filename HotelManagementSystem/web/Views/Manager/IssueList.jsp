@@ -123,13 +123,21 @@
                                                         </span>
                                                     </td>
                                                     <td>
+                                                        <button type="button"
+                                                            class="btn btn-sm btn-outline-primary me-1"
+                                                            data-bs-toggle="modal" data-bs-target="#issueDetailModal"
+                                                            onclick="showIssueDetail('${i.issueId}', '${i.roomNumber != null ? i.roomNumber : i.roomId}', '${i.issueType}', '${i.status}', '${i.createdAt}', this)"
+                                                            data-description="${i.description}">
+                                                            <i class="bi bi-eye"></i>
+                                                        </button>
                                                         <c:if test="${i.status != 'RESOLVED' && i.status != 'CLOSED'}">
                                                             <form action="issues" method="post" class="d-inline">
                                                                 <input type="hidden" name="action" value="resolve">
                                                                 <input type="hidden" name="issueId"
                                                                     value="${i.issueId}">
-                                                                <button type="submit" class="btn btn-sm btn-success">
-                                                                    <i class="bi bi-check-lg me-1"></i>Resolve
+                                                                <button type="submit" class="btn btn-sm btn-success"
+                                                                    title="Resolve">
+                                                                    <i class="bi bi-check-lg"></i>
                                                                 </button>
                                                             </form>
                                                         </c:if>
@@ -179,7 +187,75 @@
                     <jsp:include page="../Shared/Footer.jsp" />
                 </div>
             </div>
+
+            <!-- Issue Detail Modal -->
+            <div class="modal fade" id="issueDetailModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Issue Detail</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <strong>Issue ID:</strong>
+                                    <span id="modalIssueId" class="ms-1"></span>
+                                </div>
+                                <div class="col-6">
+                                    <strong>Room:</strong>
+                                    <span id="modalRoom" class="ms-1"></span>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <strong>Type:</strong>
+                                    <span id="modalType" class="badge ms-1"></span>
+                                </div>
+                                <div class="col-6">
+                                    <strong>Status:</strong>
+                                    <span id="modalStatus" class="badge ms-1"></span>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Created At:</strong>
+                                <span id="modalDate" class="ms-1"></span>
+                            </div>
+                            <div>
+                                <strong>Description:</strong>
+                                <div id="modalDescription" class="mt-2 p-3 bg-light rounded"
+                                    style="white-space: pre-wrap; max-height: 300px; overflow-y: auto;"></div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+            <script>
+                function showIssueDetail(id, room, type, status, date, btn) {
+                    document.getElementById('modalIssueId').textContent = '#' + id;
+                    document.getElementById('modalRoom').textContent = 'Room ' + room;
+
+                    const typeSpan = document.getElementById('modalType');
+                    typeSpan.textContent = type;
+                    typeSpan.className = 'badge ms-1 ' + (type === 'CONFIRMATION' ? 'text-bg-info' : 'bg-light text-dark border');
+
+                    const statusSpan = document.getElementById('modalStatus');
+                    statusSpan.textContent = status;
+                    let statusClass = 'text-bg-secondary';
+                    if (status === 'NEW') statusClass = 'text-bg-danger';
+                    else if (status === 'RESOLVED') statusClass = 'text-bg-success';
+                    else if (status === 'IN_PROGRESS') statusClass = 'text-bg-warning';
+                    statusSpan.className = 'badge ms-1 rounded-pill ' + statusClass;
+
+                    document.getElementById('modalDate').textContent = date;
+                    document.getElementById('modalDescription').textContent = btn.getAttribute('data-description');
+                }
+            </script>
         </body>
 
         </html>
