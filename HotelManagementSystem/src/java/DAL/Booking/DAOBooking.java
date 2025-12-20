@@ -477,6 +477,24 @@ public class DAOBooking extends DAO {
         return false;
     }
 
+    // ======================================================
+    // Automated Tasks
+    // ======================================================
+    public int cancelUnpaidBookings(int minutesArg) {
+        // Cancel PENDING bookings created more than 'minutesArg' minutes ago
+        String sql = "UPDATE bookings SET status = 'CANCELLED', updated_at = NOW() "
+                + "WHERE status = 'PENDING' "
+                + "AND created_at < DATE_SUB(NOW(), INTERVAL ? MINUTE)";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, minutesArg);
+            return ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     // Get booking with room details (JOIN query)
     public java.util.Map<String, Object> getBookingWithRoomDetails(int bookingId) {
         String sql = "SELECT b.*, r.room_number, r.floor, r.status as room_status, "

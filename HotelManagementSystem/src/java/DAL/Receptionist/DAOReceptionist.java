@@ -1071,4 +1071,93 @@ public class DAOReceptionist extends DAO {
         }
         return false;
     }
+
+    // ======================================================
+    // Room Availability Calendar Methods
+    // ======================================================
+    /**
+     * Get all bookings for a specific room type within a date range.
+     * Used for the availability calendar view.
+     */
+    public List<Map<String, Object>> getBookingsByRoomType(int roomTypeId, LocalDate startDate, LocalDate endDate) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        String sql = "SELECT b.booking_id, b.room_id, b.checkin_date, b.checkout_date, b.status, "
+                + "r.room_number, u.full_name as customer_name "
+                + "FROM bookings b "
+                + "JOIN rooms r ON b.room_id = r.room_id "
+                + "JOIN users u ON b.customer_id = u.user_id "
+                + "WHERE r.room_type_id = ? "
+                + "AND b.status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN') "
+                + "AND NOT (b.checkout_date <= ? OR b.checkin_date >= ?) "
+                + "ORDER BY b.checkin_date ASC, r.room_number ASC";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, roomTypeId);
+            ps.setDate(2, Date.valueOf(startDate));
+            ps.setDate(3, Date.valueOf(endDate));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> booking = new HashMap<>();
+                    booking.put("bookingId", rs.getInt("booking_id"));
+                    booking.put("roomId", rs.getInt("room_id"));
+                    booking.put("roomNumber", rs.getString("room_number"));
+                    booking.put("checkinDate", rs.getDate("checkin_date").toLocalDate().toString());
+                    booking.put("checkoutDate", rs.getDate("checkout_date").toLocalDate().toString());
+                    booking.put("status", rs.getString("status"));
+                    booking.put("customerName", rs.getString("customer_name"));
+                    list.add(booking);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
+     * Get count of rooms by room type
+     */
+    public int getRoomCountByType(int roomTypeId) {
+        String sql = "SELECT COUNT(*) FROM rooms WHERE room_type_id = ? AND is_active = true";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, roomTypeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * Get available room count for a specific date and room type
+     */
+    public int getAvailableRoomCountForDate(int roomTypeId, LocalDate date) {
+        String sql = "SELECT COUNT(*) FROM rooms r "
+                + "WHERE r.room_type_id = ? "
+                + "AND r.is_active = true "
+                + "AND r.room_id NOT IN ("
+                + "    SELECT b.room_id FROM bookings b "
+                + "    WHERE b.status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN') "
+                + "    AND ? >= b.checkin_date AND ? < b.checkout_date"
+                + ")";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, roomTypeId);
+            ps.setDate(2, Date.valueOf(date));
+            ps.setDate(3, Date.valueOf(date));
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }

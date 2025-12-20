@@ -95,7 +95,7 @@
                                                         <th>Room Number</th>
                                                         <th>Floor</th>
                                                         <th>Room Type</th>
-                                                        <th>Status</th>
+                                                        <!-- <th>Status</th> -->
                                                         <th>Action</th>
                                                     </tr>
                                                 </thead>
@@ -129,7 +129,7 @@
                                                                     </c:if>
                                                                 </c:forEach>
                                                             </td>
-                                                            <td>
+                                                            <!-- <td>
                                                                 <span
                                                                     class="badge rounded-pill 
                                                             ${r.status == 'AVAILABLE' ? 'bg-success' : 
@@ -137,7 +137,7 @@
                                                               (r.status == 'CLEANING' ? 'bg-warning' : 'bg-secondary'))}">
                                                                     ${r.status}
                                                                 </span>
-                                                            </td>
+                                                            </td> -->
                                                             <td>
                                                                 <!-- Edit Button Trigger -->
                                                                 <a href="<c:url value='/owner/room-form?id=${r.roomId}'/>"

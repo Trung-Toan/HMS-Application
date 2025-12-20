@@ -10,8 +10,8 @@ public class SendEmail {
      * Sends an email to the specified recipient with the given title and
      * content.
      *
-     * @param sentTo The email address of the recipient.
-     * @param title The title of the email.
+     * @param sentTo  The email address of the recipient.
+     * @param title   The title of the email.
      * @param content The content of the email, which can be HTML formatted.
      */
     public static void sendMail(String sentTo, String title, String content) {
@@ -37,8 +37,8 @@ public class SendEmail {
             message.setFrom(new InternetAddress(username)); // Set sender
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(sentTo)); // Set recipient
             message.setSubject(title); // Set email subject
-            // Set content as HTML
-            message.setContent(content, "text/html");
+            // Set content as HTML with UTF-8 encoding
+            message.setContent(content, "text/html; charset=UTF-8");
             // Send the email
             Transport.send(message);
             System.out.println("Email sent successfully!");
@@ -47,6 +47,7 @@ public class SendEmail {
             System.out.println("Error at :" + e.getMessage());
         }
     }
+
     public static void main(String[] args) {
         SendEmail.sendMail("tpashop123321@gmail.com", "hello TPA", "<h1>qua dep</h1>");
     }

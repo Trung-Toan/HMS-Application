@@ -2,6 +2,7 @@ package Controller.Authen;
 
 import DAL.Authen.DAOAuthen;
 import Model.User;
+import Utils.SendEmail;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -114,6 +115,13 @@ public class AuthenController extends HttpServlet {
             int result = DAOAuthen.INSTANCE.registerCustomer(user);
 
             if (result > 0) {
+                // Send welcome email
+                String subject = "Welcome to Our Hotel";
+                String content = "<h3>Chào mừng bạn đến với khách sạn của chúng tôi!</h3>"
+                        + "<p>Chúc bạn có những trải nghiệm tuyệt vời nhất khi đặt lịch và sử dụng dịch vụ của chúng tôi.</p>"
+                        + "<p>Trân trọng,<br>Đội ngũ quản lý khách sạn</p>";
+                SendEmail.sendMail(email, subject, content);
+
                 request.setAttribute("type", "success");
                 request.setAttribute("mess", "Register successful!");
                 request.setAttribute("href", "login");
